@@ -79,3 +79,25 @@ barrados pelo `pnpm verificar`; vazio é uma escolha, não uma pendência.
 
 - Basta a regra da segunda visita (como na decisão original) ou o "Pular" deve existir sempre?
 - O canto superior esquerdo serve, ou prefere o rodapé? Sobre a arte final, pode haver conflito com elementos desenhados.
+
+## Implementação (26/10/2026)
+
+Implementada na branch `feat/spec-14-controles-e-legibilidade`. Respostas adotadas para as questões em aberto e
+desvios do desenho acima:
+
+- **Segunda visita em diante**, como na decisão original (RF-14.2), no **canto superior esquerdo**. O som continua no
+  direito. Fonte do tamanho do corpo do texto (a do antigo botão da entrada), não a de rótulo, por legibilidade.
+- **A primeira visita é lida uma vez, ao montar o botão** (`montarBotaoPular`). O convite registra a visita quando a
+  carta termina de abrir (`registrarVisita`), ainda dentro da primeira abertura; ler `estado.visitado` a cada mudança
+  de fase faria o botão aparecer no fim dela, contra o RF-14.2.
+- **Ordem do Tab (RF-14.3):** atalho, "Pular", som, etapa atual. Para garantir, o botão de som saiu de dentro do
+  `#app` e vai direto no `<body>`, antes de "Pular"; as cenas se montam depois e ficavam na frente dele.
+- **O `.entrada__pular` do HTML inicial foi removido**; `cena-entrada.ts` não conhece mais "pular" (o orquestrador
+  continua aceitando a escolha `pular`, vinda do botão ou do atalho). Clicar durante o carregamento já funciona.
+- **"Role para ler":** filho do `.conteudo`, `position: absolute` acima do topo da carta (12 px de folga), `aria-hidden`
+  (é só um aviso visual). O `top` repete o recuo do `.conteudo` (52% ou 55% da altura) em `vh` e `dvh`, porque o recuo
+  não pode ser uma variável CSS com `dvh` (SPEC-15). Some na primeira rolagem ou `config.convite.rolarVisivel` (8 s)
+  depois de aparecer. Medido em 1024 × 768, 375 × 812 e 812 × 375: a dica termina sempre 12 px acima da carta.
+- **Verso opcional:** vazio não cria o parágrafo, nem no `<noscript>` nem no plano B; `pnpm verificar` aceita `''`.
+- **Correção da SPEC-15 feita junto:** as alternativas em `vh` para `dvh` não tinham sido escritas e o teste não
+  as cobrava (`\bdvh\b` não casa em "52dvh"). Agora estão escritas e o teste falha sem elas.
