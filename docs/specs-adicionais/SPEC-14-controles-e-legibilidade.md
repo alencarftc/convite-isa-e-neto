@@ -1,6 +1,6 @@
 # SPEC-14 · Controles sempre à mão e legibilidade
 
-> **Aprovada em 26/10/2026 e implementada no repositório.** Spec adicional (ainda fora do Claude Docs). Origem: B3, B4 e B8 da [revisão](, da [revisão](./README.md).
+> **Aprovada em 26/10/2026.** Spec adicional do repositório (ainda fora do Claude Docs). Origem: B3, B4 e B8 da [revisão](./README.md).
 
 **Histórias:** US-14.1, US-14.2, US-14.3 · **Prioridade:** Should · **Pontos:** 3 · **Depende de:** SPEC-02, SPEC-06, SPEC-07, SPEC-09
 

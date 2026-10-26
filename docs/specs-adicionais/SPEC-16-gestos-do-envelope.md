@@ -1,6 +1,6 @@
 # SPEC-16 · Gestos do envelope: deslizar e selo na entrada
 
-> **Aprovada em 26/10/2026 e implementada no repositório.** Spec adicional (ainda fora do Claude Docs). Origem: B5 e B6 da [revisão](, da [revisão](./README.md).
+> **Aprovada em 26/10/2026.** Spec adicional do repositório (ainda fora do Claude Docs). Origem: B5 e B6 da [revisão](./README.md).
 
 **Histórias:** US-16.1, US-16.2 · **Prioridade:** Could · **Pontos:** 5 · **Depende de:** SPEC-02, SPEC-06
 

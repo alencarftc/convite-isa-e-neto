@@ -1,6 +1,6 @@
 # SPEC-17 · Salvar na agenda
 
-> **Aprovada em 26/10/2026 e implementada no repositório.** Spec adicional (ainda fora do Claude Docs). Origem: B11 da [revisão](, da [revisão](./README.md).
+> **Aprovada em 26/10/2026.** Spec adicional do repositório (ainda fora do Claude Docs). Origem: B11 da [revisão](./README.md).
 
 **Histórias:** US-17.1 · **Prioridade:** Could · **Pontos:** 3 · **Depende de:** SPEC-07
 

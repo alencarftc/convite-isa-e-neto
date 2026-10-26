@@ -1,6 +1,6 @@
 # SPEC-15 · Compatibilidade com aparelhos antigos e plano B
 
-> **Aprovada em 26/10/2026 e implementada no repositório.** Spec adicional (ainda fora do Claude Docs). Origem: B2 da [revisão](, da [revisão](./README.md).
+> **Aprovada em 26/10/2026.** Spec adicional do repositório (ainda fora do Claude Docs). Origem: B2 da [revisão](./README.md).
 
 **Histórias:** US-15.1, US-15.2, US-15.3 · **Prioridade:** Must (recomendada) · **Pontos:** 8 · **Depende de:** SPEC-01, SPEC-09, SPEC-12
 

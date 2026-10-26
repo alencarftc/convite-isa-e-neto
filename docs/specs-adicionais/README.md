@@ -1,7 +1,6 @@
 # Revisão de consistência e specs adicionais 13 a 17
 
-> **Situação: as cinco specs foram aprovadas em 26/10/2026 e implementadas** (uma branch por spec, mergeadas na
-> `main`). As respostas padrão adotadas estão no fim de cada spec. A fonte da verdade continua sendo o Claude Docs;
+> **Situação: as cinco specs foram aprovadas em 26/10/2026** (uma branch por spec, mergeadas na `main`). As respostas padrão adotadas estão no fim de cada spec. A fonte da verdade continua sendo o Claude Docs;
 > estas specs ainda precisam ser levadas para lá.
 
 Revisão feita em 26/10/2026, cruzando três coisas: o que a noiva pediu no briefing (documento de requisitos, que

@@ -1,6 +1,6 @@
 # SPEC-13 · Nossa história para todos os caminhos
 
-> **Aprovada em 26/10/2026 e implementada no repositório.** Spec adicional (ainda fora do Claude Docs). Origem: B1 da [revisão](, da [revisão](./README.md).
+> **Aprovada em 26/10/2026.** Spec adicional do repositório (ainda fora do Claude Docs). Origem: B1 da [revisão](./README.md).
 
 **Histórias:** US-13.1, US-13.2, US-13.3 · **Prioridade:** Must (recomendada) · **Pontos:** 5 · **Depende de:** SPEC-05, SPEC-07, SPEC-09
 
