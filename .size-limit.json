@@ -1,0 +1,13 @@
+[
+  {
+    "name": "JavaScript crítico (gzip) — SPEC-12",
+    "path": "dist/assets/*.js",
+    "gzip": true,
+    "limit": "120 kB"
+  },
+  {
+    "name": "HTML com CSS crítico — SPEC-12",
+    "path": "dist/index.html",
+    "limit": "30 kB"
+  }
+]
