@@ -34,7 +34,7 @@ const config = {
 } as unknown as Pick<ConfigConvite, 'duracoes' | 'imagens'>;
 
 /** Imagens falsas: cada download fica pendente até o teste liberar; `falhasPorUrl` diz quantas vezes cada um falha. */
-function cenario(opcoes: { falhasPorUrl?: Record<string, number> } = {}) {
+function cenario(opcoes: { falhasPorUrl?: Record<string, number>; fotos?: string[] } = {}) {
   const pendentes: { url: string; prioridade: PrioridadeDeImagem; liberar: () => void }[] = [];
   const chamadas: string[] = [];
   const falhasRestantes = new Map(Object.entries(opcoes.falhasPorUrl ?? {}));
@@ -80,7 +80,7 @@ function cenario(opcoes: { falhasPorUrl?: Record<string, number> } = {}) {
   }
 
   return {
-    carregamento: criarCarregamento({ imagens, temporizador, config }),
+    carregamento: criarCarregamento({ imagens, temporizador, config, fotos: opcoes.fotos ?? [] }),
     pendentes,
     chamadas,
     liberarTodos,
@@ -241,6 +241,39 @@ describe('criarCarregamento', () => {
       await aposOGrupo(['sol-h']);
       await aposOGrupo(['envelope-fechado', 'envelope-aberto', 'selo', 'papel-carta']);
       await aposOGrupo(['casal']);
+    });
+
+    it('as fotos dos balões vão no primeiro grupo da fila, com os balões, e só depois do toque (RF-02.7)', async () => {
+      const { carregamento, pendentes, chamadas } = cenario({ fotos: ['foto-1', 'foto-2'] });
+
+      expect(chamadas).toEqual([]); // nada baixa antes de `secundario`: é a fila do toque
+      carregamento.secundario('horizontal');
+      await Promise.resolve();
+
+      expect(chamadas).toEqual([
+        'bau-aberto',
+        'petala-a',
+        'petala-b',
+        'petala-c',
+        'cursor-chave',
+        'balao-a',
+        'balao-b',
+        'balao-c',
+        'foto-1',
+        'foto-2',
+      ]);
+      expect(pendentes.every((pendente) => pendente.prioridade === 'baixa')).toBe(true);
+      // o céu do pôr do sol, do grupo seguinte, espera as fotos terminarem
+      expect(chamadas).not.toContain('sol-h');
+    });
+
+    it('uma foto repetida é baixada uma vez só', async () => {
+      const { carregamento, liberarTodos, chamadas } = cenario({ fotos: ['foto-1', 'foto-1'] });
+
+      carregamento.secundario('vertical');
+      await liberarTodos();
+
+      expect(chamadas.filter((url) => url === 'foto-1')).toHaveLength(1);
     });
 
     it('não repete o que o crítico já baixou', async () => {

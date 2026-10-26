@@ -43,7 +43,7 @@ describe('script do plano B (SPEC-15, RF-15.6)', () => {
     const script = gerarScriptDoPlanoB(config.duracoes.limitePlanoB);
 
     expect(script).toContain(`setTimeout(g,${String(config.duracoes.limitePlanoB * 1000)});`);
-    expect(script).toContain(`w.${PLANO_B.variavel}!=="${PLANO_B.marca}"`);
+    expect(script).toContain(`w.${PLANO_B.variavel}==="${PLANO_B.marca}"`);
     expect(script).toContain(`l.add("${PLANO_B.classe}")`);
     // erro do próprio site antes da marca, e falha do <script type="module">: os dois levam ao plano B
     expect(script).toContain('w.addEventListener("error"');
@@ -89,6 +89,23 @@ describe('texto do plano B (SPEC-15, RF-15.7)', () => {
     const ids = [...(texto + noscript).matchAll(/ id="([^"]+)"/g)].map(([, id]) => id);
 
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('as fotos do plano B esperam em data-src: escondido, o navegador baixaria um <img loading="lazy"> mesmo assim (SPEC-13, RF-13.5)', () => {
+    const fotos = [...texto.matchAll(/<img [^>]*>/g)].map(([tag]) => tag);
+
+    expect(fotos).toHaveLength(content.baloes.length);
+    for (const tag of fotos) {
+      expect(tag).toContain('data-src="');
+      expect(tag).not.toMatch(/ssrc="/);
+    }
+  });
+
+  it('já as do <noscript>, que só existe sem JavaScript, usam src direto', () => {
+    const noscript = gerarNoscript(content, config);
+
+    expect(noscript).toMatch(/<img src="/);
+    expect(noscript).not.toContain('data-src');
   });
 
   it('só usa variáveis dos tokens: nenhum hex nem rgb() (CA-01.3.1)', () => {

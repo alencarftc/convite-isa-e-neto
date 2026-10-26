@@ -9,6 +9,9 @@ import { ESTILO_DO_TEXTO_SIMPLES, gerarTextoSimples } from './texto-simples';
 export const MARCADOR_DO_HEAD_DO_PLANO_B = '<!--PLANO-B-HEAD-->';
 export const MARCADOR_DO_TEXTO_DO_PLANO_B = '<!--PLANO-B-->';
 
+/** O bloco de texto simples do plano B: escondido até a classe do `<html>` ligar. */
+export const CLASSE_DO_TEXTO = 'plano-b-texto';
+
 /** Limite de tamanho do script inline (SPEC-15, RF-15.6): ele roda antes de tudo e não pode pesar. */
 export const LIMITE_DO_SCRIPT_EM_BYTES = 512;
 
@@ -17,14 +20,16 @@ export const LIMITE_DO_SCRIPT_EM_BYTES = 512;
  * qualquer navegador. Liga a classe se o pacote não deixar a marca até o limite; se o
  * `<script type="module">` falhar ao carregar (o `error` de recurso não borbulha, por isso a captura
  * no documento); ou se o pacote lançar um erro do próprio site antes de deixar a marca (um erro de
- * extensão do navegador, de outro endereço, não conta). Depois da marca, quem cuida dos erros é o
- * modo de segurança do convite.
+ * extensão do navegador, de outro endereço, não conta). Ao ligar, dá o `src` às fotos do texto
+ * simples, que esperavam em `data-src` (ver `gerarTextoSimples`). Depois da marca, quem cuida dos erros
+ * é o modo de segurança do convite.
  */
 export function gerarScriptDoPlanoB(limiteEmSegundos: number): string {
   const { classe, variavel, marca } = PLANO_B;
   const milissegundos = Math.round(limiteEmSegundos * 1000);
   return (
-    `(function(d,w){var l=d.documentElement.classList,g=function(){w.${variavel}!=="${marca}"&&l.add("${classe}")};` +
+    `(function(d,w){var l=d.documentElement.classList,g=function(){if(w.${variavel}==="${marca}")return;l.add("${classe}");` +
+    `var m=d.querySelectorAll(".${CLASSE_DO_TEXTO} img[data-src]"),i=0;for(;i<m.length;i++){m[i].src=m[i].getAttribute("data-src");m[i].removeAttribute("data-src")}};` +
     `setTimeout(g,${milissegundos.toString()});` +
     'w.addEventListener("error",function(e){e.filename&&e.filename.indexOf(w.location.origin)===0&&g()});' +
     'd.addEventListener("error",function(e){e.target.tagName==="SCRIPT"&&g()},true)})(document,window)'
@@ -33,8 +38,8 @@ export function gerarScriptDoPlanoB(limiteEmSegundos: number): string {
 
 /** Alterna entre o convite e o texto simples; as regras de `.sem-js` vêm do texto simples. */
 const ESTILO_DO_PLANO_B = `
-.plano-b-texto { display: none; }
-html.${PLANO_B.classe} .plano-b-texto { display: block; }
+.${CLASSE_DO_TEXTO} { display: none; }
+html.${PLANO_B.classe} .${CLASSE_DO_TEXTO} { display: block; }
 html.${PLANO_B.classe} #app { display: none; }${ESTILO_DO_TEXTO_SIMPLES}`;
 
 export function gerarHeadDoPlanoB(config: ConfigConvite): string {
@@ -42,7 +47,10 @@ export function gerarHeadDoPlanoB(config: ConfigConvite): string {
 }
 
 export function gerarTextoDoPlanoB(conteudo: ConteudoConvite, config: ConfigConvite): string {
-  return gerarTextoSimples(conteudo, config, 'plano-b', 'plano-b-texto');
+  return gerarTextoSimples(conteudo, config, 'plano-b', {
+    classesExtras: CLASSE_DO_TEXTO,
+    fotosAdiadas: true,
+  });
 }
 
 /** Plugin do Vite: injeta o script, o estilo e o texto simples do plano B (SPEC-15, RF-15.6 e RF-15.7). */

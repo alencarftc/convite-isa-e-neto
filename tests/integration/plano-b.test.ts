@@ -92,6 +92,29 @@ describe('plano B no navegador (SPEC-15, RF-15.6)', () => {
     expect(planoBLigado()).toBe(false);
   });
 
+  it('ao ligar, o plano B pede as fotos do texto simples, que esperavam em data-src; antes disso ninguém as pede', () => {
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      '<main class="plano-b-texto"><img id="f1" data-src="assets/foto-1.svg"><img id="f2" data-src="assets/foto-2.svg"></main><img id="de-fora" data-src="assets/outra.svg">',
+    );
+    rodarOScriptDoHead();
+    const fotos = () => [...document.querySelectorAll<HTMLImageElement>('.plano-b-texto img')];
+
+    vi.advanceTimersByTime(limiteEmMs - 1);
+    expect(fotos().every((foto) => !foto.hasAttribute('src'))).toBe(true);
+
+    vi.advanceTimersByTime(1);
+    expect(fotos().map((foto) => foto.getAttribute('src'))).toEqual([
+      'assets/foto-1.svg',
+      'assets/foto-2.svg',
+    ]);
+    expect(fotos().every((foto) => !foto.hasAttribute('data-src'))).toBe(true);
+    // só as do texto simples: outras imagens da página não são tocadas
+    expect(document.querySelector('#de-fora')?.hasAttribute('src')).toBe(false);
+    document.querySelector('.plano-b-texto')?.remove();
+    document.querySelector('#de-fora')?.remove();
+  });
+
   it('falha em outro recurso (uma imagem) não liga o plano B', () => {
     rodarOScriptDoHead();
     const imagem = document.createElement('img');

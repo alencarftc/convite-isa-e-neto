@@ -9,6 +9,7 @@ import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { posicoesDoBalao } from '@/domain/historia/posicoes';
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
+import { adiarImagem, carregarImagensTardias } from '../imagens/imagens-tardias';
 import { criarFotoEmCirculo } from './foto-em-circulo';
 
 export interface DependenciasDaHistoria {
@@ -64,13 +65,13 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
       const elemento = criar('div', `balao balao--${variacao}`);
       const nuvem = document.createElement('img');
       nuvem.className = 'balao__nuvem';
-      nuvem.src = urlDaImagem(config.imagens[CHAVES_DE_NUVEM[variacao]], 'vertical');
+      adiarImagem(nuvem, urlDaImagem(config.imagens[CHAVES_DE_NUVEM[variacao]], 'vertical'));
       nuvem.alt = '';
       nuvem.draggable = false;
       const frase = criar('p', 'balao__frase');
       frase.textContent = balao.frase;
       elemento.append(nuvem);
-      const foto = criarFotoEmCirculo(balao, { classe: 'balao__foto' });
+      const foto = criarFotoEmCirculo(balao, { classe: 'balao__foto', adiada: true });
       if (foto) elemento.append(foto);
       elemento.append(frase);
       gsap.set(elemento, { opacity: 0, xPercent: -50, yPercent: -50 });
@@ -197,6 +198,8 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
 
     run() {
       const { secao, baloes, regiao, dica, avancar } = montar();
+      // Nuvens e fotos só são pedidas agora: a fila secundária já as deixou no cache (SPEC-02, RF-02.7).
+      carregarImagensTardias(secao);
       return new Promise<void>((resolver) => {
         secao.hidden = false;
         avancar.hidden = false;

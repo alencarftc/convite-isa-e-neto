@@ -26,19 +26,28 @@ export const ESTILO_DO_TEXTO_SIMPLES = `
 .sem-js figcaption { margin: 0; }
 `;
 
+export interface OpcoesDoTextoSimples {
+  /** Classes a mais no `<main>`. */
+  readonly classesExtras?: string;
+  readonly fotosAdiadas?: boolean;
+}
+
 /**
  * A carta em texto simples (blocos 1 a 14 da SPEC-06), o traje, a mensagem e os links de confirmar
  * presença e de como chegar. É a fonte única do `<noscript>` (SPEC-09, RF-09.9) e do plano B
  * (SPEC-15, RF-15.7). Os textos vêm de `content` e os links de `config`; é a única exceção à regra
  * de não escrever texto no HTML (CA-01.2.3), e os testes conferem que os textos são os mesmos.
  *
- * `sufixoDeId` evita ids repetidos quando os dois blocos estão na mesma página.
+ * `sufixoDeId` evita ids repetidos quando os dois blocos estão na mesma página. `fotosAdiadas` deixa o
+ * endereço das fotos em `data-src`: o plano B fica escondido enquanto o convite funciona, e mesmo um
+ * `<img loading="lazy">` escondido é baixado pelo navegador; o script do `<head>` dá o `src` só
+ * quando o plano B entra.
  */
 export function gerarTextoSimples(
   conteudo: ConteudoConvite,
   config: ConfigConvite,
   sufixoDeId: string,
-  classesExtras = '',
+  { classesExtras = '', fotosAdiadas = false }: OpcoesDoTextoSimples = {},
 ): string {
   const c = conteudo.carta;
   const p = (classe: string, texto: string) => `<p class="${classe}">${escapar(texto)}</p>`;
@@ -57,7 +66,7 @@ export function gerarTextoSimples(
       const foto =
         balao.foto === ''
           ? ''
-          : `<img src="${escaparAtributo(balao.foto)}" alt="${escaparAtributo(balao.alt)}" loading="lazy" decoding="async" style="object-position: ${escaparAtributo(balao.foco)}">`;
+          : `<img ${fotosAdiadas ? 'data-src' : 'src'}="${escaparAtributo(balao.foto)}" alt="${escaparAtributo(balao.alt)}" loading="lazy" decoding="async" style="object-position: ${escaparAtributo(balao.foco)}">`;
       return `<figure>
 ${foto}
 <figcaption>${escapar(balao.frase)}</figcaption>

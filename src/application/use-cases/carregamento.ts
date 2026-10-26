@@ -34,6 +34,11 @@ export interface DependenciasDoCarregamento {
   readonly imagens: CarregadorDeImagens;
   readonly temporizador: Temporizador;
   readonly config: Pick<ConfigConvite, 'duracoes' | 'imagens'>;
+  /**
+   * Fotos dos balões (`content.baloes[].foto`): não são imagens de `config`, mas entram na fila
+   * secundária junto com os balões, para estarem no cache quando a história começar.
+   */
+  readonly fotos?: readonly string[];
 }
 
 /**
@@ -45,6 +50,7 @@ export function criarCarregamento({
   imagens,
   temporizador,
   config,
+  fotos = [],
 }: DependenciasDoCarregamento): Carregamento {
   const { duracoes } = config;
   const downloads = new Map<string, Promise<boolean>>();
@@ -109,8 +115,11 @@ export function criarCarregamento({
 
     secundario(orientacao) {
       void (async () => {
-        for (const grupo of FILA_SECUNDARIA) {
-          await Promise.all(grupo.map((chave) => baixarImagem(chave, orientacao, 'baixa')));
+        for (const [indice, grupo] of FILA_SECUNDARIA.entries()) {
+          // O primeiro grupo é o do baú e da história: as fotos dos balões vão com ele.
+          const doGrupo = grupo.map((chave) => baixarImagem(chave, orientacao, 'baixa'));
+          const dasFotos = indice === 0 ? fotos.map((url) => baixarUmaVez(url, 'baixa')) : [];
+          await Promise.all([...doGrupo, ...dasFotos]);
         }
       })();
     },

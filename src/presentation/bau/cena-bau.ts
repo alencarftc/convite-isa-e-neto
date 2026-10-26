@@ -8,6 +8,7 @@ import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
+import { adiarImagem, carregarImagensTardias } from '../imagens/imagens-tardias';
 import { removerPetalas } from '../petalas/petalas';
 import { soltarPetalas } from '../petalas/soltar-petalas';
 
@@ -37,10 +38,12 @@ function criar(tag: string, classe: string): HTMLElement {
   return elemento;
 }
 
-function criarImagem(classe: string, url: string): HTMLImageElement {
+/** `adiada`: o `src` só entra quando o baú passa a aceitar o toque (SPEC-02, RF-02.7). */
+function criarImagem(classe: string, url: string, adiada = false): HTMLImageElement {
   const imagem = document.createElement('img');
   imagem.className = classe;
-  imagem.src = url;
+  if (adiada) adiarImagem(imagem, url);
+  else imagem.src = url;
   imagem.alt = '';
   imagem.draggable = false;
   return imagem;
@@ -87,7 +90,12 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
       brilho,
       criarImagem('bau__chave-imagem', urlDaImagem(config.imagens.chave, 'vertical')),
     );
-    const aberta = criarImagem('bau__aberto', urlDaImagem(config.imagens.bauAberto, 'vertical'));
+    // A tampa aberta e as pétalas só são pedidas quando o baú passa a aceitar o toque (`run`).
+    const aberta = criarImagem(
+      'bau__aberto',
+      urlDaImagem(config.imagens.bauAberto, 'vertical'),
+      true,
+    );
     const botao = document.createElement('button');
     botao.type = 'button';
     botao.className = 'bau__botao';
@@ -107,13 +115,6 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     );
     bau.append(corpo);
     gsap.set([aberta, luz, chave, aura, dica], { opacity: 0 });
-
-    // Pede as pétalas já, para estarem prontas quando a tampa abrir (RF-04.9).
-    petalas = (['petalaA', 'petalaB', 'petalaC'] as const).map((chavePetala) => {
-      const petala = new Image();
-      petala.src = urlDaImagem(config.imagens[chavePetala], 'vertical');
-      return petala;
-    });
 
     partes = { bau, corpo, aura, aberto: aberta, luz, chave, brilho, botao, dica };
     return partes;
@@ -337,7 +338,14 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     },
 
     run() {
-      const { botao, aura, chave, brilho } = montar();
+      const { bau, botao, aura, chave, brilho } = montar();
+      carregarImagensTardias(bau);
+      // Pede as pétalas agora, para estarem prontas quando a tampa abrir (RF-04.9), e não no `init`.
+      petalas = (['petalaA', 'petalaB', 'petalaC'] as const).map((chavePetala) => {
+        const petala = new Image();
+        petala.src = urlDaImagem(config.imagens[chavePetala], 'vertical');
+        return petala;
+      });
       return new Promise<void>((resolver) => {
         ouvintes = new AbortController();
         const { signal } = ouvintes;

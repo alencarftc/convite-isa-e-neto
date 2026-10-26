@@ -133,6 +133,25 @@ describe('src/main.ts', () => {
     expect(document.documentElement.classList.contains(PLANO_B.classe)).toBe(false);
   });
 
+  it('ao abrir, só as imagens da entrada e do estado final são pedidas: a experiência inteira não baixa antes do toque (SPEC-02, RF-02.7)', async () => {
+    await import('@/main');
+
+    const pedidas = [...document.querySelectorAll('img[src]')].map((imagem) =>
+      (imagem.getAttribute('src') ?? '').split('/').at(-1),
+    );
+
+    // Críticas (bosque, baú fechado, chave), o céu do pôr do sol e o casal, que o estado final mostra,
+    // e o selo da entrada: nada de balões, fotos, tampa aberta, envelope nem pétalas.
+    for (const adiada of ['foto-', 'balao-', 'bau-aberto', 'envelope-', 'petala-']) {
+      expect(
+        pedidas.filter((nome) => nome?.includes(adiada)),
+        adiada,
+      ).toEqual([]);
+    }
+    expect(document.querySelectorAll('img[data-src]').length).toBeGreaterThan(10);
+    expect(document.querySelectorAll('.selo__imagem[src]')).toHaveLength(0);
+  });
+
   it('depois do toque e do baú, percorre o orquestrador até as informações (CA-01.4.1)', async () => {
     await ateAsInformacoes();
 

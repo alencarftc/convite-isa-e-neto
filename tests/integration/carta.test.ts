@@ -143,6 +143,71 @@ describe('montarCarta (SPEC-06, "Layout da carta")', () => {
 });
 
 describe('envelope e carta (SPEC-06)', () => {
+  describe('imagens só quando o envelope começa (SPEC-02, RF-02.7)', () => {
+    /** Conta as imagens criadas por `new Image()` (as pétalas da chuva). */
+    function espionarImagens() {
+      const criadas: { src: string }[] = [];
+      vi.stubGlobal(
+        'Image',
+        class {
+          src = '';
+          constructor() {
+            criadas.push(this);
+          }
+        },
+      );
+      return criadas;
+    }
+    const imagensDoEnvelope = () => [
+      ...document.querySelectorAll<HTMLImageElement>('.envelope img'),
+    ];
+
+    it('o envelope, o selo e as pétalas não são pedidos no init, antes do toque de entrada', () => {
+      const criadas = espionarImagens();
+      montar();
+
+      expect(imagensDoEnvelope()).toHaveLength(4); // fechado, aberto e as duas metades do selo
+      expect(imagensDoEnvelope().every((imagem) => !imagem.hasAttribute('src'))).toBe(true);
+      expect(criadas).toHaveLength(0);
+    });
+
+    it('a carta e o casal, que o estado final também mostra, continuam sendo pedidos no init', () => {
+      montar();
+
+      expect(document.querySelector('.casal__imagem')?.getAttribute('src')).toBe(
+        config.imagens.casal,
+      );
+      expect(document.querySelector<HTMLElement>('.carta')?.style.backgroundImage).toContain(
+        config.imagens.papelCarta,
+      );
+    });
+
+    it('o run da carta pede o envelope, o selo e as três variações de pétala', () => {
+      const criadas = espionarImagens();
+      const { carta } = montar();
+
+      void carta.run();
+
+      expect(imagensDoEnvelope().every((imagem) => imagem.hasAttribute('src'))).toBe(true);
+      expect(criadas.map((imagem) => imagem.src)).toEqual([
+        config.imagens.petalaA,
+        config.imagens.petalaB,
+        config.imagens.petalaC,
+      ]);
+    });
+
+    it('quem pula nunca pede o envelope', () => {
+      const criadas = espionarImagens();
+      const { carta, convite } = montar();
+
+      carta.skip();
+      convite.skip();
+
+      expect(imagensDoEnvelope().every((imagem) => !imagem.hasAttribute('src'))).toBe(true);
+      expect(criadas).toHaveLength(0);
+    });
+  });
+
   describe('estrutura (init)', () => {
     it('monta o envelope com "para", o selo em duas metades com as iniciais em texto e o botão (RF-06.1 a 06.3)', () => {
       const { el, botao } = montar();

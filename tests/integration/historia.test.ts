@@ -123,7 +123,7 @@ describe('história em balões (SPEC-05)', () => {
       montar();
 
       const nuvens = [...document.querySelectorAll('.balao__nuvem')].map((i) =>
-        i.getAttribute('src'),
+        i.getAttribute('data-src'),
       );
 
       expect(nuvens.slice(0, 3)).toEqual([
@@ -131,6 +131,30 @@ describe('história em balões (SPEC-05)', () => {
         config.imagens.balaoB,
         config.imagens.balaoC,
       ]);
+    });
+
+    it('nuvens e fotos NÃO são pedidas no init, antes do toque de entrada: só quando a história começa (SPEC-02, RF-02.7)', () => {
+      const { cena } = montar();
+      const imagens = () => [...document.querySelectorAll<HTMLImageElement>('.historia img')];
+
+      expect(imagens()).toHaveLength(content.baloes.length * 2);
+      expect(imagens().every((imagem) => !imagem.hasAttribute('src'))).toBe(true);
+
+      void cena.run();
+
+      expect(imagens().every((imagem) => imagem.hasAttribute('src'))).toBe(true);
+      const fotos = [...document.querySelectorAll('.balao__foto img')].map((i) =>
+        i.getAttribute('src'),
+      );
+      expect(fotos).toEqual(content.baloes.map((balao) => balao.foto));
+    });
+
+    it('um balão que nunca chega a rodar (Pular) não pede nenhuma imagem', () => {
+      const { cena } = montar();
+
+      cena.skip();
+
+      expect(document.querySelectorAll('.historia img[src]')).toHaveLength(0);
     });
   });
 
