@@ -57,7 +57,7 @@ src/
 │   ├── profundidade/            # deslocamento por ponteiro (SPEC-03)
 │   ├── imagens/                 # catálogo: críticas, fila secundária, arte por orientação (SPEC-02)
 │   ├── tela/                    # orientação (vertical, horizontal)
-│   └── tempo/                   # fuso de Brasília, minutos, instantes
+│   └── tempo/                   # fuso de Brasília, minutos, instantes, data por extenso
 ├── application/
 │   ├── ports/                   # interfaces: Relogio, Preferencias, Ambiente, AudioPort, (PreloadPort…)
 │   ├── use-cases/               # obter-informacoes, orquestrador, audio-do-convite, carregamento
