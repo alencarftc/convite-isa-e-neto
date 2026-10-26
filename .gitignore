@@ -1,0 +1,33 @@
+# Dependências
+node_modules/
+.pnpm-store/
+
+# Saídas de build, testes e relatórios
+dist/
+coverage/
+reports/
+*.tsbuildinfo
+.vite/
+
+# Segredos e configuração local (nunca versionar)
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs e lixo de sistema
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Preferências pessoais do Claude Code (o launch.json e os commands do projeto são versionados)
+.claude/settings.local.json
+CLAUDE.local.md
+
+# Editor: só as recomendações compartilhadas entram
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
