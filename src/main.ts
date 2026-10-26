@@ -191,6 +191,7 @@ const removerBotaoPular = montarBotaoPular({
 const removerAtalho = montarAtalhoParaOConvite({
   corpo: document.body,
   conteudo: content,
+  estado,
   aoAcionar: acionarPular,
 });
 const pararDeOuvirErros = ouvirErrosGlobais(window, (erro) => {

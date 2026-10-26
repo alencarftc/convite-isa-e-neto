@@ -202,7 +202,15 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
         avancar.hidden = false;
         // Durante a história o foco fica no botão de avançar (SPEC-09, RF-09.6).
         avancar.focus({ preventScroll: true });
-        const historia = gsap.timeline({ onComplete: resolver });
+        const historia = gsap.timeline({
+          onComplete: () => {
+            // Acabou a história: o botão de avançar (que cobre a tela) não pode ficar no Tab nem
+            // capturar toques durante o envelope e a carta (SPEC-05, SPEC-09).
+            avancar.hidden = true;
+            secao.hidden = true;
+            resolver();
+          },
+        });
         linhaDoTempo = historia;
 
         historia.call(

@@ -8,6 +8,7 @@ import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
+import { removerPetalas } from '../petalas/petalas';
 import { soltarPetalas } from '../petalas/soltar-petalas';
 
 export interface DependenciasDoBau {
@@ -420,7 +421,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     },
 
     skip() {
-      const { aberto: tampa, luz, chave, aura, dica, botao } = montar();
+      const { aberto: tampa, luz, chave, aura, dica, botao, corpo } = montar();
       aberto = true;
       linhaDoTempo?.kill();
       limparAgendamentos();
@@ -429,6 +430,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
       definirCursor(false);
       botao.disabled = true;
       // Baú aberto, luz assentada e sem chave nem dica (RF-04.8).
+      removerPetalas(corpo);
       gsap.set(tampa, { opacity: 1 });
       gsap.set(luz, { opacity: parametros.opacidadeFinalDaLuz });
       gsap.set([chave, aura, dica], { opacity: 0 });

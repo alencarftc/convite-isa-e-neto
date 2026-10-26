@@ -9,6 +9,7 @@ import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
 import { chuvaDePetalas } from '../petalas/chuva-de-petalas';
+import { removerPetalas } from '../petalas/petalas';
 import { ligarGestoDoSelo } from './gesto-do-selo';
 import { montarCarta } from './montar-carta';
 
@@ -241,6 +242,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     recolherDica?.kill();
     ouvintes?.abort();
     ouvintesDoConvite?.abort();
+    // A chuva interrompida não chega ao fim em que cada pétala se remove: tira as que sobraram.
+    if (elementos) removerPetalas(elementos.conteudo);
   }
 
   /** Estado final da primeira tela, sem animação: carta aberta, sem envelope, rolagem liberada. */
@@ -261,6 +264,9 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     gsap.set(e.carta, { opacity: 1, scaleY: 1 });
     gsap.set(e.blocos, { opacity: 1, y: 0 });
     liberarRolagem();
+    // Quem chega aqui sem ver a abertura (Pular, atalho, animação reduzida) tem o foco no título,
+    // como quem a viu (SPEC-09, RF-09.6); o botão que o levou até aqui acabou de sumir.
+    e.titulo.focus({ preventScroll: true });
   }
 
   const carta: Cena = {

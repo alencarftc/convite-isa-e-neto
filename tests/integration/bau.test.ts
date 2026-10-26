@@ -319,6 +319,22 @@ describe('baú e chave (SPEC-04)', () => {
       expect(ordem).not.toContain('abriu'); // a tampa só abriria em 1,0 × fator
     });
 
+    it('skip no meio da abertura tira as pétalas que ficaram no ar, em vez de deixá-las congeladas', () => {
+      const { cena, botao } = montar({ toque: true });
+      void cena.run();
+      botao().click();
+      const corpo = document.querySelector('.bau__corpo');
+      for (let i = 0; i < 3; i += 1) {
+        const petala = document.createElement('img');
+        petala.className = 'petala';
+        corpo?.append(petala);
+      }
+
+      cena.skip();
+
+      expect(document.querySelectorAll('.bau .petala')).toHaveLength(0);
+    });
+
     it('skip funciona sem run (a segurança chama skip em tudo)', () => {
       const { cena } = montar();
 

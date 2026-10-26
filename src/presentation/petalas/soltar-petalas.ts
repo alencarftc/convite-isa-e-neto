@@ -1,5 +1,7 @@
 import gsap from 'gsap';
 
+import { criarPetala, estaPronta } from './petalas';
+
 export interface OpcoesDePetalas {
   /** Elemento posicionado (relative ou absolute) onde as pétalas nascem e flutuam. */
   readonly conteiner: HTMLElement;
@@ -14,11 +16,6 @@ export interface OpcoesDePetalas {
   readonly deriva: number;
   readonly duracao: number;
   readonly curva: string;
-}
-
-/** Imagem que já carregou e pode ser clonada sem piscar. */
-function estaPronta(imagem: HTMLImageElement): boolean {
-  return imagem.complete && imagem.naturalWidth > 0;
 }
 
 /**
@@ -36,13 +33,9 @@ export function soltarPetalas(opcoes: OpcoesDePetalas): gsap.core.Timeline {
   for (let indice = 0; indice < quantidade; indice += 1) {
     const modelo = prontas[indice % prontas.length];
     if (!modelo) continue;
-    const petala = modelo.cloneNode() as HTMLImageElement;
-    petala.className = 'petala';
-    petala.alt = '';
-    petala.setAttribute('aria-hidden', 'true');
+    const petala = criarPetala(modelo, largura);
     petala.style.left = origem.x;
     petala.style.top = origem.y;
-    petala.style.width = largura;
     conteiner.append(petala);
 
     const atraso = (indice / quantidade) * duracao * 0.35;

@@ -1,5 +1,7 @@
 import gsap from 'gsap';
 
+import { criarPetala, estaPronta } from './petalas';
+
 export interface OpcoesDaChuva {
   /** Elemento posicionado que cobre a tela, onde as pétalas caem. */
   readonly conteiner: HTMLElement;
@@ -28,19 +30,15 @@ export interface OpcoesDaChuva {
 export function chuvaDePetalas(opcoes: OpcoesDaChuva): gsap.core.Timeline {
   const { conteiner, imagens, quantidade, largura, altura, quedaMinima, quedaMaxima } = opcoes;
   const linha = gsap.timeline();
-  const prontas = imagens.filter((imagem) => imagem.complete && imagem.naturalWidth > 0);
+  const prontas = imagens.filter(estaPronta);
   if (prontas.length === 0) return linha;
 
   for (let indice = 0; indice < quantidade; indice += 1) {
     const modelo = prontas[indice % prontas.length];
     if (!modelo) continue;
-    const petala = modelo.cloneNode() as HTMLImageElement;
-    petala.className = 'petala petala--chuva';
-    petala.alt = '';
-    petala.setAttribute('aria-hidden', 'true');
+    const petala = criarPetala(modelo, largura, 'petala--chuva');
     petala.style.left = `${String(gsap.utils.random(5, 95))}%`;
     petala.style.top = '0';
-    petala.style.width = largura;
     conteiner.append(petala);
 
     const queda = altura * gsap.utils.random(quedaMinima, quedaMaxima);

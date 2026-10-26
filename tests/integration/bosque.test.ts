@@ -84,13 +84,25 @@ describe('cena do bosque (SPEC-03)', () => {
       ]);
     });
 
-    it('é decorativa para leitores de tela e fica abaixo da névoa, como primeiro filho (RNF-03.3)', () => {
+    it('a arte é decorativa para leitores de tela e a cena fica abaixo da névoa, como primeiro filho (RNF-03.3)', () => {
       const { cena, cenaEl, raiz } = montar();
 
       cena.init();
 
-      expect(cenaEl().getAttribute('aria-hidden')).toBe('true');
+      for (const camada of cenaEl().querySelectorAll('.camada')) {
+        expect(camada.getAttribute('aria-hidden'), camada.className).toBe('true');
+      }
+      expect(cenaEl().querySelector('.casal')?.getAttribute('aria-hidden')).toBe('true');
       expect(raiz.firstElementChild).toBe(cenaEl());
+    });
+
+    it('o contêiner da cena NÃO é aria-hidden: o espaço do baú, com o botão, precisa ser alcançável (SPEC-09, RF-09.6)', () => {
+      const { cena, cenaEl } = montar();
+
+      cena.init();
+
+      expect(cenaEl().hasAttribute('aria-hidden')).toBe(false);
+      expect(cenaEl().querySelector('.bau')?.hasAttribute('aria-hidden')).toBe(false);
     });
 
     it('cada camada de arte é um <picture> com a arte vertical em portrait e a horizontal no img (CA-03.4.1)', () => {

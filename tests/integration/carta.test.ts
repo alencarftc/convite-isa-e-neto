@@ -444,6 +444,27 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(opacidade('.casal__imagem')).toBe(1);
     });
 
+    it('skip leva o foco ao título da carta, como quem viu a abertura (SPEC-09, RF-09.6)', () => {
+      const { carta, el } = montar();
+
+      carta.skip();
+
+      expect(document.activeElement).toBe(el('#carta-titulo'));
+    });
+
+    it('skip no meio da chuva de pétalas tira as que ficaram no ar, em vez de deixá-las congeladas', () => {
+      const { convite, el } = montar();
+      for (let i = 0; i < 3; i += 1) {
+        const petala = document.createElement('img');
+        petala.className = 'petala petala--chuva';
+        el('.conteudo').append(petala);
+      }
+
+      convite.skip();
+
+      expect(document.querySelectorAll('.petala--chuva')).toHaveLength(0);
+    });
+
     it('skip da etapa do convite faz o mesmo, mesmo sem init (modo de segurança)', () => {
       const { convite, el } = montar();
 

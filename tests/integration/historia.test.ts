@@ -189,6 +189,15 @@ describe('história em balões (SPEC-05)', () => {
       expect(botao().getAttribute('aria-label')).toBe('Avançar a história');
     });
 
+    it('ao terminar, esconde a região e o botão de avançar: ele não fica no Tab nem cobre a tela (SPEC-05, SPEC-09)', async () => {
+      const { cena, el, botao } = montar();
+
+      await cena.run();
+
+      expect(botao().hidden).toBe(true);
+      expect(el('.historia').hidden).toBe(true);
+    });
+
     it('a luz caminha ao pôr do sol dentro da própria história e termina nele (CA-03.3.1, CA-03.3.2)', async () => {
       const { cena, opacidade } = montar();
       // Sem o CSS (que começa em 0), as camadas partem invisíveis por aqui.

@@ -49,9 +49,9 @@ body {
 /* "Ir direto ao convite": fora da vista até receber foco (SPEC-09, RF-09.4). */
 .atalho:focus {
   position: fixed;
-  top: var(--espaco-3);
-  left: var(--espaco-3);
-  z-index: var(--z-interface);
+  top: max(var(--espaco-3), env(safe-area-inset-top));
+  left: max(var(--espaco-3), env(safe-area-inset-left));
+  z-index: var(--z-atalho);
   width: auto;
   height: auto;
   padding: var(--espaco-3) var(--espaco-5);
