@@ -120,6 +120,44 @@ export function validarConsistenciaDeDatas(
   return problemas;
 }
 
+/** O endereço publicado precisa ser completo, com https:// e barra no fim (SPEC-10, RF-10.1). */
+export function validarPublicacao(config: ConfigConvite): Problema[] {
+  const { url } = config.publicacao;
+  if (url.startsWith('https://') && url.endsWith('/') && !TEXTO_PENDENTE.test(url)) return [];
+  return [
+    {
+      regra: 'publicacao',
+      mensagem: `config.publicacao.url precisa ser um endereço completo com https:// e barra no fim: "${url}"`,
+    },
+  ];
+}
+
+export interface ArquivoDeTexto {
+  readonly caminho: string;
+  readonly texto: string;
+}
+
+const URL_NO_TEXTO = /https?:\/\/[^\s'"`)<>\\]+/g;
+
+/**
+ * O convite só fala com serviços que a spec aprova (formulário, mapa e o próprio endereço): nada de
+ * fontes, scripts ou análise de visitas de terceiros (CA-01.3.2, SPEC-10, RNF-10.3). Devolve cada
+ * endereço externo achado que não comece por um dos `permitidos`.
+ */
+export function encontrarUrlsExternas(
+  arquivos: readonly ArquivoDeTexto[],
+  permitidos: readonly string[],
+): Problema[] {
+  return arquivos.flatMap(({ caminho, texto }) =>
+    (texto.match(URL_NO_TEXTO) ?? [])
+      .filter((url) => !permitidos.some((permitido) => url.startsWith(permitido)))
+      .map((url) => ({
+        regra: 'servico-externo',
+        mensagem: `${caminho}: endereço externo não previsto: "${url}"`,
+      })),
+  );
+}
+
 /** Arte provisória (SVG gerado por `pnpm arte:provisoria`) não pode ir para o ar (docs/decisions/0006). */
 export function validarArteDefinitiva(
   config: ConfigConvite,
@@ -157,7 +195,11 @@ export function validarArquivos(
     url: balao.foto,
   }));
   const audios = arquivosDeAudio.map((url) => ({ origem: 'áudio', url }));
-  return [...imagens, ...fotos, ...audios]
+  const publicacao = (['imagemDaPrevia', 'icone32', 'iconeApple'] as const).map((chave) => ({
+    origem: `config.publicacao.${chave}`,
+    url: config.publicacao[chave],
+  }));
+  return [...imagens, ...fotos, ...audios, ...publicacao]
     .filter(({ url }) => !existe(url))
     .map(({ origem, url }) => ({
       regra: 'arquivo-ausente',
@@ -171,6 +213,8 @@ export interface EntradasDoGate {
   readonly arquivosDeAudio: readonly string[];
   /** `true` se o arquivo existe em `public/`. */
   readonly existe: (caminho: string) => boolean;
+  /** Arquivos do código (`index.html`, `src/**`) onde procurar endereços externos. */
+  readonly arquivosDoCodigo?: readonly ArquivoDeTexto[];
 }
 
 export function verificarTudo({
@@ -178,11 +222,19 @@ export function verificarTudo({
   conteudo,
   arquivosDeAudio,
   existe,
+  arquivosDoCodigo = [],
 }: EntradasDoGate): Problema[] {
   return [
     ...encontrarTextoPendente(conteudo),
     ...validarDatas(config),
     ...validarLinks(config),
+    ...validarPublicacao(config),
+    ...encontrarUrlsExternas(arquivosDoCodigo, [
+      'http://www.w3.org/2000/svg',
+      config.links.formulario,
+      config.links.mapa,
+      config.publicacao.url,
+    ]),
     ...validarConsistenciaDeDatas(config, conteudo),
     ...validarArteDefinitiva(config, conteudo),
     ...validarArquivos(config, conteudo, arquivosDeAudio, existe),

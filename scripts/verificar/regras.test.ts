@@ -4,11 +4,13 @@ import { config } from '../../src/config/config';
 import { content } from '../../src/config/content';
 import {
   encontrarTextoPendente,
+  encontrarUrlsExternas,
   validarArquivos,
   validarArteDefinitiva,
   validarConsistenciaDeDatas,
   validarDatas,
   validarLinks,
+  validarPublicacao,
   verificarTudo,
 } from './regras';
 
@@ -65,6 +67,82 @@ describe('validarLinks', () => {
     });
     expect(problemas).toHaveLength(1);
     expect(problemas[0]?.mensagem).toContain('config.links.formulario');
+  });
+});
+
+describe('validarPublicacao', () => {
+  it('o endereço atual é completo, com https:// e barra no fim', () => {
+    expect(validarPublicacao(config)).toEqual([]);
+  });
+
+  it.each([
+    'alencarftc.github.io/convite/',
+    'http://x.example/',
+    'https://x.example',
+    '[URL publicada]',
+  ])('acusa o endereço "%s"', (url) => {
+    const problemas = validarPublicacao({ ...config, publicacao: { ...config.publicacao, url } });
+
+    expect(problemas).toHaveLength(1);
+    expect(problemas[0]?.regra).toBe('publicacao');
+  });
+});
+
+describe('encontrarUrlsExternas', () => {
+  const permitidos = ['http://www.w3.org/2000/svg', 'https://forms.gle/abc'];
+
+  it('aceita só os endereços previstos', () => {
+    const arquivos = [
+      {
+        caminho: 'a.ts',
+        texto: "const ns = 'http://www.w3.org/2000/svg'; const f = 'https://forms.gle/abc';",
+      },
+    ];
+
+    expect(encontrarUrlsExternas(arquivos, permitidos)).toEqual([]);
+  });
+
+  it('acusa fonte, script ou análise de terceiros, com o arquivo e o endereço', () => {
+    const arquivos = [
+      {
+        caminho: 'index.html',
+        texto: '<link href="https://fonts.googleapis.com/css2?family=X" rel="stylesheet">',
+      },
+      {
+        caminho: 'src/a.ts',
+        texto: "import('https://cdn.example/lib.js'); fetch(`https://analytics.example/x`)",
+      },
+    ];
+
+    const problemas = encontrarUrlsExternas(arquivos, permitidos);
+
+    expect(problemas.map((p) => p.mensagem)).toEqual([
+      'index.html: endereço externo não previsto: "https://fonts.googleapis.com/css2?family=X"',
+      'src/a.ts: endereço externo não previsto: "https://cdn.example/lib.js"',
+      'src/a.ts: endereço externo não previsto: "https://analytics.example/x"',
+    ]);
+    expect(problemas.every((p) => p.regra === 'servico-externo')).toBe(true);
+  });
+
+  it('o código do site hoje só fala com o formulário, o mapa, o próprio endereço e o namespace do SVG', async () => {
+    const { readdirSync, readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const raiz = join(import.meta.dirname, '..', '..');
+    const arquivos = [
+      'index.html',
+      ...readdirSync(join(raiz, 'src'), { recursive: true, encoding: 'utf8' })
+        .map((c) => `src/${c.replaceAll('\\', '/')}`)
+        .filter((c) => /\.(ts|css)$/.test(c) && !c.endsWith('.test.ts')),
+    ].map((caminho) => ({ caminho, texto: readFileSync(join(raiz, caminho), 'utf8') }));
+
+    const problemas = encontrarUrlsExternas(arquivos, [
+      'http://www.w3.org/2000/svg',
+      config.links.formulario,
+      config.links.mapa,
+      config.publicacao.url,
+    ]);
+
+    expect(problemas).toEqual([]);
   });
 });
 
@@ -190,6 +268,21 @@ describe('validarArquivos', () => {
 
     expect(visitados).toContain('assets/provisorio/ceu-9x16.svg');
     expect(visitados).toContain('assets/provisorio/ceu-16x9.svg');
+  });
+
+  it('confere a imagem da prévia e os ícones da publicação (SPEC-10)', () => {
+    const problemas = validarArquivos(
+      config,
+      content,
+      [],
+      (caminho) => !caminho.startsWith('favicon/') && caminho !== 'og-image.jpg',
+    );
+
+    expect(problemas.map((p) => p.mensagem)).toEqual([
+      'config.publicacao.imagemDaPrevia: "public/og-image.jpg" não existe',
+      'config.publicacao.icone32: "public/favicon/favicon-32.png" não existe',
+      'config.publicacao.iconeApple: "public/favicon/apple-touch-icon.png" não existe',
+    ]);
   });
 
   it('confere também os arquivos das fotos dos balões', () => {
