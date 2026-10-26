@@ -48,6 +48,9 @@ Para repetir: `pnpm build`, `pnpm preview` e, em outro terminal, `pnpm dlx light
 | Aparelho antigo (iOS 15, Android 8)    | CT-15.5                   | ☐                 | ☐               | ☐                  | ☐                | —          |
 | JavaScript bloqueado e rede lenta      | CT-15.1, CT-15.2          | —                 | —               | —                  | —                | ☐          |
 | "Pular" durante a abertura (2ª visita) | CT-14.1, CT-14.5          | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Celular deitado (entrada, envelope)    | ADR-0010 (achado 9)       | ☐                 | ☐               | ☐                  | ☐                | —          |
+| Leitor de tela: baú e botões da etapa  | ADR-0010 (achados 1 a 4)  | ☐                 | —               | ☐                  | —                | —          |
+| Rede lenta: só críticas antes do toque | ADR-0010 (achado 10)      | ☐                 | ☐               | ☐                  | ☐                | ☐          |
 | Deslizar o selo e selo na entrada      | CT-16.1, CT-16.4, CT-16.5 | ☐                 | ☐               | ☐                  | ☐                | ☐          |
 | Salvar na agenda                       | CT-17.1, CT-17.2          | ☐                 | ☐               | ☐                  | ☐                | ☐          |
 
