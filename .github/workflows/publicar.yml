@@ -23,7 +23,7 @@ jobs:
     name: Verificar e gerar o site
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4 # versão vem do campo packageManager
       - uses: actions/setup-node@v4
         with:
