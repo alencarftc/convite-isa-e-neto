@@ -110,6 +110,33 @@ describe('criarEstado', () => {
     expect(escuta).toHaveBeenCalledTimes(1);
   });
 
+  it('definirSom guarda a escolha, lembra para a próxima visita e avisa (CA-08.4.2)', () => {
+    const { ambiente } = ambienteFalso();
+    const preferencias = preferenciasFalsas();
+    const estado = criarEstado({ preferencias, ambiente });
+    const escuta = vi.fn();
+    estado.aoMudar(escuta);
+
+    estado.definirSom(false);
+
+    expect(estado.somLigado).toBe(false);
+    expect(preferencias.gravar).toHaveBeenCalledWith('convite:som', false);
+    expect(escuta).toHaveBeenCalledTimes(1);
+  });
+
+  it('definirSom com o valor que já vale não grava nem avisa', () => {
+    const { ambiente } = ambienteFalso();
+    const preferencias = preferenciasFalsas();
+    const estado = criarEstado({ preferencias, ambiente });
+    const escuta = vi.fn();
+    estado.aoMudar(escuta);
+
+    estado.definirSom(true);
+
+    expect(preferencias.gravar).not.toHaveBeenCalled();
+    expect(escuta).not.toHaveBeenCalled();
+  });
+
   it('quem cancela o aviso deixa de ser chamado', () => {
     const { ambiente } = ambienteFalso();
     const estado = criarEstado({ preferencias: preferenciasFalsas(), ambiente });
