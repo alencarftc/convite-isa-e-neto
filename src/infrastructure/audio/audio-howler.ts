@@ -20,6 +20,16 @@ export interface DependenciasDoAudioHowler {
   readonly sessaoDeAudio?: { type: string } | undefined;
 }
 
+/** Os seis arquivos de áudio (SPEC-08, "Arquivos de áudio"); `pnpm verificar` confere que existem. */
+export const ARQUIVOS_DE_AUDIO: readonly string[] = [
+  'audio/ambiente.mp3',
+  'audio/fechadura.mp3',
+  'audio/tampa.mp3',
+  'audio/selo.mp3',
+  'audio/musica-1.mp3',
+  'audio/musica-2.mp3',
+];
+
 /** Caminhos relativos à página, para funcionar em qualquer subpasta do GitHub Pages (RF-01.2). */
 const ARQUIVOS = {
   ambiente: 'audio/ambiente.mp3',
