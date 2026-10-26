@@ -108,6 +108,6 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
 Feito: ferramentas e CI; SPEC-01 completa (barramento, fases, estado, orquestrador, contrato `Cena`,
 modo de segurança); fatia vertical da SPEC-07 (contagem e estados por data, botões). SPEC-08 (porta de áudio, Howler,
 botão de som; faltam os MP3). SPEC-02 (entrada e carregamento, com arte
-provisória). SPEC-03 (bosque em camadas, névoa, profundidade). Próximo: SPEC-04…
+provisória). SPEC-03 (bosque em camadas, névoa, profundidade). SPEC-04 (baú e chave, abertura em 2 s). Próximo: SPEC-05…
 Pendências de conteúdo: fotos dos balões, imagens geradas, músicas licenciadas, verso do louvor, URL
 publicada (lista em `docs/documentacao.md`).

@@ -59,7 +59,8 @@ nas tabelas das SPEC-01 e do roteiro (requisitos).
   **SPEC-02**: entrada (névoa, nomes, toque), pré-carregamento crítico e secundário, fontes do próprio
   site — com arte provisória;
   **SPEC-03**: bosque em camadas, revelação da névoa e profundidade (mouse no computador, deriva no celular);
+  **SPEC-04**: baú, chave (cursor ou flutuante), dica, reforço, abertura em 2 s com pétalas;
   `verificar` com 3 regras.
-- **Próximo:** SPEC-04 (baú e chave) em diante.
+- **Próximo:** SPEC-05 (história em balões) em diante.
 - **Pendências de conteúdo** (bloqueiam `pnpm verificar` e o envio): fotos dos balões, imagens geradas,
   músicas licenciadas e os 6 MP3 em `public/audio/`, **troca da arte provisória** (`config.imagens`), verso do louvor, URL publicada. Lista completa no fim de [documentacao.md](./documentacao.md).
