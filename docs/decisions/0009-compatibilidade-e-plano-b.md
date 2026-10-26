@@ -35,6 +35,10 @@
    e o plano B mostram, a partir de `content` e `config`. Os ids ficam únicos por sufixo. O HTML
    publicado tem cerca de 9 kB, longe do orçamento de 30 kB.
 
+> **Atualização (ADR-0010):** a marca `window.__convite` passou a ser deixada quando a montagem termina
+> sem erro, não na primeira linha do `main.ts`; o script do `<head>` também reage a erro de execução do
+> próprio site, e as fotos do texto simples esperam em `data-src`. O resto da decisão vale.
+
 ## Consequências
 
 - Um aparelho de fora do alvo, com o pacote funcionando, continua abrindo o convite, só pode perder

@@ -89,6 +89,9 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
   Não reproduza letra de música (o verso do louvor é pendência do casal).
 - Não use fonte, imagem ou som de fora do que a documentação define; assets são gerados/licenciados.
 - Não bloqueie zoom, não autoexecute áudio antes do toque de entrada, não ignore `prefers-reduced-motion`.
+- Não peça imagem de etapa no `init()` da cena (ela roda antes do toque e baixaria tudo de uma vez): use
+  `data-src` e `carregarImagensTardias` no `run()` (ADR-0010). Não use API de navegador acima do piso
+  (Safari/iOS 15.1, Chrome 90): o ESLint barra `.at()`, `findLast`, `structuredClone` e afins.
 - Não reformate nem edite à mão os espelhos em `docs/` (requisitos, documentacao, epicos, specs) sem
   atualizar a fonte; eles estão no `.prettierignore` de propósito.
 - Não faça `git push --force`, `reset --hard` nem commits que pulem hooks.
