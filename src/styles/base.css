@@ -1,0 +1,46 @@
+/* Estilos base: fundo marfim desde o primeiro quadro (SPEC-02, RF-02.1) e foco sempre visível. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--cor-marfim);
+  color: var(--cor-texto);
+  font-family: var(--fonte-texto);
+  font-size: var(--texto-corpo);
+  line-height: 1.5;
+  /* stylelint-disable-next-line property-no-vendor-prefix -- o iOS Safari só entende a versão com prefixo */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 3px solid var(--cor-dourado);
+  outline-offset: 3px;
+}
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.visualmente-oculto:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+}
+
+[hidden] {
+  display: none !important;
+}

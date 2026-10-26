@@ -1,0 +1,57 @@
+/* Cartões e botões do bloco "Informações" (SPEC-07, "Estilo dos cartões e botões"). */
+.informacoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  align-items: center;
+  padding: var(--espaco-5) 0 calc(var(--espaco-7) + env(safe-area-inset-bottom));
+}
+
+.cartao {
+  width: min(92vw, 560px);
+  padding: var(--espaco-5);
+  text-align: center;
+  background: var(--cor-marfim);
+  border-radius: 16px;
+  box-shadow: var(--sombra-cartao);
+}
+
+.cartao--contagem strong,
+.cartao--contagem p {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.cartao--acoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  align-items: center;
+}
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 360px);
+  min-height: 52px;
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cor-texto);
+  text-decoration: none;
+  border-radius: 999px;
+}
+
+.botao:active {
+  transform: scale(0.98);
+}
+
+.botao--principal {
+  color: var(--cor-marfim);
+  background: var(--cor-texto);
+}
+
+.botao--secundario {
+  border: 1.5px solid var(--cor-texto);
+}

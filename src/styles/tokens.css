@@ -1,0 +1,36 @@
+/* Única fonte de cores, fontes, espaços e camadas (SPEC-01, RF-01.5). */
+:root {
+  --cor-marfim: #f6f3e0; /* fundo da carta e da página */
+  --cor-bege: #dbceb0; /* envelope, cartões */
+  --cor-serenidade: #91a8d0; /* só decoração: 2,2:1 sobre marfim */
+  --cor-dourado: #b18e4a; /* só decoração: 2,8:1 sobre marfim */
+  --cor-texto: #32425d; /* 9,1:1 sobre marfim; 6,5:1 sobre bege */
+  --cor-texto-suave: #4e5f7e; /* 5,8:1 só sobre marfim (4,1:1 sobre bege: não usar) */
+
+  --sombra-cartao: 0 4px 20px rgb(50 66 93 / 12%);
+
+  --fonte-cursiva: 'Great Vibes', cursive;
+  --fonte-texto: 'Cormorant Garamond', georgia, serif;
+  --texto-corpo: clamp(18px, 4.6vw, 20px);
+  --texto-nomes: clamp(40px, 11vw, 56px);
+  --texto-rotulo: 13px; /* maiúsculas com letter-spacing: 0.12em */
+
+  --espaco-1: 4px;
+  --espaco-2: 8px;
+  --espaco-3: 12px;
+  --espaco-4: 16px;
+  --espaco-5: 24px;
+  --espaco-6: 32px;
+  --espaco-7: 48px;
+
+  --z-ceu: 0;
+  --z-lago: 10;
+  --z-arvores: 20;
+  --z-bau: 30;
+  --z-primeiro-plano: 40;
+  --z-baloes: 50;
+  --z-carta: 60;
+  --z-informacoes: 70;
+  --z-interface: 80;
+  --z-nevoa: 90;
+}
