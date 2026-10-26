@@ -141,6 +141,7 @@ const orquestrador = criarOrquestrador({
           config,
           relogio,
           obterInformacoes: criarObterInformacoes({ relogio, config, conteudo: content }),
+          animar: !estado.reduzido,
         },
         // As informações rolam abaixo da carta, dentro do `.conteudo` criado por ela (SPEC-06).
         () => raiz.querySelector<HTMLElement>('.conteudo') ?? raiz,

@@ -27,8 +27,10 @@ export const config: ConfigConvite = {
     nevoaEmRepouso: 12,
     avisoDeEspera: 0.3,
     esmaecimentoReduzido: 0.4,
+    cartoes: 0.5,
   },
   movimento: {
+    deslocamentoDosCartoes: 16,
     escalaInicialDoBosque: 1.06,
     escalaFinalDaNevoa: 1.15,
     fracaoDaNevoa: 0.8,
