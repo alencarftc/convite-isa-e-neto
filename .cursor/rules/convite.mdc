@@ -1,0 +1,15 @@
+---
+description: Regras do projeto do convite de casamento (arquitetura, convenções, commits)
+alwaysApply: true
+---
+
+Leia `AGENTS.md` na raiz: ele é a fonte única das instruções para agentes. Pontos críticos:
+
+- Use **pnpm**. Dev server sempre na porta **5173**.
+- Camadas: `domain` ← `application` ← `infrastructure` / `presentation`; só `src/main.ts` as liga.
+  `presentation` não importa `infrastructure`; `domain`/`application` não tocam o navegador.
+- Português em identificadores e comentários. Textos em `src/config/content.ts`, tempos e links em
+  `src/config/config.ts`, cores em `src/styles/tokens.css`.
+- Datas sempre com `-03:00`.
+- Conventional Commits em português; todo PR com changeset; `pnpm check` verde antes de concluir.
+- Documentação e specs em `docs/` (comece por `docs/README.md`).

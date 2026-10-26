@@ -1,0 +1,16 @@
+# Fora do contexto de ferramentas de IA: saídas geradas e ruído.
+node_modules/
+.pnpm-store/
+dist/
+coverage/
+reports/
+pnpm-lock.yaml
+.env
+.env.*
+*.local
+*.webp
+*.png
+*.jpg
+*.jpeg
+*.mp3
+*.woff2
