@@ -21,6 +21,9 @@ const config = {
     petalaB: 'petala-b',
     petalaC: 'petala-c',
     cursorChave: 'cursor-chave',
+    balaoA: 'balao-a',
+    balaoB: 'balao-b',
+    balaoC: 'balao-c',
     ceuPorDoSol: { vertical: 'sol-v', horizontal: 'sol-h' },
   },
 } as unknown as Pick<ConfigConvite, 'duracoes' | 'imagens'>;
@@ -210,8 +213,17 @@ describe('criarCarregamento', () => {
 
       carregamento.secundario('horizontal');
       await Promise.resolve();
-      // Primeiro grupo: baú aberto, as três pétalas e o cursor da chave; o céu do pôr do sol espera.
-      expect(chamadas).toEqual(['bau-aberto', 'petala-a', 'petala-b', 'petala-c', 'cursor-chave']);
+      // Primeiro grupo: baú aberto, pétalas, cursor da chave e balões; o céu do pôr do sol espera.
+      expect(chamadas).toEqual([
+        'bau-aberto',
+        'petala-a',
+        'petala-b',
+        'petala-c',
+        'cursor-chave',
+        'balao-a',
+        'balao-b',
+        'balao-c',
+      ]);
       expect(pendentes[0]?.prioridade).toBe('baixa');
 
       for (const pendente of pendentes.splice(0)) pendente.liberar();
