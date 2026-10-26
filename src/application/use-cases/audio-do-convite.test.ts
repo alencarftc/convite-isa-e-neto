@@ -32,6 +32,7 @@ function montar(opcoes: { reduzido?: boolean; somSalvo?: boolean } = {}) {
     ambiente: {
       animacaoReduzida: () => opcoes.reduzido ?? false,
       porToque: () => false,
+      algumToque: () => false,
       orientacao: () => 'vertical',
       aoMudarOrientacao: () => () => undefined,
     },

@@ -10,6 +10,7 @@ function ambienteFalso(inicial: Partial<{ reduzido: boolean; toque: boolean }> =
   const ambiente: Ambiente = {
     animacaoReduzida: () => inicial.reduzido ?? false,
     porToque: () => inicial.toque ?? false,
+    algumToque: () => inicial.toque ?? false,
     orientacao: () => orientacao,
     aoMudarOrientacao(escuta) {
       escutas.add(escuta);

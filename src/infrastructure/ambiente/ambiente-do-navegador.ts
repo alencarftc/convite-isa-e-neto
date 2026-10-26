@@ -38,6 +38,7 @@ export function criarAmbienteDoNavegador(janela: JanelaComMidia): Ambiente {
   return {
     animacaoReduzida: () => consultar('(prefers-reduced-motion: reduce)').matches,
     porToque: () => consultar('(pointer: coarse)').matches,
+    algumToque: () => consultar('(any-pointer: coarse)').matches,
     orientacao: () => orientacaoDe(retrato.matches),
     aoMudarOrientacao(escuta) {
       const aoMudar = (evento: { readonly matches: boolean }) => {

@@ -49,6 +49,7 @@ function cenaFalsa<R = void>(
 const ambiente = (reduzido = false): Ambiente => ({
   animacaoReduzida: () => reduzido,
   porToque: () => false,
+  algumToque: () => false,
   orientacao: () => 'vertical',
   aoMudarOrientacao: () => () => undefined,
 });

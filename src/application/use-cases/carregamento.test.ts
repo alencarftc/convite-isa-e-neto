@@ -17,6 +17,10 @@ const config = {
     bauFechado: 'bau-fechado',
     chave: 'chave',
     bauAberto: 'bau-aberto',
+    petalaA: 'petala-a',
+    petalaB: 'petala-b',
+    petalaC: 'petala-c',
+    cursorChave: 'cursor-chave',
     ceuPorDoSol: { vertical: 'sol-v', horizontal: 'sol-h' },
   },
 } as unknown as Pick<ConfigConvite, 'duracoes' | 'imagens'>;
@@ -206,12 +210,13 @@ describe('criarCarregamento', () => {
 
       carregamento.secundario('horizontal');
       await Promise.resolve();
-      expect(chamadas).toEqual(['bau-aberto']);
+      // Primeiro grupo: baú aberto, as três pétalas e o cursor da chave; o céu do pôr do sol espera.
+      expect(chamadas).toEqual(['bau-aberto', 'petala-a', 'petala-b', 'petala-c', 'cursor-chave']);
       expect(pendentes[0]?.prioridade).toBe('baixa');
 
       for (const pendente of pendentes.splice(0)) pendente.liberar();
       await vi.waitFor(() => {
-        expect(chamadas).toEqual(['bau-aberto', 'sol-h']);
+        expect(chamadas.at(-1)).toBe('sol-h');
       });
     });
 

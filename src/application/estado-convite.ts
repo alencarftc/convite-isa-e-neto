@@ -12,7 +12,10 @@ export interface EstadoConvite {
   readonly visitado: boolean;
   /** Animação reduzida: o convite vai direto ao estado final (SPEC-09). */
   readonly reduzido: boolean;
+  /** O ponteiro principal é de toque (`pointer: coarse`): celular, tablet. */
   readonly toque: boolean;
+  /** Há também toque, ainda que o principal seja o mouse (notebook com tela de toque; SPEC-04). */
+  readonly algumToque: boolean;
   readonly orientacao: Orientacao;
   /**
    * Avança a fase. Devolve `false`, sem mudar nada, se a transição não for válida (o convite só
@@ -41,6 +44,7 @@ export function criarEstado({ preferencias, ambiente }: DependenciasDoEstado): E
   const visitado = preferencias.ler('convite:visitado', false);
   const reduzido = ambiente.animacaoReduzida();
   const toque = ambiente.porToque();
+  const algumToque = ambiente.algumToque();
 
   function avisar(): void {
     for (const escuta of [...escutas]) escuta(estado);
@@ -62,6 +66,7 @@ export function criarEstado({ preferencias, ambiente }: DependenciasDoEstado): E
     visitado,
     reduzido,
     toque,
+    algumToque,
     get orientacao() {
       return orientacao;
     },
