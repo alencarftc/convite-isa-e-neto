@@ -110,6 +110,8 @@ export interface ConteudoConvite {
     readonly confirmar: string;
     readonly prazo: string;
     readonly comoChegar: string;
+    /** "Salvar na agenda" (SPEC-17): texto novo, a aprovar pelo casal. */
+    readonly agenda: string;
     readonly encerrado: string;
   };
 }

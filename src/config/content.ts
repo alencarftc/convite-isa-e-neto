@@ -119,6 +119,8 @@ export const content: ConteudoConvite = {
     confirmar: 'Confirmar presença',
     prazo: 'Confirme até 31 de dezembro de 2026.',
     comoChegar: 'Como chegar',
+    // Texto novo (SPEC-17), ainda sem aprovação do casal: ver docs/specs-adicionais/SPEC-17-salvar-na-agenda.md.
+    agenda: 'Salvar na agenda',
     encerrado: 'As confirmações foram encerradas em 31 de dezembro de 2026.',
   },
 };
