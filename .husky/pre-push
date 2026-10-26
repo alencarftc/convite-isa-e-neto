@@ -1,0 +1,2 @@
+# Gate rápido antes de subir: tipos, arquitetura e testes. O `pnpm check` completo roda no CI.
+pnpm run typecheck && pnpm run arch && pnpm run test
