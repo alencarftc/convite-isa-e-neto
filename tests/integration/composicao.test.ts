@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type * as ModuloDeConfig from '@/config/config';
+import { content } from '@/config/content';
 
 import { montarIndexHtml } from './suporte/index-html';
 
@@ -111,6 +112,98 @@ describe('src/main.ts', () => {
     expect(conteudo?.firstElementChild?.className).toBe('carta');
     expect(conteudo?.hasAttribute('inert')).toBe(false);
     expect(document.body.style.overflow).toBe('');
+  });
+
+  describe('caminhos alternativos (SPEC-09)', () => {
+    const textoDaCarta = () => document.querySelector('#app .conteudo .carta')?.textContent ?? '';
+
+    it('o primeiro elemento focável é "Ir direto ao convite", fora da vista até receber foco (RF-09.4)', async () => {
+      await import('@/main');
+
+      const primeiro = document.body.firstElementChild;
+      expect(primeiro?.tagName).toBe('BUTTON');
+      expect(primeiro?.textContent).toBe('Ir direto ao convite');
+      expect(primeiro?.classList.contains('visualmente-oculto')).toBe(true);
+    });
+
+    it('o atalho leva direto à carta aberta e às informações, já na entrada (CA-09.3)', async () => {
+      await import('@/main');
+
+      document.querySelector<HTMLButtonElement>('button.atalho')?.click();
+
+      await vi.waitFor(() => {
+        expect(fase()).toBe('informacoes');
+      });
+      expect(textoDaCarta()).toContain(content.carta.assinatura);
+      expect(document.querySelector('#app .informacoes')).not.toBeNull();
+      expect(document.querySelector<HTMLElement>('.entrada')?.hidden).toBe(true);
+      expect(document.body.style.overflow).toBe('');
+    });
+
+    it('a segunda visita mostra "Pular para o convite" e ele leva ao final (CA-09.2.1, CA-09.2.2)', async () => {
+      localStorage.setItem('convite:visitado', 'true');
+      await import('@/main');
+      await vi.waitFor(() => {
+        expect(document.querySelector<HTMLButtonElement>('.entrada__pular')?.hidden).toBe(false);
+      });
+
+      document.querySelector<HTMLButtonElement>('.entrada__pular')?.click();
+
+      await vi.waitFor(() => {
+        expect(fase()).toBe('informacoes');
+      });
+      expect(textoDaCarta()).toContain(content.carta.assinatura);
+      localStorage.removeItem('convite:visitado');
+    });
+
+    it('na primeira visita, "Pular para o convite" não aparece', async () => {
+      await import('@/main');
+      await vi.waitFor(() => {
+        expect(document.querySelector<HTMLButtonElement>('.entrada__tocar')?.hidden).toBe(false);
+      });
+
+      expect(document.querySelector<HTMLButtonElement>('.entrada__pular')?.hidden).toBe(true);
+    });
+
+    it('com animação reduzida, o toque leva direto à carta aberta, sem balões nem envelope (CA-09.1.1, CA-09.1.2)', async () => {
+      vi.stubGlobal('matchMedia', (consulta: string) => ({
+        matches: consulta.includes('prefers-reduced-motion'),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }));
+      await import('@/main');
+      await vi.waitFor(() => {
+        expect(document.querySelector<HTMLButtonElement>('.entrada__tocar')?.hidden).toBe(false);
+      });
+
+      document.querySelector<HTMLButtonElement>('.entrada__tocar')?.click();
+
+      await vi.waitFor(() => {
+        expect(fase()).toBe('informacoes');
+      });
+      expect(textoDaCarta()).toContain(content.carta.assinatura);
+      expect(document.querySelector<HTMLElement>('.historia')?.hidden ?? true).toBe(true);
+      expect(document.querySelector<HTMLElement>('.envelope')?.hidden).toBe(true);
+      expect(document.querySelector('.bau__corpo')).not.toBeNull(); // montado, mas nunca tocado
+    });
+
+    it('com erro numa cena, mostra a carta e as informações e leva o foco ao título (CA-09.5.2, CT-09.7)', async () => {
+      const erro = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      window.history.replaceState({}, '', '/?data=2026-11-15T10:00&erro=historia');
+
+      await abrirEntrando();
+      await abrirOBau();
+
+      await vi.waitFor(() => {
+        expect(fase()).toBe('seguranca');
+      });
+      expect(erro).toHaveBeenCalled();
+      expect(textoDaCarta()).toContain(content.carta.assinatura);
+      expect(document.querySelector('#app .informacoes')).not.toBeNull();
+      expect(document.querySelector('#app .conteudo')?.hasAttribute('inert')).toBe(false);
+      expect(document.body.style.overflow).toBe('');
+      expect(document.activeElement?.id).toBe('carta-titulo');
+    });
   });
 
   it('?erro=<cena> faz a cena falhar: registra o erro e ainda mostra as informações (CT-01.7)', async () => {

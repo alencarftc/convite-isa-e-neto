@@ -166,6 +166,14 @@ describe('história em balões (SPEC-05)', () => {
       expect(anunciadas).toEqual(content.baloes.map((b) => b.frase));
     });
 
+    it('o foco fica no botão de avançar durante a história (SPEC-09, RF-09.6)', () => {
+      const { cena, botao } = montar();
+
+      void cena.run();
+
+      expect(document.activeElement).toBe(botao());
+    });
+
     it('mostra a região e o botão de avançar durante a história', () => {
       const { cena, el, botao } = montar();
 

@@ -183,6 +183,17 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(el('.carta__dica').textContent).toBe('Toque no selo');
     });
 
+    it('o foco vai para o botão do envelope quando ele pousa (SPEC-09, RF-09.6)', async () => {
+      const { carta, botao, registro } = montar();
+      void carta.run();
+
+      await vi.waitFor(() => {
+        expect(registro).toContain('pousou');
+      });
+
+      expect(document.activeElement).toBe(botao());
+    });
+
     it('um toque abre e o run resolve com origem "toque" (CA-06.2.1, CT-06.2)', async () => {
       const { carta, convite, registro, botao } = montar();
       const etapa = carta.run();
@@ -344,6 +355,15 @@ describe('envelope e carta (SPEC-06)', () => {
       await new Promise((resolver) => setTimeout(resolver, config.duracoes.convite * 1000 + 100));
 
       expect(registro).not.toContain('aberto');
+    });
+
+    it('no modo de segurança, o foco vai ao título da carta (que já está sem inert) (RF-09.8)', () => {
+      const { carta, eventos, el } = montar();
+      carta.skip();
+
+      eventos.emit('seguranca', { erro: new Error('x') });
+
+      expect(document.activeElement).toBe(el('#carta-titulo'));
     });
 
     it('destroy remove envelope, carta e rolagem travada', () => {
