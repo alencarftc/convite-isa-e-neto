@@ -15,6 +15,7 @@ o Claude Docs, e é o que humanos e LLMs devem carregar antes de mexer no códig
 | [arquitetura.md](./arquitetura.md)                 | **neste repo** | camadas, regras de dependência, onde cada spec vai, receitas                                              |
 | [qualidade.md](./qualidade.md)                     | **neste repo** | gates, testes, dev server, commits, changesets, ignores                                                   |
 | [operacao/](./operacao/confirmacao-de-presenca.md) | **neste repo** | passos que dependem de uma pessoa (formulário, planilha, acionadores): lista de conferência               |
+| [specs-adicionais/](./specs-adicionais/README.md)  | **neste repo** | revisão de consistência com o briefing e as SPEC-13 a SPEC-17 (aprovadas em 26/10/2026)                   |
 | [decisions/](./decisions)                          | **neste repo** | ADRs: o que mudou em relação à documentação original e por quê                                            |
 
 **Espelho** = cópia do Claude Docs exportada em 2026-10-26; a fonte da verdade continua lá:
