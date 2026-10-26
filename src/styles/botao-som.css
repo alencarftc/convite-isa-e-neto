@@ -1,0 +1,37 @@
+/* Botão de som fixo no canto superior direito (SPEC-08, RF-08.5): 44 × 44 px, fora da área insegura. */
+.botao-som {
+  position: fixed;
+  top: max(var(--espaco-3), env(safe-area-inset-top));
+  right: max(var(--espaco-3), env(safe-area-inset-right));
+  z-index: var(--z-interface);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--cor-texto);
+  cursor: pointer;
+  background: var(--cor-marfim);
+  border: 1px solid var(--cor-dourado);
+  border-radius: 50%;
+  box-shadow: var(--sombra-cartao);
+}
+
+.botao-som:active {
+  transform: scale(0.96);
+}
+
+.botao-som__icone {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.botao-som[aria-pressed='false'] .botao-som__icone--ligado,
+.botao-som[aria-pressed='true'] .botao-som__icone--desligado {
+  display: none;
+}
