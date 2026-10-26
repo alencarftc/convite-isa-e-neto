@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ARTE PROVISÓRIA: substituir pela imagem gerada (docs/requisitos.md, "Imagens a gerar") · pétala azul -->
+<svg xmlns="http://www.w3.org/2000/svg" data-provisorio="true" width="96" height="128" viewBox="0 0 96 128">
+<path d="M48 4 C 98 36, 98 96, 48 124 C -2 96, -2 36, 48 4 z" fill="#a3b8dc" fill-opacity="0.9"/><path d="M48 14 V112" stroke="#ffffff" stroke-opacity="0.45" stroke-width="2"/>
+</svg>
