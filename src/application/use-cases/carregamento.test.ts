@@ -24,6 +24,11 @@ const config = {
     balaoA: 'balao-a',
     balaoB: 'balao-b',
     balaoC: 'balao-c',
+    envelopeFechado: 'envelope-fechado',
+    envelopeAberto: 'envelope-aberto',
+    selo: 'selo',
+    papelCarta: 'papel-carta',
+    casal: 'casal',
     ceuPorDoSol: { vertical: 'sol-v', horizontal: 'sol-h' },
   },
 } as unknown as Pick<ConfigConvite, 'duracoes' | 'imagens'>;
@@ -226,10 +231,16 @@ describe('criarCarregamento', () => {
       ]);
       expect(pendentes[0]?.prioridade).toBe('baixa');
 
-      for (const pendente of pendentes.splice(0)) pendente.liberar();
-      await vi.waitFor(() => {
-        expect(chamadas.at(-1)).toBe('sol-h');
-      });
+      // Cada grupo só começa quando o anterior termina: céu do pôr do sol, depois carta, depois casal.
+      const aposOGrupo = async (esperado: string[]) => {
+        for (const pendente of pendentes.splice(0)) pendente.liberar();
+        await vi.waitFor(() => {
+          expect(chamadas.slice(-esperado.length)).toEqual(esperado);
+        });
+      };
+      await aposOGrupo(['sol-h']);
+      await aposOGrupo(['envelope-fechado', 'envelope-aberto', 'selo', 'papel-carta']);
+      await aposOGrupo(['casal']);
     });
 
     it('não repete o que o crítico já baixou', async () => {

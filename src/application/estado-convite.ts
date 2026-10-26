@@ -22,6 +22,8 @@ export interface EstadoConvite {
    * anda para a frente e as fases finais não têm saída).
    */
   definirFase(fase: Fase): boolean;
+  /** Registra que o convidado já abriu o convite neste aparelho (`convite:visitado`; SPEC-06, RF-06.10). */
+  marcarVisitado(): void;
   /** Liga ou desliga o som e lembra a escolha para a próxima visita (RF-08.6). */
   definirSom(ligado: boolean): void;
   /** Avisa a cada mudança de fase, de som ou de orientação; devolve a função que cancela o aviso. */
@@ -41,7 +43,7 @@ export function criarEstado({ preferencias, ambiente }: DependenciasDoEstado): E
   const escutas = new Set<(estado: EstadoConvite) => void>();
 
   let somLigado = preferencias.ler('convite:som', true);
-  const visitado = preferencias.ler('convite:visitado', false);
+  let visitado = preferencias.ler('convite:visitado', false);
   const reduzido = ambiente.animacaoReduzida();
   const toque = ambiente.porToque();
   const algumToque = ambiente.algumToque();
@@ -63,7 +65,9 @@ export function criarEstado({ preferencias, ambiente }: DependenciasDoEstado): E
     get somLigado() {
       return somLigado;
     },
-    visitado,
+    get visitado() {
+      return visitado;
+    },
     reduzido,
     toque,
     algumToque,
@@ -75,6 +79,12 @@ export function criarEstado({ preferencias, ambiente }: DependenciasDoEstado): E
       fase = nova;
       avisar();
       return true;
+    },
+    marcarVisitado() {
+      if (visitado) return;
+      visitado = true;
+      preferencias.gravar('convite:visitado', true);
+      avisar();
     },
     definirSom(ligado) {
       if (ligado === somLigado) return;
