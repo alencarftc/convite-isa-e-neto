@@ -33,6 +33,8 @@ export interface ConfigConvite {
     readonly entradaSaida: number;
     /** Cada camada da névoa em repouso vai e volta nesse tempo. */
     readonly nevoaEmRepouso: number;
+    /** Cada cartão das informações surge ao entrar na tela (SPEC-07). */
+    readonly cartoes: number;
     /** Cena aparece por esmaecimento com animação reduzida (SPEC-03, RF-03.6). */
     readonly esmaecimentoReduzido: number;
     /** Depois do toque, tempo de espera antes de mostrar "Preparando o bosque…". */
@@ -40,6 +42,8 @@ export interface ConfigConvite {
   };
   /** Parâmetros de movimento do bosque (SPEC-03). Os tempos em segundos, as distâncias em pixels. */
   readonly movimento: {
+    /** Quanto cada cartão sobe ao surgir, em pixels (SPEC-07). */
+    readonly deslocamentoDosCartoes: number;
     /** A cena começa assim e se aproxima até 1 durante `duracoes.nevoa`. */
     readonly escalaInicialDoBosque: number;
     /** A névoa cresce até aqui enquanto se dissipa. */

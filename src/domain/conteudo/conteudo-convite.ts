@@ -49,6 +49,9 @@ export interface ConteudoConvite {
     readonly avancarHistoria: string;
     /** Nome acessível do botão que cobre o envelope (SPEC-06, RF-06.3). */
     readonly abrirEnvelope: string;
+    /** Títulos dos cartões das informações (SPEC-07); a spec deixa em aberto se ficam visíveis. */
+    readonly mensagem: string;
+    readonly traje: string;
   };
   readonly envelope: {
     /** Escrito no envelope, acima do selo. */
@@ -75,6 +78,15 @@ export interface ConteudoConvite {
     readonly rolar: string;
   };
   readonly carta: CartaDoConvite;
+  /** Mensagem do casal, abaixo da contagem (SPEC-07, RF-07.7). */
+  readonly mensagem: {
+    readonly paragrafos: readonly string[];
+    /** Verso do louvor, em itálico, com o nome da música; pendência do casal (entre colchetes). */
+    readonly versoLouvor: string;
+    readonly assinatura: string;
+  };
+  /** Traje (dress code). */
+  readonly dressCode: string;
   /** Os balões da história, na ordem em que aparecem (SPEC-05). */
   readonly baloes: readonly BalaoDoConvite[];
   readonly contagem: {
