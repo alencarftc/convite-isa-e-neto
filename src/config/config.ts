@@ -26,6 +26,21 @@ export const config: ConfigConvite = {
     entradaSaida: 0.3,
     nevoaEmRepouso: 12,
     avisoDeEspera: 0.3,
+    esmaecimentoReduzido: 0.4,
+  },
+  movimento: {
+    escalaInicialDoBosque: 1.06,
+    escalaFinalDaNevoa: 1.15,
+    fracaoDaNevoa: 0.8,
+    profundidadeDasCamadas: { ceu: 0.15, lago: 0.3, arvores: 0.6, bau: 0.75, frente: 1 },
+    profundidade: {
+      mouseX: 24,
+      mouseY: 12,
+      deriva: 6,
+      periodoDaDeriva: 8,
+      defasagemDaDeriva: 1.3,
+      suavizacao: 0.8,
+    },
   },
   // Arte provisória (docs/decisions/0006): trocar pelos WebP gerados e rodar `pnpm verificar`.
   imagens: {

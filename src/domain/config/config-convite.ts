@@ -33,8 +33,39 @@ export interface ConfigConvite {
     readonly entradaSaida: number;
     /** Cada camada da névoa em repouso vai e volta nesse tempo. */
     readonly nevoaEmRepouso: number;
+    /** Cena aparece por esmaecimento com animação reduzida (SPEC-03, RF-03.6). */
+    readonly esmaecimentoReduzido: number;
     /** Depois do toque, tempo de espera antes de mostrar "Preparando o bosque…". */
     readonly avisoDeEspera: number;
+  };
+  /** Parâmetros de movimento do bosque (SPEC-03). Os tempos em segundos, as distâncias em pixels. */
+  readonly movimento: {
+    /** A cena começa assim e se aproxima até 1 durante `duracoes.nevoa`. */
+    readonly escalaInicialDoBosque: number;
+    /** A névoa cresce até aqui enquanto se dissipa. */
+    readonly escalaFinalDaNevoa: number;
+    /** Fração de `duracoes.nevoa` em que a névoa se dissipa (2,4 s de 3 s). */
+    readonly fracaoDaNevoa: number;
+    /** Quanto cada camada se move (0 a 1); a mais próxima se move mais (SPEC-03, "Camadas"). */
+    readonly profundidadeDasCamadas: {
+      readonly ceu: number;
+      readonly lago: number;
+      readonly arvores: number;
+      readonly bau: number;
+      readonly frente: number;
+    };
+    readonly profundidade: {
+      /** Deslocamento máximo com o mouse (computador), antes de multiplicar pela profundidade. */
+      readonly mouseX: number;
+      readonly mouseY: number;
+      /** Deriva automática no celular. */
+      readonly deriva: number;
+      readonly periodoDaDeriva: number;
+      /** Atraso entre uma camada e a seguinte na deriva, para não andarem juntas. */
+      readonly defasagemDaDeriva: number;
+      /** Tempo que a camada leva para alcançar o ponteiro, e para voltar ao centro. */
+      readonly suavizacao: number;
+    };
   };
   /** Arquivo de cada imagem do convite (SPEC-02, SPEC-03); caminhos relativos à página. */
   readonly imagens: Readonly<Record<ChaveDeImagem, ArteDaImagem>>;

@@ -53,6 +53,7 @@ src/
 │   ├── contagem/                # estado por data, contagem regressiva, plural (SPEC-07)
 │   ├── eventos/                 # EventosConvite: nomes e dados do barramento (SPEC-01)
 │   ├── fase/                    # fases do orquestrador (SPEC-01)
+│   ├── profundidade/            # deslocamento por ponteiro (SPEC-03)
 │   ├── imagens/                 # catálogo: críticas, fila secundária, arte por orientação (SPEC-02)
 │   ├── tela/                    # orientação (vertical, horizontal)
 │   └── tempo/                   # fuso de Brasília, minutos, instantes
@@ -73,6 +74,7 @@ src/
 │   └── armazenamento/           # preferências em localStorage, à prova de falha
 ├── presentation/                # tudo que desenha: cenas, componentes, GSAP
 │   ├── audio/                   # botão de som (SPEC-08)
+│   ├── bosque/                  # cena do bosque: camadas, revelação e profundidade (SPEC-03)
 │   ├── entrada/                 # névoa, nomes e "Toque para entrar" (SPEC-02)
 │   └── informacoes/             # cartões de contagem e botões (SPEC-07)
 └── styles/                      # tokens.css (única fonte de cores/fontes/camadas), base.css, …
@@ -85,21 +87,22 @@ docs/                            # documentação e contexto (ver docs/README.md
 
 ## Onde cada spec vai morar
 
-| Spec / peça                                           | Camada                                                                                          | Observação                                                                                      |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| SPEC-01 estados, eventos, fases                       | `domain`                                                                                        | feito: `fase`, `eventos`                                                                        |
-| SPEC-01 barramento                                    | `application`                                                                                   | feito: `barramento-eventos.ts`                                                                  |
-| SPEC-01 orquestrador (`iniciar`, `pular`, `falhar`)   | `application/use-cases`                                                                         | feito: recebe um `PlanoDoConvite` de cenas `Cena`; sem DOM (ADR-0004)                           |
-| SPEC-01 contrato da cena `{init, run, skip, destroy}` | `application`                                                                                   | feito: `cena.ts`; implementações em `presentation/` (o `ctx` vai à fábrica)                     |
-| SPEC-01 `state`                                       | `application`                                                                                   | feito: `estado-convite.ts` + portas `Preferencias` e `Ambiente`                                 |
-| SPEC-02 `preload`                                     | portas `CarregadorDeImagens` e `Temporizador` em `application`, adaptadores em `infrastructure` | feito: `use-cases/carregamento.ts`; `img.decode()` no adaptador (ADR-0006)                      |
-| SPEC-02/03/04/05/06 cenas e GSAP                      | `presentation/scenes/`                                                                          | cada cena recebe `ctx = { root, content, config, state, events, audio }`                        |
-| SPEC-04 cursor de chave                               | `presentation`                                                                                  | detecção de `pointer` via porta ou `matchMedia` no adaptador                                    |
-| SPEC-07 contagem e estados                            | `domain` + `application` + `presentation`                                                       | feito (fatia vertical de referência)                                                            |
-| SPEC-08 áudio                                         | porta `AudioPort` em `application`, Howler em `infrastructure/audio`                            | feito: `conectarAudio` liga os eventos à porta; botão de som em `presentation/audio` (ADR-0005) |
-| SPEC-09 modo de segurança                             | caso de uso em `application`; DOM em `presentation`                                             | não depende do GSAP                                                                             |
-| SPEC-10 metadados e ícones                            | `index.html`, `public/`                                                                         |                                                                                                 |
-| SPEC-12 `verificar`                                   | `scripts/`                                                                                      | regras puras testadas; peso no `size-limit`                                                     |
+| Spec / peça                                           | Camada                                                                                          | Observação                                                                                                             |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| SPEC-01 estados, eventos, fases                       | `domain`                                                                                        | feito: `fase`, `eventos`                                                                                               |
+| SPEC-01 barramento                                    | `application`                                                                                   | feito: `barramento-eventos.ts`                                                                                         |
+| SPEC-01 orquestrador (`iniciar`, `pular`, `falhar`)   | `application/use-cases`                                                                         | feito: recebe um `PlanoDoConvite` de cenas `Cena`; sem DOM (ADR-0004)                                                  |
+| SPEC-01 contrato da cena `{init, run, skip, destroy}` | `application`                                                                                   | feito: `cena.ts`; implementações em `presentation/` (o `ctx` vai à fábrica)                                            |
+| SPEC-01 `state`                                       | `application`                                                                                   | feito: `estado-convite.ts` + portas `Preferencias` e `Ambiente`                                                        |
+| SPEC-02 `preload`                                     | portas `CarregadorDeImagens` e `Temporizador` em `application`, adaptadores em `infrastructure` | feito: `use-cases/carregamento.ts`; `img.decode()` no adaptador (ADR-0006)                                             |
+| SPEC-03 bosque                                        | `presentation/bosque`                                                                           | feito: `cena-bosque.ts` (camadas, revelação) e `profundidade.ts` (mouse/deriva); a matemática em `domain/profundidade` |
+| SPEC-02/04/05/06 cenas e GSAP                         | `presentation/scenes/`                                                                          | cada cena recebe `ctx = { root, content, config, state, events, audio }`                                               |
+| SPEC-04 cursor de chave                               | `presentation`                                                                                  | detecção de `pointer` via porta ou `matchMedia` no adaptador                                                           |
+| SPEC-07 contagem e estados                            | `domain` + `application` + `presentation`                                                       | feito (fatia vertical de referência)                                                                                   |
+| SPEC-08 áudio                                         | porta `AudioPort` em `application`, Howler em `infrastructure/audio`                            | feito: `conectarAudio` liga os eventos à porta; botão de som em `presentation/audio` (ADR-0005)                        |
+| SPEC-09 modo de segurança                             | caso de uso em `application`; DOM em `presentation`                                             | não depende do GSAP                                                                                                    |
+| SPEC-10 metadados e ícones                            | `index.html`, `public/`                                                                         |                                                                                                                        |
+| SPEC-12 `verificar`                                   | `scripts/`                                                                                      | regras puras testadas; peso no `size-limit`                                                                            |
 
 ## Convenções
 

@@ -5,6 +5,7 @@
 import './styles/tokens.css';
 import './styles/fontes.css';
 import './styles/base.css';
+import './styles/bosque.css';
 import './styles/entrada.css';
 import './styles/informacoes.css';
 import './styles/botao-som.css';
@@ -35,6 +36,7 @@ import { criarCarregadorDeImagens } from '@/infrastructure/imagens/carregador-de
 import { criarRelogio } from '@/infrastructure/relogio/relogio';
 import { criarTemporizador } from '@/infrastructure/tempo/temporizador';
 import { montarBotaoSom } from '@/presentation/audio/botao-som';
+import { criarCenaBosque } from '@/presentation/bosque/cena-bosque';
 import { criarCenaEntrada } from '@/presentation/entrada/cena-entrada';
 import { refletirFaseNoCorpo } from '@/presentation/fase-no-corpo';
 import { criarCenaInformacoes } from '@/presentation/informacoes/cena-informacoes';
@@ -87,14 +89,20 @@ function naCena<R>(nome: string, cena: Cena<R>): Cena<R> {
   return erroForcado === nome ? comErroForcado(nome, cena) : cena;
 }
 
-// Cada spec de cena (SPEC-02 a SPEC-06) acrescenta a sua aqui, na ordem do caminho.
-const etapas: readonly EtapaDoConvite[] = [];
-
 const carregamento = criarCarregamento({
   imagens: criarCarregadorDeImagens(),
   temporizador: criarTemporizador(),
   config,
 });
+
+// Cada spec de cena (SPEC-03 a SPEC-06) acrescenta a sua aqui, na ordem do caminho.
+const etapas: readonly EtapaDoConvite[] = [
+  {
+    nome: 'bosque',
+    fase: 'bosque',
+    cena: criarCenaBosque({ raiz, config, estado, eventos, carregamento }),
+  },
+];
 
 const orquestrador = criarOrquestrador({
   plano: {

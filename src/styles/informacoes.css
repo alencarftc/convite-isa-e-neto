@@ -1,5 +1,7 @@
 /* Cartões e botões do bloco "Informações" (SPEC-07, "Estilo dos cartões e botões"). */
 .informacoes {
+  position: relative;
+  z-index: var(--z-informacoes);
   display: flex;
   flex-direction: column;
   gap: var(--espaco-5);
