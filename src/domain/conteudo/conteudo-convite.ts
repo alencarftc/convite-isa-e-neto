@@ -1,0 +1,26 @@
+import type { UnidadesDeTempo } from '../contagem/contagem-regressiva';
+
+/**
+ * Formato de `src/config/content.ts`. Todo texto visível ao convidado mora aqui
+ * (SPEC-01, RNF-01.2). Este tipo cresce a cada spec implementada; a estrutura
+ * completa prevista está em docs/documentacao.md, seção "Conteúdo".
+ */
+export interface ConteudoConvite {
+  readonly rotulos: {
+    /** Rótulo acessível da seção de informações. */
+    readonly informacoes: string;
+  };
+  readonly contagem: {
+    /** Modelo com `{dias}`, `{horas}` e `{minutos}`. */
+    readonly antes: string;
+    readonly noDia: string;
+    readonly depois: string;
+    readonly unidades: UnidadesDeTempo;
+  };
+  readonly botoes: {
+    readonly confirmar: string;
+    readonly prazo: string;
+    readonly comoChegar: string;
+    readonly encerrado: string;
+  };
+}
