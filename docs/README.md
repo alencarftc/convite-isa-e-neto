@@ -63,11 +63,12 @@ nas tabelas das SPEC-01 e do roteiro (requisitos).
   **SPEC-04**: baú, chave (cursor ou flutuante), dica, reforço, abertura em 2 s com pétalas;
   **SPEC-05**: cinco balões com foto e frase, luz do pôr do sol na mesma linha do tempo, aceleração por toque, anúncio ao leitor de tela — fotos e descrições provisórias;
   **SPEC-06**: envelope que pousa sobre o baú, selo que se parte, carta que se desdobra com o casal ao fundo, pétalas e rolagem liberada; a carta e as informações no mesmo conteúdo;
+  **SPEC-12**: orçamento de peso por arquivo e por grupo no `verificar`, arquivos citados em CSS/HTML conferidos, fluxo completo sem erro no console, Lighthouse medido (desempenho 89, acessibilidade 100, boas práticas 100, CLS 0) e matriz de testes em aparelhos;
   **SPEC-10**: metadados e prévia gerados de `content`/`config`, workflow de publicação no GitHub Pages, gate com endereço e serviços externos — faltam a imagem da prévia e os ícones;
   **SPEC-09**: animação reduzida, atalho de teclado, foco ao longo do caminho, modo de segurança, `<noscript>` gerado e contraste testado;
   **SPEC-11**: o botão e o encerramento já existiam; agora o `verificar` confere que os textos de prazo e de data batem com `config`, e há uma lista de conferência para a planilha e o formulário (passos manuais);
   **SPEC-07 completa**: contagem com números em destaque, mensagem do casal, traje e botões, cartões que surgem ao rolar;
   `verificar` com 3 regras.
-- **Próximo:** SPEC-12 (desempenho e qualidade: orçamento de peso, matriz de testes, checagens de publicação).
+- **Próximo:** o que depende do casal e de aparelhos reais: arte gerada, fotos, MP3, verso do louvor, imagem da prévia e ícones, matriz de testes ([lançamento](./operacao/lancamento.md)).
 - **Pendências de conteúdo** (bloqueiam `pnpm verificar` e o envio): fotos dos balões, imagens geradas,
   músicas licenciadas e os 6 MP3 em `public/audio/`, **troca da arte provisória** (`config.imagens`, fotos dos balões e suas descrições), **verso do louvor** (entre colchetes em `content.mensagem`), URL publicada. Lista completa no fim de [documentacao.md](./documentacao.md).

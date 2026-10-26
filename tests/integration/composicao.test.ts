@@ -103,6 +103,14 @@ describe('src/main.ts', () => {
     expect(document.querySelector<HTMLElement>('.entrada')?.hidden).toBe(true);
   });
 
+  it('o fluxo completo não escreve nenhum erro no console (SPEC-12, "Metas")', async () => {
+    const erro = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    await ateAsInformacoes();
+
+    expect(erro).not.toHaveBeenCalled();
+  });
+
   it('a carta e as informações ficam no mesmo conteúdo, a carta primeiro, com a rolagem liberada', async () => {
     await ateAsInformacoes();
 

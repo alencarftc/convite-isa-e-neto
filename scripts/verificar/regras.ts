@@ -3,16 +3,15 @@ import type { ConteudoConvite } from '../../src/domain/conteudo/conteudo-convite
 import { urlsDaImagem } from '../../src/domain/imagens/catalogo-de-imagens';
 import { dataPorExtenso, diaDaSemana, horaCurta } from '../../src/domain/tempo/formato-de-data';
 import { analisarInstante } from '../../src/domain/tempo/tempo';
+import { type TamanhoDe, validarArquivosCitados, validarPeso } from './orcamento';
+import type { Problema } from './problema';
 
 /**
  * Regras do gate de publicação (SPEC-12, "Checagem automática"). São funções
  * puras, para testar sem tocar o disco. O orçamento de peso é conferido pelo
  * `size-limit`; o <noscript> entra quando existir (SPEC-09).
  */
-export interface Problema {
-  readonly regra: string;
-  readonly mensagem: string;
-}
+export type { Problema };
 
 const TEXTO_PENDENTE = /\[[^\]]+\]/;
 const DATA_COM_FUSO_BRASILIA = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}-03:00$/;
@@ -215,6 +214,10 @@ export interface EntradasDoGate {
   readonly existe: (caminho: string) => boolean;
   /** Arquivos do código (`index.html`, `src/**`) onde procurar endereços externos. */
   readonly arquivosDoCodigo?: readonly ArquivoDeTexto[];
+  /** Tamanho em bytes do arquivo de `public/`, ou `undefined` se não existir. */
+  readonly tamanhoDe?: TamanhoDe;
+  /** Fontes em `public/fonts/` (caminhos relativos a `public/`). */
+  readonly fontes?: readonly string[];
 }
 
 export function verificarTudo({
@@ -223,6 +226,8 @@ export function verificarTudo({
   arquivosDeAudio,
   existe,
   arquivosDoCodigo = [],
+  tamanhoDe = () => undefined,
+  fontes = [],
 }: EntradasDoGate): Problema[] {
   return [
     ...encontrarTextoPendente(conteudo),
@@ -238,5 +243,7 @@ export function verificarTudo({
     ...validarConsistenciaDeDatas(config, conteudo),
     ...validarArteDefinitiva(config, conteudo),
     ...validarArquivos(config, conteudo, arquivosDeAudio, existe),
+    ...validarArquivosCitados(arquivosDoCodigo, existe),
+    ...validarPeso(config, conteudo, arquivosDeAudio, fontes, tamanhoDe),
   ];
 }
