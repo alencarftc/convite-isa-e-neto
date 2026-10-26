@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ARTE PROVISÓRIA: substituir pela imagem gerada (docs/requisitos.md, "Imagens a gerar") · envelope fechado -->
+<svg xmlns="http://www.w3.org/2000/svg" data-provisorio="true" width="720" height="480" viewBox="0 0 720 480">
+<rect x="10" y="30" width="700" height="440" rx="14" fill="#dbceb0" stroke="#b9aa86" stroke-width="4"/>
+<path d="M10 40 L360 290 L710 40" fill="none" stroke="#b9aa86" stroke-width="4"/>
+<path d="M10 470 L260 250 M710 470 L460 250" fill="none" stroke="#b9aa86" stroke-width="3"/>
+<path d="M10 40 Q360 330 710 40 z" fill="#e3d7b9"/>
+</svg>
