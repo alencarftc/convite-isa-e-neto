@@ -71,6 +71,8 @@ export interface ConteudoConvite {
     readonly somLigado: string;
     readonly somDesligado: string;
     readonly pular: string;
+    /** Atalho para leitor de tela e teclado: visível só com foco (SPEC-09, RF-09.4). */
+    readonly atalho: string;
     readonly chaveComputador: string;
     readonly chaveCelular: string;
     readonly avancar: string;
