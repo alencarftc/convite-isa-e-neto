@@ -459,6 +459,32 @@ describe('envelope e carta (SPEC-06)', () => {
       );
     });
 
+    it('"Role para ler" some na primeira rolagem, sem esperar os segundos de rolarVisivel (SPEC-14, RF-14.4)', async () => {
+      const { abrirTudo, el } = montar();
+      await abrirTudo('toque');
+      const para = vi.spyOn(gsap, 'to');
+
+      window.dispatchEvent(new Event('scroll'));
+
+      const apagouADica = para.mock.calls.some(
+        ([alvo, vars]) => alvo === el('.convite__rolar') && vars.opacity === 0,
+      );
+      expect(apagouADica).toBe(true);
+      para.mockRestore();
+    });
+
+    it('a rolagem só conta uma vez: a segunda não refaz o desvanecimento', async () => {
+      const { abrirTudo } = montar();
+      await abrirTudo('toque');
+      window.dispatchEvent(new Event('scroll'));
+      const para = vi.spyOn(gsap, 'to');
+
+      window.dispatchEvent(new Event('scroll'));
+
+      expect(para).not.toHaveBeenCalled();
+      para.mockRestore();
+    });
+
     it('registra a visita no aparelho só ao terminar de abrir (RF-06.10)', async () => {
       const { abrirTudo, estado } = montar();
 
