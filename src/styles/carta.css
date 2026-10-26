@@ -111,6 +111,10 @@
   background: none;
   border: 0;
   pointer-events: auto;
+
+  /* Deslizar o selo (SPEC-16): o dedo arrasta, mas o zoom por pinça continua. Fora do envelope nada muda. */
+  touch-action: none;
+  touch-action: pinch-zoom;
 }
 
 .carta__abrir:disabled {

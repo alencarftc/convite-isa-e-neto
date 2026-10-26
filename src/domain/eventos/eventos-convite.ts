@@ -14,7 +14,7 @@ export interface EventosConvite {
   'historia:balao': { readonly indice: number; readonly frase: string };
   'historia:fim': undefined;
   'carta:pousou': undefined;
-  'carta:abrindo': { readonly origem: 'toque' | 'tempo' };
+  'carta:abrindo': { readonly origem: 'toque' | 'tempo' | 'gesto' };
   'convite:aberto': undefined;
   /**
    * O convidado foi direto ao final (Pular, atalho de teclado ou animação reduzida): as etapas do

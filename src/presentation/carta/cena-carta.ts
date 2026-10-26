@@ -9,6 +9,7 @@ import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
 import { chuvaDePetalas } from '../petalas/chuva-de-petalas';
+import { ligarGestoDoSelo } from './gesto-do-selo';
 import { montarCarta } from './montar-carta';
 
 export interface DependenciasDaCarta {
@@ -19,7 +20,7 @@ export interface DependenciasDaCarta {
   readonly eventos: BarramentoEventos<EventosConvite>;
 }
 
-type OrigemDaAbertura = 'toque' | 'tempo';
+type OrigemDaAbertura = 'toque' | 'tempo' | 'gesto';
 
 interface Elementos {
   readonly envelope: HTMLElement;
@@ -295,9 +296,22 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
         };
 
         ouvintes = new AbortController();
+        // Além do toque, deslizar o selo abre o envelope (SPEC-16); só a primeira origem vale.
+        const gesto = ligarGestoDoSelo({
+          botao: e.botao,
+          selo: e.selo,
+          gesto: t.gesto,
+          mola: curvas.mola,
+          reduzido: estado.reduzido,
+          aoAbrir: () => {
+            abrir('gesto');
+          },
+          signal: ouvintes.signal,
+        });
         e.botao.addEventListener(
           'click',
           () => {
+            if (gesto.cliqueFoiArrasto()) return; // o clique que sobra de um arrasto não é um toque
             abrir('toque');
           },
           { signal: ouvintes.signal },

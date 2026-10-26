@@ -69,3 +69,31 @@ que o começo e o fim da abertura rimam.
 
 - A noiva quer um gesto de deslizar? Onde: no selo (proposta), no envelope ou nos balões?
 - O selo na entrada combina com a névoa que ela viu no roteiro, ou prefere só os nomes?
+
+## Implementação (26/10/2026)
+
+Implementada na branch `feat/spec-16-gestos-do-envelope`. Respostas adotadas e desvios do desenho acima:
+
+- **As duas partes entraram** (gesto no selo e selo na entrada), no selo e não nos balões. A dica continua "Toque no
+  selo" (RF-16.4): não há texto novo.
+- **Gesto:** `pointerdown/move/up` no botão que já cobre o envelope, mas só começa se o dedo pousar sobre o selo
+  (com 10 px de folga); tocar em outro ponto é um clique comum. Andar menos que 10 px ainda é um toque. O
+  deslocamento é `limite × tanh(distância / limite)` (domínio, `gesto-do-selo.ts`): cresce e se aproxima de 120 px sem
+  passar, o que dá a resistência. Só conta o movimento para baixo e para os lados. Soltar com 60 px ou mais abre
+  (`carta:abrindo` com `origem: 'gesto'`); antes disso o selo volta com `elastic.out(1, 0.5)` (`curvas.mola`).
+- **`gsap.set` em vez de `quickTo`:** os eventos de ponteiro já chegam a cada quadro, então não há o que suavizar, e o
+  `set` responde na hora (RNF-16.2) sem brigar com a pulsação do selo.
+- **`touch-action: pinch-zoom` no botão do envelope**, em vez de `none` só no selo: dedo único arrasta, mas a pinça de
+  zoom continua funcionando (RNF-16.1). A página não rola nessa etapa de qualquer modo (RF-06.9). Fora do envelope nada
+  muda. O `click` que o navegador dispara depois de um arrasto é ignorado (uma vez), e a marca é limpa a cada novo toque.
+- **Se o navegador recusar a captura do ponteiro**, o gesto segue sem ela: o erro não pode levar o convite ao modo de
+  segurança por causa de um enfeite (descoberto no navegador com um evento sintético).
+- **Animação reduzida:** o selo não acompanha o dedo, mas arrastar além do limiar ainda abre, e o toque também.
+- **Selo na entrada:** o HTML reserva o lugar (`.entrada__selo`, 88 px, vazio e `aria-hidden`) antes dos nomes, então os
+  nomes não mudam de lugar quando a cena o preenche (CLS continua 0). A cena monta a imagem de `config.imagens.selo` e as
+  iniciais de `content.envelope.iniciais`; pulsa a cada `config.entrada.seloPeriodo` (3,2 s), parado com animação
+  reduzida. É "o mesmo" selo na aparência (mesma imagem e iniciais), não o mesmo elemento do DOM.
+- **A imagem do selo não virou crítica:** a SPEC-02 fixa seis imagens críticas (RF-02.3). O selo aparece quando a
+  imagem chega, sem atrasar "Toque para entrar"; se falhar, fica o espaço vazio.
+- **A tela inteira continua sendo o toque da entrada** e o toque libera o som no próprio gesto (RF-16.6): o selo não
+  captura nada.

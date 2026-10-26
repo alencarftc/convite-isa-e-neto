@@ -161,9 +161,14 @@ describe('história em balões (SPEC-05)', () => {
       );
 
       await cena.run();
-      await esperar(10);
 
-      expect(anunciadas).toEqual(content.baloes.map((b) => b.frase));
+      // O MutationObserver avisa depois; com a máquina ocupada (o conjunto todo roda junto) pode demorar.
+      await vi.waitFor(
+        () => {
+          expect(anunciadas).toEqual(content.baloes.map((b) => b.frase));
+        },
+        { timeout: 4000 },
+      );
     });
 
     it('o foco fica no botão de avançar durante a história (SPEC-09, RF-09.6)', () => {

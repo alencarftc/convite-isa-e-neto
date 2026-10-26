@@ -38,6 +38,7 @@ export const config: ConfigConvite = {
     esmaecimentoReduzido: 0.4,
     cartoes: 0.5,
   },
+  entrada: { seloPeriodo: 3.2, seloEscala: 1.05 },
   movimento: {
     deslocamentoDosCartoes: 16,
     escalaInicialDoBosque: 1.06,
@@ -64,6 +65,7 @@ export const config: ConfigConvite = {
     dicaEm: 1.7,
     dicaAparece: 0.3,
     pulsoDoSelo: { escala: 1.06, periodo: 1 },
+    gesto: { limite: 120, limiar: 60, folga: 10, retorno: 0.5 },
   },
   convite: {
     dicaSome: 0.2,
@@ -187,6 +189,7 @@ export const config: ConfigConvite = {
     casal: 'assets/provisorio/casal.svg',
   },
   curvas: {
+    mola: 'elastic.out(1, 0.5)',
     suave: 'sine.inOut',
     saida: 'power2.out',
     pouso: 'power3.out',

@@ -193,14 +193,21 @@ describe('baú e chave (SPEC-04)', () => {
       const { cena, botao, opacidade } = montar({ toque: false });
       void cena.run();
 
+      // A aura é um tween de verdade: com a máquina ocupada (o conjunto todo roda junto) ele atrasa.
       botao().dispatchEvent(new Event('pointerenter'));
-      await vi.waitFor(() => {
-        expect(opacidade('.bau__aura')).toBe(1);
-      });
+      await vi.waitFor(
+        () => {
+          expect(opacidade('.bau__aura')).toBe(1);
+        },
+        { timeout: 4000 },
+      );
       botao().dispatchEvent(new Event('pointerleave'));
-      await vi.waitFor(() => {
-        expect(opacidade('.bau__aura')).toBe(0);
-      });
+      await vi.waitFor(
+        () => {
+          expect(opacidade('.bau__aura')).toBe(0);
+        },
+        { timeout: 4000 },
+      );
     });
   });
 

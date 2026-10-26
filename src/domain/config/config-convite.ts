@@ -52,6 +52,12 @@ export interface ConfigConvite {
     /** Depois do toque, tempo de espera antes de mostrar "Preparando o bosque…". */
     readonly avisoDeEspera: number;
   };
+  /** Selo da tela de entrada (SPEC-16): pulsa devagar enquanto o convidado decide tocar. */
+  readonly entrada: {
+    /** Tempo de um ciclo completo de pulsar, em segundos. */
+    readonly seloPeriodo: number;
+    readonly seloEscala: number;
+  };
   /** Parâmetros de movimento do bosque (SPEC-03). Os tempos em segundos, as distâncias em pixels. */
   readonly movimento: {
     /** Quanto cada cartão sobe ao surgir, em pixels (SPEC-07). */
@@ -100,6 +106,17 @@ export interface ConfigConvite {
     readonly dicaEm: number;
     readonly dicaAparece: number;
     readonly pulsoDoSelo: { readonly escala: number; readonly periodo: number };
+    /** Gesto de deslizar o selo para abrir o envelope (SPEC-16). Distâncias em pixels. */
+    readonly gesto: {
+      /** Até onde o selo acompanha o dedo. */
+      readonly limite: number;
+      /** Soltar além disto, com o dedo, abre o envelope. */
+      readonly limiar: number;
+      /** Andar menos que isto ainda é um toque, não um arrasto. */
+      readonly folga: number;
+      /** Tempo que o selo leva para voltar ao lugar, em segundos. */
+      readonly retorno: number;
+    };
   };
   /**
    * Abertura do envelope e carta (SPEC-06, `tlConvite`, 7 s). Instantes contados do rompimento do
@@ -246,6 +263,8 @@ export interface ConfigConvite {
   /** Arquivo de cada imagem do convite (SPEC-02, SPEC-03); caminhos relativos à página. */
   readonly imagens: Readonly<Record<ChaveDeImagem, ArteDaImagem>>;
   readonly curvas: {
+    /** Mola curta com que o selo volta ao lugar se o gesto não chegou ao limiar (SPEC-16). */
+    readonly mola: string;
     readonly suave: string;
     readonly saida: string;
     readonly pouso: string;
