@@ -53,8 +53,9 @@ nas tabelas das SPEC-01 e do roteiro (requisitos).
 ## Estado atual (2026-10-26)
 
 - **Feito:** fundação de ferramentas e CI; fatia vertical de referência — SPEC-07 (estados por data,
-  contagem, botões) atravessando `domain` → `application` → `infrastructure` → `presentation`; barramento
-  de eventos e fases da SPEC-01; `verificar` com 3 regras.
-- **Próximo:** US-01.4 (orquestrador e contrato `Cena`) → SPEC-02 (entrada e carregamento) → SPEC-03 em diante.
+  contagem, botões) atravessando `domain` → `application` → `infrastructure` → `presentation`;
+  **SPEC-01 completa** (barramento, fases, estado, orquestrador, contrato `Cena`, modo de segurança);
+  `verificar` com 3 regras.
+- **Próximo:** SPEC-08 (áudio) → SPEC-02 (entrada e carregamento) → SPEC-03 em diante.
 - **Pendências de conteúdo** (bloqueiam `pnpm verificar` e o envio): fotos dos balões, imagens geradas,
   músicas licenciadas, verso do louvor, URL publicada. Lista completa no fim de [documentacao.md](./documentacao.md).

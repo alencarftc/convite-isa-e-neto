@@ -1,9 +1,12 @@
+/** O que o convidado escolhe ao tocar na entrada (SPEC-02). */
+export type EscolhaDeEntrada = 'entrar' | 'pular';
+
 /**
  * Eventos do barramento (SPEC-01, tabela "Eventos"). O valor é o tipo dos dados;
  * `undefined` significa evento sem dados.
  */
 export interface EventosConvite {
-  'entrada:tocou': { readonly escolha: 'entrar' | 'pular' };
+  'entrada:tocou': { readonly escolha: EscolhaDeEntrada };
   'bosque:pronto': undefined;
   'bau:girou': undefined;
   'bau:abriu': undefined;
