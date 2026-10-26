@@ -18,17 +18,25 @@ export function criarCenaInformacoes(
 ): Cena {
   let montadas: InformacoesMontadas | undefined;
 
-  function mostrar(): void {
-    montadas ??= montarInformacoes({ ...dependencias, raiz: destino?.() ?? dependencias.raiz });
+  function mostrar(animar: boolean): void {
+    montadas ??= montarInformacoes({
+      ...dependencias,
+      animar,
+      raiz: destino?.() ?? dependencias.raiz,
+    });
   }
 
   return {
     init: () => undefined,
     run() {
-      mostrar();
+      // No caminho completo os cartões surgem ao entrar na tela (SPEC-07).
+      mostrar(dependencias.animar ?? false);
       return Promise.resolve();
     },
-    skip: mostrar,
+    skip() {
+      // Pular, animação reduzida e modo de segurança: tudo já à vista, sem animação.
+      mostrar(false);
+    },
     destroy() {
       montadas?.destruir();
       montadas = undefined;

@@ -18,6 +18,8 @@ const conteudo: ConteudoConvite = {
     historia: 'História',
     avancarHistoria: 'Avançar',
     abrirEnvelope: 'Abrir',
+    mensagem: 'Mensagem',
+    traje: 'Traje',
   },
   envelope: { para: 'Para', iniciais: 'I' },
   entrada: { nomes: 'N', tocar: 'T', volume: 'V', aguarde: 'A' },
@@ -49,6 +51,8 @@ const conteudo: ConteudoConvite = {
     despedida: 'd',
     assinatura: 'a',
   },
+  mensagem: { paragrafos: [], versoLouvor: 'v', assinatura: 'a' },
+  dressCode: 'd',
   baloes: [],
   contagem: {
     antes: 'Faltam {dias}, {horas} e {minutos}',

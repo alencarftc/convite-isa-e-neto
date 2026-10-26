@@ -18,9 +18,49 @@
   box-shadow: var(--sombra-cartao);
 }
 
-.cartao--contagem strong,
-.cartao--contagem p {
+.cartao--contagem p,
+.cartao--agradecimento p {
+  margin: 0;
+  font-size: var(--texto-corpo);
+}
+
+/* Números da contagem em Cormorant semibold, 28 px (SPEC-07, "Estilo"). */
+.cartao--contagem strong {
   font-size: 28px;
+  font-weight: 600;
+}
+
+.cartao--agradecimento p {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.cartao__titulo {
+  margin: 0 0 var(--espaco-3);
+  font-size: var(--texto-rotulo);
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.cartao--mensagem p,
+.cartao--traje p {
+  margin: 0 0 var(--espaco-3);
+  font-size: var(--texto-corpo);
+}
+
+.cartao--mensagem :last-child,
+.cartao--traje :last-child {
+  margin-bottom: 0;
+}
+
+.mensagem__verso {
+  font-style: italic;
+}
+
+.traje__texto {
+  font-size: 24px;
   font-weight: 600;
 }
 
