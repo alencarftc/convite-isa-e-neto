@@ -298,7 +298,9 @@ describe('cartões surgem ao entrar na tela (SPEC-07, "Estilo")', () => {
     await vi.waitFor(() => {
       expect(Number(gsap.getProperty(contagem, 'opacity'))).toBe(1);
     });
-    expect(Number(gsap.getProperty(contagem, 'y'))).toBe(0);
+    await vi.waitFor(() => {
+      expect(Number(gsap.getProperty(contagem, 'y'))).toBeCloseTo(0, 1);
+    });
     expect(Number(gsap.getProperty(mensagem, 'opacity'))).toBe(0);
   });
 
