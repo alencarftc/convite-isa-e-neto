@@ -45,6 +45,8 @@ Para repetir: `pnpm build`, `pnpm preview` e, em outro terminal, `pnpm dlx light
 | Confirmar presença e Como chegar       | CT-07.5, CT-07.6          | ☐                 | ☐               | ☐                  | ☐                | ☐          |
 | Formulário e planilha                  | CT-11.1 a CT-11.5         | ☐                 | —               | ☐                  | —                | ☐          |
 | Prévia do link                         | CT-10.1                   | ☐                 | —               | ☐                  | —                | —          |
+| Aparelho antigo (iOS 15, Android 8)    | CT-15.5                   | ☐                 | ☐               | ☐                  | ☐                | —          |
+| JavaScript bloqueado e rede lenta      | CT-15.1, CT-15.2          | —                 | —               | —                  | —                | ☐          |
 
 Os estados por data (CT-07.7) e a rede lenta têm teste automático (`?data=` e o carregamento com limites); no
 aparelho vale conferir o resultado visual. O iPhone com a chave do modo silencioso ligada (CT-08.6) precisa
