@@ -20,7 +20,7 @@ export const CHAVES_CRITICAS = [
  * Cada spec de cena acrescenta as suas imagens aqui, no grupo certo.
  */
 export const FILA_SECUNDARIA = [
-  ['bauAberto'], // 09 · baú e história
+  ['bauAberto', 'petalaA', 'petalaB', 'petalaC', 'cursorChave'], // 09, 16 e o cursor · baú e história
   ['ceuPorDoSol'], // 03 · história
 ] as const;
 
