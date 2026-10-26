@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  qualidade:
+    name: Qualidade (lint, tipos, arquitetura, testes, build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4 # versão vem do campo packageManager
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Formatação
+        run: pnpm run format:check
+      - name: Lint (TypeScript)
+        run: pnpm run lint
+      - name: Lint (CSS)
+        run: pnpm run lint:css
+      - name: Tipos
+        run: pnpm run typecheck
+      - name: Arquitetura
+        run: pnpm run arch
+      - name: Testes (unidade, integração, arquitetura) com cobertura
+        run: pnpm run test:coverage
+      - name: Build
+        run: pnpm run build
+      - name: Orçamento de peso
+        run: pnpm run size
+      - name: Auditoria de dependências
+        run: pnpm audit --audit-level high --prod
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cobertura
+          path: coverage/
+          if-no-files-found: ignore
+
+  commits:
+    name: Conventional Commits
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Commits do PR
+        run: >
+          pnpm exec commitlint --verbose
+          --from ${{ github.event.pull_request.base.sha }}
+          --to ${{ github.event.pull_request.head.sha }}
+      - name: Título do PR (vira o commit no squash merge)
+        env:
+          TITULO_DO_PR: ${{ github.event.pull_request.title }}
+        run: echo "$TITULO_DO_PR" | pnpm exec commitlint --verbose
+
+  changeset:
+    name: Changeset
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Todo PR traz um changeset (use `pnpm changeset --empty` se não houver mudança de comportamento)
+        run: pnpm exec changeset status --since=origin/${{ github.base_ref }}
