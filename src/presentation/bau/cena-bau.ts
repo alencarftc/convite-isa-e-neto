@@ -8,7 +8,8 @@ import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
-import { adiarImagem, carregarImagensTardias } from '../imagens/imagens-tardias';
+import { criar, criarImagem } from '../dom';
+import { carregarImagensTardias } from '../imagens/imagens-tardias';
 import { removerPetalas } from '../petalas/petalas';
 import { soltarPetalas } from '../petalas/soltar-petalas';
 
@@ -30,23 +31,6 @@ interface Partes {
   readonly brilho: HTMLElement;
   readonly botao: HTMLButtonElement;
   readonly dica: HTMLElement;
-}
-
-function criar(tag: string, classe: string): HTMLElement {
-  const elemento = document.createElement(tag);
-  elemento.className = classe;
-  return elemento;
-}
-
-/** `adiada`: o `src` só entra quando o baú passa a aceitar o toque (SPEC-02, RF-02.7). */
-function criarImagem(classe: string, url: string, adiada = false): HTMLImageElement {
-  const imagem = document.createElement('img');
-  imagem.className = classe;
-  if (adiada) adiarImagem(imagem, url);
-  else imagem.src = url;
-  imagem.alt = '';
-  imagem.draggable = false;
-  return imagem;
 }
 
 /** `50%` → `0.5`; a posição da fechadura vem de variáveis CSS (SPEC-04, "Marcação"). */

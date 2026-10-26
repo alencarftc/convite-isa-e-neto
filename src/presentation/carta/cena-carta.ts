@@ -8,7 +8,8 @@ import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
-import { adiarImagem, carregarImagensTardias } from '../imagens/imagens-tardias';
+import { criar, criarImagem } from '../dom';
+import { carregarImagensTardias } from '../imagens/imagens-tardias';
 import { chuvaDePetalas } from '../petalas/chuva-de-petalas';
 import { removerPetalas } from '../petalas/petalas';
 import { ligarGestoDoSelo } from './gesto-do-selo';
@@ -45,24 +46,6 @@ interface Elementos {
   readonly casal: HTMLElement | null;
   /** Preenchida em `carta.run`: as variações da chuva de pétalas, já pedidas ao navegador. */
   readonly petalas: HTMLImageElement[];
-}
-
-function criar(tag: string, classe: string, texto?: string): HTMLElement {
-  const elemento = document.createElement(tag);
-  elemento.className = classe;
-  if (texto !== undefined) elemento.textContent = texto;
-  return elemento;
-}
-
-/** `adiada`: o `src` só entra quando o envelope começa a descer (SPEC-02, RF-02.7). */
-function criarImagem(classe: string, url: string, adiada = false): HTMLImageElement {
-  const imagem = document.createElement('img');
-  imagem.className = classe;
-  if (adiada) adiarImagem(imagem, url);
-  else imagem.src = url;
-  imagem.alt = '';
-  imagem.draggable = false;
-  return imagem;
 }
 
 /**

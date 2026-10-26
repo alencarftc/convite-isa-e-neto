@@ -9,6 +9,7 @@ import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { posicoesDoBalao } from '@/domain/historia/posicoes';
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
+import { criar } from '../dom';
 import { adiarImagem, carregarImagensTardias } from '../imagens/imagens-tardias';
 import { criarFotoEmCirculo } from './foto-em-circulo';
 
@@ -30,12 +31,6 @@ interface Partes {
   readonly regiao: HTMLElement;
   readonly dica: HTMLElement;
   readonly avancar: HTMLButtonElement;
-}
-
-function criar(tag: string, classe: string): HTMLElement {
-  const elemento = document.createElement(tag);
-  elemento.className = classe;
-  return elemento;
 }
 
 /**
