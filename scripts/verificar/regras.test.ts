@@ -6,6 +6,7 @@ import {
   encontrarTextoPendente,
   validarArquivos,
   validarArteDefinitiva,
+  validarConsistenciaDeDatas,
   validarDatas,
   validarLinks,
   verificarTudo,
@@ -64,6 +65,63 @@ describe('validarLinks', () => {
     });
     expect(problemas).toHaveLength(1);
     expect(problemas[0]?.mensagem).toContain('config.links.formulario');
+  });
+});
+
+describe('validarConsistenciaDeDatas', () => {
+  it('os textos atuais batem com as datas de config', () => {
+    expect(validarConsistenciaDeDatas(config, content)).toEqual([]);
+  });
+
+  it('com data inválida em config, não quebra: quem acusa é a regra de datas', () => {
+    expect(validarConsistenciaDeDatas({ ...config, casamento: 'ontem' }, content)).toEqual([]);
+  });
+
+  it('acusa um prazo escrito diferente em "confirme até" e no aviso de encerramento', () => {
+    const problemas = validarConsistenciaDeDatas(config, {
+      ...content,
+      botoes: {
+        ...content.botoes,
+        prazo: 'Confirme até 15 de dezembro de 2026.',
+        encerrado: 'As confirmações foram encerradas.',
+      },
+    });
+
+    expect(problemas.map((p) => p.mensagem)).toEqual([
+      expect.stringContaining('content.botoes.prazo'),
+      expect.stringContaining('content.botoes.encerrado'),
+    ]);
+    expect(problemas.every((p) => p.regra === 'datas-nos-textos')).toBe(true);
+  });
+
+  it('acusa a data da carta que não é a do casamento (dia da semana, dia, mês, ano e hora)', () => {
+    const problemas = validarConsistenciaDeDatas(config, {
+      ...content,
+      carta: { ...content.carta, data: 'SÁBADO · 22 DE JANEIRO DE 2027 · 17H' },
+    });
+
+    expect(problemas).toHaveLength(1);
+    expect(problemas[0]?.mensagem).toContain('SEXTA-FEIRA · 22 DE JANEIRO DE 2027 · 17H');
+  });
+
+  it('acusa o aviso "É hoje" que cita outro horário', () => {
+    const problemas = validarConsistenciaDeDatas(config, {
+      ...content,
+      contagem: { ...content.contagem, noDia: 'É hoje! Nos vemos às 16h.' },
+    });
+
+    expect(problemas.map((p) => p.mensagem)).toEqual([expect.stringContaining('"17h"')]);
+  });
+
+  it('acompanha a config: mudando o casamento de data, os textos antigos deixam de bater', () => {
+    const problemas = validarConsistenciaDeDatas(
+      { ...config, casamento: '2027-02-05T17:00:00-03:00' },
+      content,
+    );
+
+    expect(problemas.map((p) => p.mensagem).join(' ')).toContain(
+      'SEXTA-FEIRA · 5 DE FEVEREIRO DE 2027',
+    );
   });
 });
 

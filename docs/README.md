@@ -6,15 +6,16 @@ o Claude Docs, e é o que humanos e LLMs devem carregar antes de mexer no códig
 
 ## Mapa
 
-| Arquivo                                          | Origem         | Use para                                                                                                  |
-| ------------------------------------------------ | -------------- | --------------------------------------------------------------------------------------------------------- |
-| [requisitos.md](./requisitos.md)                 | espelho        | briefing, decisões (27), roteiro aprovado, **textos do convite**, prompts de imagem, script do formulário |
-| [documentacao.md](./documentacao.md)             | espelho        | stack, pastas originais, animações, assets, integrações, testes, pendências                               |
-| [epicos-e-historias.md](./epicos-e-historias.md) | espelho        | 12 épicos, 52 histórias, critérios de aceite (CA-xx.y.z), plano de entrega                                |
-| [specs/](./specs/README.md)                      | espelho        | uma spec por épico: comportamento, RF/RNF, desenho técnico, casos de teste                                |
-| [arquitetura.md](./arquitetura.md)               | **neste repo** | camadas, regras de dependência, onde cada spec vai, receitas                                              |
-| [qualidade.md](./qualidade.md)                   | **neste repo** | gates, testes, dev server, commits, changesets, ignores                                                   |
-| [decisions/](./decisions)                        | **neste repo** | ADRs: o que mudou em relação à documentação original e por quê                                            |
+| Arquivo                                            | Origem         | Use para                                                                                                  |
+| -------------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------- |
+| [requisitos.md](./requisitos.md)                   | espelho        | briefing, decisões (27), roteiro aprovado, **textos do convite**, prompts de imagem, script do formulário |
+| [documentacao.md](./documentacao.md)               | espelho        | stack, pastas originais, animações, assets, integrações, testes, pendências                               |
+| [epicos-e-historias.md](./epicos-e-historias.md)   | espelho        | 12 épicos, 52 histórias, critérios de aceite (CA-xx.y.z), plano de entrega                                |
+| [specs/](./specs/README.md)                        | espelho        | uma spec por épico: comportamento, RF/RNF, desenho técnico, casos de teste                                |
+| [arquitetura.md](./arquitetura.md)                 | **neste repo** | camadas, regras de dependência, onde cada spec vai, receitas                                              |
+| [qualidade.md](./qualidade.md)                     | **neste repo** | gates, testes, dev server, commits, changesets, ignores                                                   |
+| [operacao/](./operacao/confirmacao-de-presenca.md) | **neste repo** | passos que dependem de uma pessoa (formulário, planilha, acionadores): lista de conferência               |
+| [decisions/](./decisions)                          | **neste repo** | ADRs: o que mudou em relação à documentação original e por quê                                            |
 
 **Espelho** = cópia do Claude Docs exportada em 2026-10-26; a fonte da verdade continua lá:
 
@@ -62,8 +63,9 @@ nas tabelas das SPEC-01 e do roteiro (requisitos).
   **SPEC-04**: baú, chave (cursor ou flutuante), dica, reforço, abertura em 2 s com pétalas;
   **SPEC-05**: cinco balões com foto e frase, luz do pôr do sol na mesma linha do tempo, aceleração por toque, anúncio ao leitor de tela — fotos e descrições provisórias;
   **SPEC-06**: envelope que pousa sobre o baú, selo que se parte, carta que se desdobra com o casal ao fundo, pétalas e rolagem liberada; a carta e as informações no mesmo conteúdo;
+  **SPEC-11**: o botão e o encerramento já existiam; agora o `verificar` confere que os textos de prazo e de data batem com `config`, e há uma lista de conferência para a planilha e o formulário (passos manuais);
   **SPEC-07 completa**: contagem com números em destaque, mensagem do casal, traje e botões, cartões que surgem ao rolar;
   `verificar` com 3 regras.
-- **Próximo:** SPEC-11 (confirmação de presença), SPEC-09, SPEC-10 e SPEC-12.
+- **Próximo:** SPEC-09 (acessibilidade e segurança), SPEC-10 (publicação) e SPEC-12 (desempenho e qualidade).
 - **Pendências de conteúdo** (bloqueiam `pnpm verificar` e o envio): fotos dos balões, imagens geradas,
   músicas licenciadas e os 6 MP3 em `public/audio/`, **troca da arte provisória** (`config.imagens`, fotos dos balões e suas descrições), **verso do louvor** (entre colchetes em `content.mensagem`), URL publicada. Lista completa no fim de [documentacao.md](./documentacao.md).
