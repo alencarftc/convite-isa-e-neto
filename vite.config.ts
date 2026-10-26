@@ -1,14 +1,25 @@
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { defineConfig } from 'vite';
 
+import { alvosDoBuild } from './scripts/vite/alvo';
 import { pluginMetadados } from './scripts/vite/metadados';
 import { pluginNoscript } from './scripts/vite/noscript';
+import { pluginPlanoB } from './scripts/vite/plano-b';
 import { config } from './src/config/config';
 import { content } from './src/config/content';
 
+const { browserslist } = JSON.parse(
+  readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf8'),
+) as { browserslist: string[] };
+
 export default defineConfig({
-  plugins: [pluginMetadados(content, config), pluginNoscript(content, config)],
+  plugins: [
+    pluginMetadados(content, config),
+    pluginPlanoB(content, config),
+    pluginNoscript(content, config),
+  ],
   // Caminhos relativos: o build funciona em qualquer subpasta do GitHub Pages (RF-01.2).
   base: './',
   resolve: {
@@ -27,7 +38,8 @@ export default defineConfig({
     strictPort: true,
   },
   build: {
-    target: 'es2022',
+    // Os aparelhos que o convite promete atender (package.json, SPEC-15), não "o que o Vite acha novo".
+    target: alvosDoBuild(browserslist),
     sourcemap: false,
   },
 });

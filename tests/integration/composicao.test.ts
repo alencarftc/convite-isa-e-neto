@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type * as ModuloDeConfig from '@/config/config';
 import { content } from '@/config/content';
+import { PLANO_B } from '@/domain/plano-b/plano-b';
 
 import { montarIndexHtml } from './suporte/index-html';
 
@@ -93,6 +94,15 @@ describe('src/main.ts', () => {
     });
     expect(fase()).toBe('aguardando-entrada');
     expect(document.querySelector('.cartao--contagem')).toBeNull();
+  });
+
+  it('deixa a marca de que o pacote iniciou e desfaz o plano B (SPEC-15, RF-15.6)', async () => {
+    document.documentElement.classList.add(PLANO_B.classe);
+
+    await import('@/main');
+
+    expect(Reflect.get(window, PLANO_B.variavel)).toBe(PLANO_B.marca);
+    expect(document.documentElement.classList.contains(PLANO_B.classe)).toBe(false);
   });
 
   it('depois do toque e do baú, percorre o orquestrador até as informações (CA-01.4.1)', async () => {
