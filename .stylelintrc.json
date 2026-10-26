@@ -11,7 +11,8 @@
       "lab",
       "lch",
       "oklab",
-      "oklch"
+      "oklch",
+      "color-mix"
     ],
     "declaration-property-value-disallowed-list": {
       "z-index": ["/^-?\\d+$/"]
@@ -21,7 +22,8 @@
       {
         "message": "Use BEM (bloco, bloco__elemento, bloco--modificador) em minúsculas, como nas specs."
       }
-    ]
+    ],
+    "media-feature-range-notation": "prefix"
   },
   "overrides": [
     {

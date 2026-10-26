@@ -30,11 +30,7 @@
   bottom: -9%;
   left: 6%;
   height: 18%;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, var(--cor-texto) 55%, transparent),
-    transparent
-  );
+  background: radial-gradient(closest-side, var(--cor-texto-55), transparent);
 }
 
 /* A carta dobrada fica atrás das imagens do envelope e sobe pela abertura. */
@@ -131,7 +127,7 @@
   margin: 0 auto;
   font-size: var(--texto-corpo);
   color: var(--cor-texto);
-  background: color-mix(in srgb, var(--cor-marfim) 88%, transparent);
+  background: var(--cor-marfim-88);
   border-radius: 999px;
 }
 
@@ -161,7 +157,7 @@
   font-size: var(--texto-rotulo);
   color: var(--cor-texto-suave);
   text-align: center;
-  background: color-mix(in srgb, var(--cor-marfim) 90%, transparent);
+  background: var(--cor-marfim-90);
   border-radius: 999px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -234,7 +230,7 @@
   transform-origin: 50% 0;
 }
 
-@media (width >= 768px) {
+@media (min-width: 768px) {
   .carta {
     padding: var(--espaco-7);
   }
@@ -285,7 +281,7 @@
 }
 
 /* Em telas com menos de 360 px, os pais viram uma coluna só, com um filete curto entre eles. */
-@media (width <= 359px) {
+@media (max-width: 359px) {
   .carta__pais {
     grid-template-columns: 1fr;
     justify-items: center;
