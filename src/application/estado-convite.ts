@@ -6,7 +6,7 @@ import type { Preferencias } from './ports/preferencias';
 /** Estado global do convite (SPEC-01, RF-01.8). Leitura livre; só a fase é escrita por fora. */
 export interface EstadoConvite {
   readonly fase: Fase;
-  /** Preferência de som (SPEC-08); ligado por padrão. */
+  /** Som ligado? Preferência salva no aparelho (SPEC-08); ligado por padrão. */
   readonly somLigado: boolean;
   /** Já abriu o convite neste aparelho? (SPEC-09) */
   readonly visitado: boolean;
@@ -19,7 +19,9 @@ export interface EstadoConvite {
    * anda para a frente e as fases finais não têm saída).
    */
   definirFase(fase: Fase): boolean;
-  /** Avisa a cada mudança de fase ou de orientação; devolve a função que cancela o aviso. */
+  /** Liga ou desliga o som e lembra a escolha para a próxima visita (RF-08.6). */
+  definirSom(ligado: boolean): void;
+  /** Avisa a cada mudança de fase, de som ou de orientação; devolve a função que cancela o aviso. */
   aoMudar(escuta: (estado: EstadoConvite) => void): () => void;
   /** Para de ouvir o ambiente e esquece os avisos. */
   destruir(): void;
@@ -35,7 +37,7 @@ export function criarEstado({ preferencias, ambiente }: DependenciasDoEstado): E
   let orientacao = ambiente.orientacao();
   const escutas = new Set<(estado: EstadoConvite) => void>();
 
-  const somLigado = preferencias.ler('convite:som', true);
+  let somLigado = preferencias.ler('convite:som', true);
   const visitado = preferencias.ler('convite:visitado', false);
   const reduzido = ambiente.animacaoReduzida();
   const toque = ambiente.porToque();
@@ -54,7 +56,9 @@ export function criarEstado({ preferencias, ambiente }: DependenciasDoEstado): E
     get fase() {
       return fase;
     },
-    somLigado,
+    get somLigado() {
+      return somLigado;
+    },
     visitado,
     reduzido,
     toque,
@@ -66,6 +70,12 @@ export function criarEstado({ preferencias, ambiente }: DependenciasDoEstado): E
       fase = nova;
       avisar();
       return true;
+    },
+    definirSom(ligado) {
+      if (ligado === somLigado) return;
+      somLigado = ligado;
+      preferencias.gravar('convite:som', ligado);
+      avisar();
     },
     aoMudar(escuta) {
       escutas.add(escuta);

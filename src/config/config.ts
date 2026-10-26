@@ -22,5 +22,11 @@ export const config: ConfigConvite = {
   },
   curvas: { suave: 'sine.inOut', saida: 'power2.out', pouso: 'power3.out' },
   volumes: { ambiente: 0.35, ambienteSobMusica: 0.15, efeitos: 0.8, musica: 0.6 },
+  transicoesDeAudio: {
+    entradaDoAmbiente: 2,
+    ambienteSobMusica: 2,
+    musica: 2,
+    retornoDoAmbiente: 3,
+  },
   musicas: { inicio1: 0, inicio2: 0 },
 };

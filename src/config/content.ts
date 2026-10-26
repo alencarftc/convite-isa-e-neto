@@ -8,6 +8,11 @@ export const content: ConteudoConvite = {
   rotulos: {
     informacoes: 'Informações do casamento',
   },
+  dicas: {
+    som: 'Som',
+    somLigado: 'Som ligado',
+    somDesligado: 'Som desligado',
+  },
   contagem: {
     antes: 'Faltam {dias}, {horas} e {minutos} para o nosso sim',
     noDia: 'É hoje! Nos vemos às 17h.',
