@@ -14,16 +14,20 @@ export const LIMITE_DO_SCRIPT_EM_BYTES = 512;
 
 /**
  * Script inline do `<head>` (SPEC-15, RF-15.6). Sem imports nem GSAP (RNF-15.2), em ES5 para rodar em
- * qualquer navegador. Se o pacote não deixar a marca até o limite, ou o `<script type="module">`
- * falhar ao carregar (o evento `error` de recurso não borbulha, por isso a captura), liga a classe.
+ * qualquer navegador. Liga a classe se o pacote não deixar a marca até o limite; se o
+ * `<script type="module">` falhar ao carregar (o `error` de recurso não borbulha, por isso a captura
+ * no documento); ou se o pacote lançar um erro do próprio site antes de deixar a marca (um erro de
+ * extensão do navegador, de outro endereço, não conta). Depois da marca, quem cuida dos erros é o
+ * modo de segurança do convite.
  */
 export function gerarScriptDoPlanoB(limiteEmSegundos: number): string {
   const { classe, variavel, marca } = PLANO_B;
   const milissegundos = Math.round(limiteEmSegundos * 1000);
   return (
-    `(function(d,w){var l=d.documentElement.classList,f=function(){l.add("${classe}")};` +
-    `setTimeout(function(){w.${variavel}!=="${marca}"&&f()},${milissegundos.toString()});` +
-    `d.addEventListener("error",function(e){e.target.tagName==="SCRIPT"&&f()},true)})(document,window)`
+    `(function(d,w){var l=d.documentElement.classList,g=function(){w.${variavel}!=="${marca}"&&l.add("${classe}")};` +
+    `setTimeout(g,${milissegundos.toString()});` +
+    'w.addEventListener("error",function(e){e.filename&&e.filename.indexOf(w.location.origin)===0&&g()});' +
+    'd.addEventListener("error",function(e){e.target.tagName==="SCRIPT"&&g()},true)})(document,window)'
   );
 }
 
@@ -47,10 +51,11 @@ export function pluginPlanoB(conteudo: ConteudoConvite, config: ConfigConvite): 
     name: 'convite-plano-b',
     transformIndexHtml: {
       order: 'pre',
+      // Substituição por função: com texto, `$&` e `$'` do conteúdo seriam lidos como padrões.
       handler: (html) =>
         html
-          .replace(MARCADOR_DO_HEAD_DO_PLANO_B, gerarHeadDoPlanoB(config))
-          .replace(MARCADOR_DO_TEXTO_DO_PLANO_B, gerarTextoDoPlanoB(conteudo, config)),
+          .replace(MARCADOR_DO_HEAD_DO_PLANO_B, () => gerarHeadDoPlanoB(config))
+          .replace(MARCADOR_DO_TEXTO_DO_PLANO_B, () => gerarTextoDoPlanoB(conteudo, config)),
     },
   };
 }

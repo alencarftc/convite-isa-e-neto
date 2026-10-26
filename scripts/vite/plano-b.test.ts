@@ -42,14 +42,17 @@ describe('script do plano B (SPEC-15, RF-15.6)', () => {
   it('usa o limite de config.duracoes.limitePlanoB, em milissegundos, e os nomes do contrato', () => {
     const script = gerarScriptDoPlanoB(config.duracoes.limitePlanoB);
 
-    expect(script).toContain(`},${String(config.duracoes.limitePlanoB * 1000)});`);
+    expect(script).toContain(`setTimeout(g,${String(config.duracoes.limitePlanoB * 1000)});`);
     expect(script).toContain(`w.${PLANO_B.variavel}!=="${PLANO_B.marca}"`);
     expect(script).toContain(`l.add("${PLANO_B.classe}")`);
+    // erro do próprio site antes da marca, e falha do <script type="module">: os dois levam ao plano B
+    expect(script).toContain('w.addEventListener("error"');
+    expect(script).toContain('e.target.tagName==="SCRIPT"');
   });
 
   it('o limite vem do config: 10 s por padrão', () => {
     expect(config.duracoes.limitePlanoB).toBe(10);
-    expect(gerarScriptDoPlanoB(2.5)).toContain('},2500);');
+    expect(gerarScriptDoPlanoB(2.5)).toContain('setTimeout(g,2500);');
   });
 });
 

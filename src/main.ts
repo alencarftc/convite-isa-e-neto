@@ -54,9 +54,6 @@ import { refletirFaseNoCorpo } from '@/presentation/fase-no-corpo';
 import { criarCenaHistoria } from '@/presentation/historia/cena-historia';
 import { criarCenaInformacoes } from '@/presentation/informacoes/cena-informacoes';
 
-// Primeira instrução depois dos imports: o script do <head> espera por esta marca (SPEC-15, RF-15.6).
-marcarInicioDoConvite(window, document);
-
 const raiz = document.querySelector<HTMLElement>('#app');
 if (!raiz) throw new Error('Elemento #app não encontrado no index.html');
 
@@ -197,6 +194,10 @@ const removerAtalho = montarAtalhoParaOConvite({
 const pararDeOuvirErros = ouvirErrosGlobais(window, (erro) => {
   orquestrador.falhar(erro);
 });
+// O pacote só "iniciou" quando tudo acima foi montado sem erro: o script do <head> espera por esta marca
+// (SPEC-15, RF-15.6). Um erro antes daqui não deixa a marca e leva ao plano B; depois dela, ao modo de
+// segurança.
+marcarInicioDoConvite(window, document);
 void orquestrador.iniciar();
 
 // Recarga a quente do Vite: desfaz tudo antes de montar de novo, para não duplicar cenas.

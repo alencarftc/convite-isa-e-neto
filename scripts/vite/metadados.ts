@@ -50,7 +50,9 @@ export function pluginMetadados(conteudo: ConteudoConvite, config: ConfigConvite
     name: 'convite-metadados',
     transformIndexHtml: {
       order: 'pre',
-      handler: (html) => html.replace(MARCADOR_DOS_METADADOS, gerarMetadados(conteudo, config)),
+      // Substituição por função: com texto, `$&` e `$'` do conteúdo seriam lidos como padrões.
+      handler: (html) =>
+        html.replace(MARCADOR_DOS_METADADOS, () => gerarMetadados(conteudo, config)),
     },
   };
 }
