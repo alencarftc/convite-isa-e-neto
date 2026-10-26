@@ -1,0 +1,126 @@
+/*
+ * História em balões (SPEC-05). Cada balão é posicionado pela animação (transform); aqui ficam
+ * tamanho, foto em círculo e etiqueta da frase. As posições da foto dentro da nuvem são variáveis por
+ * variação (`--foto-x/y`), a ajustar com a arte final. O tratamento da foto é fixo, sem animar filtro.
+ */
+.historia {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-baloes);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Botão transparente que cobre a cena e acelera a história (RF-05.6). */
+.historia__avancar {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  pointer-events: auto;
+}
+
+.balao {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(160px, 48vw, 260px);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+@media (orientation: landscape) {
+  .balao {
+    width: clamp(180px, 20vw, 280px);
+  }
+}
+
+.balao--a {
+  --foto-x: 22%;
+  --foto-y: 21%;
+}
+
+.balao--b {
+  --foto-x: 22%;
+  --foto-y: 19%;
+}
+
+.balao--c {
+  --foto-x: 22%;
+  --foto-y: 22%;
+}
+
+.balao__nuvem {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.balao__foto {
+  position: absolute;
+  top: var(--foto-y);
+  left: var(--foto-x);
+  display: block;
+  width: 56%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 50%;
+  filter: sepia(0.12) saturate(0.92) contrast(0.96) brightness(1.02);
+  mask-image: radial-gradient(circle, black 88%, transparent 100%);
+}
+
+.balao__foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Gradiente quente em soft-light aproxima a cor da foto à luz da pintura. */
+.balao__foto::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--cor-luz) 90%, transparent),
+    color-mix(in srgb, var(--cor-dourado) 70%, transparent)
+  );
+  mix-blend-mode: soft-light;
+  opacity: 0.25;
+}
+
+/* Etiqueta marfim com a frase, logo abaixo do balão. */
+.balao__frase {
+  position: absolute;
+  top: calc(100% + var(--espaco-2));
+  right: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(80vw, 22em);
+  padding: var(--espaco-2) var(--espaco-4);
+  margin: 0 auto;
+  font-size: var(--texto-corpo);
+  line-height: 1.3;
+  color: var(--cor-texto);
+  text-align: center;
+  background: color-mix(in srgb, var(--cor-marfim) 88%, transparent);
+  border-radius: 14px;
+}
+
+.historia__dica {
+  position: absolute;
+  right: 0;
+  bottom: calc(var(--espaco-6) + env(safe-area-inset-bottom));
+  left: 0;
+  width: fit-content;
+  padding: var(--espaco-2) var(--espaco-4);
+  margin: 0 auto;
+  font-size: var(--texto-corpo);
+  font-style: italic;
+  color: var(--cor-texto);
+  background: color-mix(in srgb, var(--cor-marfim) 88%, transparent);
+  border-radius: 999px;
+}
