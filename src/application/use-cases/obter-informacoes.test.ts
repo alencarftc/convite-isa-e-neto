@@ -28,6 +28,7 @@ const conteudo: ConteudoConvite = {
     somLigado: 'Som ligado',
     somDesligado: 'Som desligado',
     pular: 'Pular',
+    atalho: 'Atalho',
     chaveComputador: 'Chave',
     chaveCelular: 'Toque',
     avancar: 'Avançar',

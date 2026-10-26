@@ -41,11 +41,15 @@ export function conectarAudio({
   }
 
   const cancelar = [
-    eventos.on('entrada:tocou', ({ escolha }) => {
+    eventos.on('entrada:tocou', () => {
       protegido(() => {
         audio.desbloquear(estado.somLigado);
-        // Pular ou animação reduzida não passam pelo envelope: a música 2 entra direto.
-        if (escolha === 'pular' || estado.reduzido) audio.musica2();
+      });
+    }),
+    // Pular, atalho de teclado e animação reduzida não passam pelo envelope: a música 2 entra direto.
+    eventos.on('convite:pulado', () => {
+      protegido(() => {
+        audio.musica2();
       });
     }),
     eventos.on('bau:girou', () => {
