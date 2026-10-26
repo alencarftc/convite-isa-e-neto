@@ -4,6 +4,14 @@ import type { ConfigConvite } from '@/domain/config/config-convite';
 export const config: ConfigConvite = {
   casamento: '2027-01-22T17:00:00-03:00',
   prazoConfirmacao: '2026-12-31T23:59:59-03:00',
+  publicacao: {
+    // Endereço provável do GitHub Pages (RF-10.7); confirmar antes do primeiro envio: o WhatsApp
+    // guarda a prévia, e renomear o repositório depois quebra o link.
+    url: 'https://alencarftc.github.io/convite-isa-e-neto/',
+    imagemDaPrevia: 'og-image.jpg',
+    icone32: 'favicon/favicon-32.png',
+    iconeApple: 'favicon/apple-touch-icon.png',
+  },
   links: {
     formulario: 'https://forms.gle/yviZrELgrH2zrRGc7',
     mapa: 'https://www.google.com/maps/search/?api=1&query=R.+Na%C3%A7%C3%B5es+Unidas%2C+407+-+Benevides%2C+PA%2C+68795-000',

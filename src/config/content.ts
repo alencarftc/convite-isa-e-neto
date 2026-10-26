@@ -36,6 +36,10 @@ export const content: ConteudoConvite = {
     selo: 'Toque no selo',
     rolar: 'Role para ler',
   },
+  previa: {
+    titulo: 'Isabella & David — Convite de casamento',
+    descricao: 'Uma carta foi escrita para você. Toque para abrir.',
+  },
   carta: {
     versiculo:
       'Melhor é serem dois do que um… e o cordão de três dobras não se quebra tão depressa.',
