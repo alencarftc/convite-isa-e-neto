@@ -133,6 +133,16 @@ describe('criarOrquestrador', () => {
     expect(aoFinal(estado)).toBe(true);
   });
 
+  it('antes do estado final, tira a entrada de cima (a névoa não cobre as informações)', async () => {
+    const { orquestrador, entrada, final, registro } = montar();
+
+    await orquestrador.iniciar();
+
+    expect(entrada.chamadas).toEqual(['init', 'run', 'skip']);
+    expect(registro.indexOf('entrada.skip')).toBeLessThan(registro.indexOf('informacoes.run'));
+    expect(final.chamadas).toEqual(['init', 'run']);
+  });
+
   it('inicia todas as cenas antes de tocar a primeira', async () => {
     const { orquestrador, registro } = montar();
 

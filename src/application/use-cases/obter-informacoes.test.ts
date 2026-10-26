@@ -13,7 +13,8 @@ const config = {
 
 const conteudo: ConteudoConvite = {
   rotulos: { informacoes: 'Informações' },
-  dicas: { som: 'Som', somLigado: 'Som ligado', somDesligado: 'Som desligado' },
+  entrada: { nomes: 'N', tocar: 'T', volume: 'V', aguarde: 'A' },
+  dicas: { som: 'Som', somLigado: 'Som ligado', somDesligado: 'Som desligado', pular: 'Pular' },
   contagem: {
     antes: 'Faltam {dias}, {horas} e {minutos}',
     noDia: 'É hoje!',
