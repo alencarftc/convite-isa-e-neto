@@ -60,10 +60,10 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
 
   function animarRepouso(entrada: HTMLElement): gsap.Context {
     return gsap.context(() => {
-      // Nomes: surgem 0,2 s depois do primeiro quadro.
+      // Nomes: surgem 0,2 s depois do primeiro quadro; com animação reduzida, só esmaecem.
       gsap.fromTo(
         '.entrada__nomes',
-        { opacity: 0, y: 12 },
+        { opacity: 0, y: estado.reduzido ? 0 : 12 },
         {
           opacity: 1,
           y: 0,
@@ -72,7 +72,9 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
           ease: curvas.saida,
         },
       );
-      // Névoa: duas camadas em sentidos opostos, a opacidade respirando entre 0,85 e 1.
+      // Névoa: duas camadas em sentidos opostos, a opacidade respirando entre 0,85 e 1. Com
+      // animação reduzida ela fica parada.
+      if (estado.reduzido) return;
       const camadas = gsap.utils.toArray<HTMLElement>('.nevoa > span');
       camadas.forEach((camada, indice) => {
         const sentido = indice % 2 === 0 ? 1 : -1;

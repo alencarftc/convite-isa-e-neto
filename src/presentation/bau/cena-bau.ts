@@ -373,6 +373,8 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
         }
         reiniciarReforco();
         botao.disabled = false;
+        // O foco vai para o baú quando ele passa a aceitar o toque (SPEC-09, RF-09.6).
+        botao.focus({ preventScroll: true });
 
         // Aura dourada atrás do baú quando o cursor passa por cima (só com mouse).
         if (!estado.toque) {

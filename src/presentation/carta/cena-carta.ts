@@ -85,6 +85,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
   let pulso: gsap.core.Tween | undefined;
   let ouvintes: AbortController | undefined;
   let ouvintesDoConvite: AbortController | undefined;
+  let pararDeOuvirSeguranca: (() => void) | undefined;
   let origem: OrigemDaAbertura = 'toque';
   let aberta = false;
 
@@ -165,6 +166,10 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     });
 
     raiz.append(chao, envelope, caixa, rolar);
+    // No modo de segurança, a carta já está sem `inert` quando o aviso chega: o foco vai ao título.
+    pararDeOuvirSeguranca = eventos.on('seguranca', () => {
+      titulo.focus({ preventScroll: true });
+    });
     // Até `convite:aberto`, a página não rola (RF-06.9).
     document.body.style.overflow = 'hidden';
 
@@ -275,6 +280,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
           eventos.emit('carta:pousou');
           estado.definirFase('aguardando-selo');
           e.botao.disabled = false;
+          // O foco vai para o envelope quando ele pousa (SPEC-09, RF-09.6).
+          e.botao.focus({ preventScroll: true });
           // A espera de 4 s conta a partir do pouso; o primeiro dos dois gatilhos vale (RF-06.4).
           espera = gsap.delayedCall(duracoes.esperaSelo, () => {
             abrir('tempo');
@@ -347,6 +354,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
         elementos.casal?.remove();
         elementos = undefined;
       }
+      pararDeOuvirSeguranca?.();
+      pararDeOuvirSeguranca = undefined;
       document.body.style.overflow = '';
       aberta = false;
     },
