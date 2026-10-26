@@ -3,7 +3,9 @@
  * adaptadores de infraestrutura e os entrega aos casos de uso e à apresentação.
  */
 import './styles/tokens.css';
+import './styles/fontes.css';
 import './styles/base.css';
+import './styles/entrada.css';
 import './styles/informacoes.css';
 import './styles/botao-som.css';
 
@@ -14,6 +16,7 @@ import type { Cena } from '@/application/cena';
 import { comErroForcado } from '@/application/cena-com-erro-forcado';
 import { criarEstado } from '@/application/estado-convite';
 import { conectarAudio } from '@/application/use-cases/audio-do-convite';
+import { criarCarregamento } from '@/application/use-cases/carregamento';
 import { criarObterInformacoes } from '@/application/use-cases/obter-informacoes';
 import { criarOrquestrador, type EtapaDoConvite } from '@/application/use-cases/orquestrador';
 import { config } from '@/config/config';
@@ -28,8 +31,11 @@ import {
 import { criarAudioHowler, obterSessaoDeAudio } from '@/infrastructure/audio/audio-howler';
 import { lerErroForcado } from '@/infrastructure/desenvolvimento/erro-forcado';
 import { ouvirErrosGlobais } from '@/infrastructure/erros/erros-globais';
+import { criarCarregadorDeImagens } from '@/infrastructure/imagens/carregador-de-imagens';
 import { criarRelogio } from '@/infrastructure/relogio/relogio';
+import { criarTemporizador } from '@/infrastructure/tempo/temporizador';
 import { montarBotaoSom } from '@/presentation/audio/botao-som';
+import { criarCenaEntrada } from '@/presentation/entrada/cena-entrada';
 import { refletirFaseNoCorpo } from '@/presentation/fase-no-corpo';
 import { criarCenaInformacoes } from '@/presentation/informacoes/cena-informacoes';
 
@@ -84,8 +90,18 @@ function naCena<R>(nome: string, cena: Cena<R>): Cena<R> {
 // Cada spec de cena (SPEC-02 a SPEC-06) acrescenta a sua aqui, na ordem do caminho.
 const etapas: readonly EtapaDoConvite[] = [];
 
+const carregamento = criarCarregamento({
+  imagens: criarCarregadorDeImagens(),
+  temporizador: criarTemporizador(),
+  config,
+});
+
 const orquestrador = criarOrquestrador({
   plano: {
+    entrada: naCena(
+      'entrada',
+      criarCenaEntrada({ raiz, conteudo: content, config, estado, eventos, carregamento }),
+    ),
     etapas: etapas.map((etapa) => ({ ...etapa, cena: naCena(etapa.nome, etapa.cena) })),
     final: naCena(
       'informacoes',

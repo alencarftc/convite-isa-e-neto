@@ -1,0 +1,49 @@
+/*
+ * Fontes do próprio site, em WOFF2 (SPEC-01, CA-01.3.2; SPEC-02, RF-02.2). Os arquivos vêm de
+ * `pnpm fontes` (pacotes @fontsource, licença OFL em public/fonts/). `font-display: swap` mostra a
+ * fonte de reserva na hora, e a reserva é ajustada (`size-adjust`) para o texto não pular na troca.
+ */
+@font-face {
+  font-family: 'Great Vibes';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/great-vibes-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/cormorant-garamond-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/cormorant-garamond-600.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/cormorant-garamond-400-italico.woff2') format('woff2');
+}
+
+/* Reservas: serifadas do sistema, reduzidas até o tamanho médio da Cormorant, que é mais compacta. */
+@font-face {
+  font-family: 'Cormorant Reserva';
+  src: local('Georgia'), local('Times New Roman');
+  size-adjust: 88%;
+}
+
+@font-face {
+  font-family: 'Cursiva Reserva';
+  src: local('Brush Script MT'), local('Segoe Script'), local('Georgia');
+  size-adjust: 95%;
+}
