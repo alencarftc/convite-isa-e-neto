@@ -56,6 +56,35 @@ describe('ouvirErrosGlobais', () => {
     },
   );
 
+  it.each(['NotAllowedError', 'AbortError'])(
+    'rejeição de reprodução de mídia (%s) é do som: vira aviso, nunca modo de segurança (SPEC-08, RF-08.8)',
+    (nome) => {
+      const { janela, rejeicao } = janelaFalsa();
+      const aoFalhar = vi.fn();
+      const aoAvisar = vi.fn();
+      ouvirErrosGlobais(janela, aoFalhar, aoAvisar);
+      const recusa = new DOMException('play() recusado', nome);
+
+      rejeicao(recusa);
+
+      expect(aoFalhar).not.toHaveBeenCalled();
+      expect(aoAvisar).toHaveBeenCalledWith(recusa);
+    },
+  );
+
+  it('outras exceções do DOM, e erros comuns, continuam levando ao modo de segurança', () => {
+    const { janela, rejeicao } = janelaFalsa();
+    const aoFalhar = vi.fn();
+    ouvirErrosGlobais(janela, aoFalhar, vi.fn());
+    const outra = new DOMException('estado inválido', 'InvalidStateError');
+
+    rejeicao(outra);
+    rejeicao(new Error('de verdade'));
+
+    expect(aoFalhar).toHaveBeenCalledTimes(2);
+    expect(aoFalhar).toHaveBeenCalledWith(outra);
+  });
+
   it('promessa rejeitada sem tratamento: modo de segurança com o motivo', () => {
     const { janela, rejeicao } = janelaFalsa();
     const aoFalhar = vi.fn();

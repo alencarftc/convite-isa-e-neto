@@ -7,7 +7,7 @@ export interface OpcoesDaFoto {
   readonly classe: string;
   /**
    * Foto abaixo da dobra: o navegador só baixa quando ela se aproxima da tela e decodifica sem
-   * travar a rolagem (SPEC-13, RF-13.5). Os balões não usam: a história já as pré-carregou.
+   * travar a rolagem (SPEC-13, RF-13.5). Os balões não usam: a fila secundária já as deixou no cache quando a história começa.
    */
   readonly tardia?: boolean;
   /**

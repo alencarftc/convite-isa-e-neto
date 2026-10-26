@@ -192,9 +192,15 @@ const removerAtalho = montarAtalhoParaOConvite({
   estado,
   aoAcionar: acionarPular,
 });
-const pararDeOuvirErros = ouvirErrosGlobais(window, (erro) => {
-  orquestrador.falhar(erro);
-});
+const pararDeOuvirErros = ouvirErrosGlobais(
+  window,
+  (erro) => {
+    orquestrador.falhar(erro);
+  },
+  (aviso) => {
+    console.warn('[convite] som indisponível', aviso);
+  },
+);
 // O pacote só "iniciou" quando tudo acima foi montado sem erro: o script do <head> espera por esta marca
 // (SPEC-15, RF-15.6). Um erro antes daqui não deixa a marca e leva ao plano B; depois dela, ao modo de
 // segurança.
