@@ -116,6 +116,14 @@ describe('baú e chave (SPEC-04)', () => {
       });
     });
 
+    it('o foco vai para o botão do baú quando ele passa a aceitar o toque (SPEC-09, RF-09.6)', () => {
+      const { cena, botao } = montar({ toque: true });
+
+      void cena.run();
+
+      expect(document.activeElement).toBe(botao());
+    });
+
     it('no computador, a chave é o cursor: a imagem fica oculta e o cursor personalizado liga (RF-04.2)', () => {
       const { cena, opacidade } = montar({ toque: false });
       void cena.run();

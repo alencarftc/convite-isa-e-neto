@@ -176,6 +176,27 @@ describe('criarOrquestrador', () => {
     expect(registro.filter((linha) => linha.endsWith('.run'))).toEqual(['entrada.run']);
   });
 
+  it('ao pular, emite convite:pulado depois de levar as cenas ao final (a música 2 entra)', async () => {
+    const { orquestrador, eventos, registro } = montar({ escolha: 'pular' });
+    const ordem: string[] = [];
+    eventos.on('convite:pulado', () => ordem.push(`pulado depois de ${registro.at(-1) ?? ''}`));
+
+    await orquestrador.iniciar();
+
+    expect(ordem).toEqual(['pulado depois de informacoes.skip']);
+  });
+
+  it('pular() de fora (atalho de teclado) também emite convite:pulado, uma vez só', () => {
+    const { orquestrador, eventos } = montar();
+    const aoPular = vi.fn();
+    eventos.on('convite:pulado', aoPular);
+
+    orquestrador.pular();
+    orquestrador.pular();
+
+    expect(aoPular).toHaveBeenCalledOnce();
+  });
+
   it('com animação reduzida, vai ao final mesmo escolhendo entrar (SPEC-09)', async () => {
     const { orquestrador, estado, etapas } = montar({ reduzido: true });
 
@@ -301,6 +322,18 @@ describe('criarOrquestrador', () => {
       expect(montado.estado.fase).toBe('informacoes');
       expect(montado.final.chamadas).toEqual(['init', 'run', 'skip']);
       expect(montado.registrarErro).toHaveBeenCalledOnce();
+    });
+
+    it('o aviso "seguranca" sai depois de todas as cenas irem ao final (a carta já está sem inert)', () => {
+      const montado = montar();
+      const ordem: string[] = [];
+      montado.eventos.on('seguranca', () =>
+        ordem.push(`aviso depois de ${montado.registro.at(-1) ?? ''}`),
+      );
+
+      montado.orquestrador.falhar(new Error('x'));
+
+      expect(ordem).toEqual(['aviso depois de informacoes.skip']);
     });
 
     it('erros em cascata não repetem o modo de segurança', () => {

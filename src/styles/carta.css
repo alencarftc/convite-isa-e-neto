@@ -326,3 +326,16 @@
   font-family: var(--fonte-cursiva), var(--fonte-cursiva-reserva);
   font-size: 32px;
 }
+
+/* Modo de segurança: só a carta e as informações, sobre marfim, sem a margem reservada à cena. */
+body[data-fase='seguranca'] .entrada,
+body[data-fase='seguranca'] .envelope,
+body[data-fase='seguranca'] .historia,
+body[data-fase='seguranca'] .convite__chao,
+body[data-fase='seguranca'] .convite__rolar {
+  display: none;
+}
+
+body[data-fase='seguranca'] .conteudo {
+  padding-top: var(--espaco-7);
+}

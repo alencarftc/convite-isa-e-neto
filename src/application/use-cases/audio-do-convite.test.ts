@@ -57,19 +57,20 @@ describe('conectarAudio', () => {
     expect(audio.musica2).not.toHaveBeenCalled();
   });
 
-  it('pular na entrada leva a música 2 direto (tabela "Pular ou animação reduzida")', () => {
+  it('o toque de entrada só libera o áudio: a música 2 espera o envelope ou o pulo', () => {
     const { audio, eventos } = montar();
 
     eventos.emit('entrada:tocou', { escolha: 'pular' });
 
     expect(audio.desbloquear).toHaveBeenCalledOnce();
-    expect(audio.musica2).toHaveBeenCalledOnce();
+    expect(audio.musica2).not.toHaveBeenCalled();
   });
 
-  it('animação reduzida também leva a música 2 direto', () => {
-    const { audio, eventos } = montar({ reduzido: true });
+  it('pular (entrada, atalho ou animação reduzida) leva a música 2 direto (tabela "Pular ou animação reduzida")', () => {
+    const { audio, eventos } = montar();
 
-    eventos.emit('entrada:tocou', { escolha: 'entrar' });
+    eventos.emit('entrada:tocou', { escolha: 'pular' });
+    eventos.emit('convite:pulado');
 
     expect(audio.musica2).toHaveBeenCalledOnce();
   });

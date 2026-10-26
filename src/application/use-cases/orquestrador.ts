@@ -87,6 +87,9 @@ export function criarOrquestrador(dependencias: DependenciasDoOrquestrador): Orq
     if (plano.entrada) tentar(() => plano.entrada?.skip());
     for (const cena of intermediarias) tentar(() => cena.skip());
     mostrarFinalSemAnimacao();
+    tentar(() => {
+      eventos.emit('convite:pulado');
+    });
   }
 
   function falhar(erro: unknown): void {
@@ -97,10 +100,10 @@ export function criarOrquestrador(dependencias: DependenciasDoOrquestrador): Orq
       if (estado.fase === 'informacoes' && !finalMostrado) mostrarFinalSemAnimacao();
       return;
     }
+    for (const cena of todas) tentar(() => cena.skip());
     tentar(() => {
       eventos.emit('seguranca', { erro });
     });
-    for (const cena of todas) tentar(() => cena.skip());
   }
 
   async function percorrer(): Promise<void> {

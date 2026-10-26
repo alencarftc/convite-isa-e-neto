@@ -218,6 +218,8 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
       return new Promise<void>((resolver) => {
         secao.hidden = false;
         avancar.hidden = false;
+        // Durante a história o foco fica no botão de avançar (SPEC-09, RF-09.6).
+        avancar.focus({ preventScroll: true });
         const historia = gsap.timeline({ onComplete: resolver });
         linhaDoTempo = historia;
 

@@ -49,6 +49,7 @@ src/
 │   └── content.ts               # todos os textos visíveis (SPEC-01, RNF-01.2)
 ├── domain/                      # regras puras, sem I/O, determinísticas
 │   ├── config/                  # tipo ConfigConvite
+│   ├── acessibilidade/          # razão de contraste WCAG (SPEC-09)
 │   ├── conteudo/                # tipo ConteudoConvite
 │   ├── contagem/                # estado por data, contagem regressiva, plural (SPEC-07)
 │   ├── eventos/                 # EventosConvite: nomes e dados do barramento (SPEC-01)
@@ -75,6 +76,7 @@ src/
 │   └── armazenamento/           # preferências em localStorage, à prova de falha
 ├── presentation/                # tudo que desenha: cenas, componentes, GSAP
 │   ├── audio/                   # botão de som (SPEC-08)
+│   ├── acessibilidade/          # atalho "Ir direto ao convite" (SPEC-09)
 │   ├── bau/                     # baú, chave, dica e abertura (SPEC-04)
 │   ├── carta/                   # envelope, selo, carta e abertura em 7 s (SPEC-06)
 │   ├── historia/                # balões, frases, aceleração e tlHistoria (SPEC-05)
@@ -108,7 +110,7 @@ docs/                            # documentação e contexto (ver docs/README.md
 | SPEC-04 cursor de chave                               | `presentation`                                                                                  | detecção de `pointer` via porta ou `matchMedia` no adaptador                                                           |
 | SPEC-07 contagem e estados                            | `domain` + `application` + `presentation`                                                       | feito: contagem, mensagem, traje e ações; os cartões surgem ao rolar e rolam sob a carta                               |
 | SPEC-08 áudio                                         | porta `AudioPort` em `application`, Howler em `infrastructure/audio`                            | feito: `conectarAudio` liga os eventos à porta; botão de som em `presentation/audio` (ADR-0005)                        |
-| SPEC-09 modo de segurança                             | caso de uso em `application`; DOM em `presentation`                                             | não depende do GSAP                                                                                                    |
+| SPEC-09 modo de segurança                             | caso de uso em `application`; DOM em `presentation`                                             | feito: `skip()` em tudo e depois o aviso `seguranca`; atalho de teclado; `<noscript>` gerado (ADR-0008)                |
 | SPEC-10 metadados e ícones                            | `index.html`, `public/`                                                                         |                                                                                                                        |
 | SPEC-12 `verificar`                                   | `scripts/`                                                                                      | regras puras testadas; peso no `size-limit`                                                                            |
 

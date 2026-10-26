@@ -16,6 +16,11 @@ export interface EventosConvite {
   'carta:pousou': undefined;
   'carta:abrindo': { readonly origem: 'toque' | 'tempo' };
   'convite:aberto': undefined;
+  /**
+   * O convidado foi direto ao final (Pular, atalho de teclado ou animação reduzida): as etapas do
+   * meio não rodaram. A música 2 entra nesse momento (SPEC-08, tabela "Comportamento").
+   */
+  'convite:pulado': undefined;
   'som:alterado': { readonly ligado: boolean };
   seguranca: { readonly erro: unknown };
 }

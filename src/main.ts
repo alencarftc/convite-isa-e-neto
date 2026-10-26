@@ -39,6 +39,7 @@ import { ouvirErrosGlobais } from '@/infrastructure/erros/erros-globais';
 import { criarCarregadorDeImagens } from '@/infrastructure/imagens/carregador-de-imagens';
 import { criarRelogio } from '@/infrastructure/relogio/relogio';
 import { criarTemporizador } from '@/infrastructure/tempo/temporizador';
+import { montarAtalhoParaOConvite } from '@/presentation/acessibilidade/atalho-para-o-convite';
 import { montarBotaoSom } from '@/presentation/audio/botao-som';
 import { criarCenaBau } from '@/presentation/bau/cena-bau';
 import { criarCenaBosque } from '@/presentation/bosque/cena-bosque';
@@ -156,6 +157,18 @@ const orquestrador = criarOrquestrador({
 });
 
 const pararDeRegistrarVisita = registrarVisita({ estado, eventos });
+// Atalho de teclado e leitor de tela (SPEC-09): mesmo destino de "Pular para o convite". Se o som
+// ainda não foi liberado, o próprio clique libera (como o toque de entrada).
+const removerAtalho = montarAtalhoParaOConvite({
+  corpo: document.body,
+  conteudo: content,
+  aoAcionar: () => {
+    if (estado.fase === 'carregando' || estado.fase === 'aguardando-entrada') {
+      eventos.emit('entrada:tocou', { escolha: 'pular' });
+    }
+    orquestrador.pular();
+  },
+});
 const pararDeOuvirErros = ouvirErrosGlobais(window, (erro) => {
   orquestrador.falhar(erro);
 });
@@ -165,6 +178,7 @@ void orquestrador.iniciar();
 import.meta.hot?.dispose(() => {
   pararDeOuvirErros();
   pararDeRegistrarVisita();
+  removerAtalho();
   pararDeOuvirSaidaEVolta();
   removerBotaoSom();
   audioDoConvite.destruir();

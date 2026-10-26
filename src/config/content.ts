@@ -29,6 +29,7 @@ export const content: ConteudoConvite = {
     somLigado: 'Som ligado',
     somDesligado: 'Som desligado',
     pular: 'Pular para o convite',
+    atalho: 'Ir direto ao convite',
     chaveComputador: 'Use a chave para abrir',
     chaveCelular: 'Toque na chave',
     avancar: 'Toque para avançar',
