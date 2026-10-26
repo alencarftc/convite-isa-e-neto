@@ -60,7 +60,7 @@ src/
 │   ├── tela/                    # orientação (vertical, horizontal)
 │   └── tempo/                   # fuso de Brasília, minutos, instantes, data por extenso
 ├── application/
-│   ├── ports/                   # interfaces: Relogio, Preferencias, Ambiente, AudioPort, (PreloadPort…)
+│   ├── ports/                   # interfaces: Relogio, Preferencias, Ambiente, Capacidades, AudioPort, (PreloadPort…)
 │   ├── use-cases/               # obter-informacoes, orquestrador, audio-do-convite, carregamento
 │   ├── barramento-eventos.ts    # on / off / emit tipados (SPEC-01, RF-01.7)
 │   ├── cena.ts                  # contrato Cena { init, run, skip, destroy } (RF-01.6)

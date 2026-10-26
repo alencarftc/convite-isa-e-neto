@@ -1,7 +1,10 @@
 # Revisão de consistência e specs adicionais 13 a 17
 
-> **Situação: as cinco specs foram aprovadas em 26/10/2026** (uma branch por spec, mergeadas na `main`). As respostas padrão adotadas estão no fim de cada spec. A fonte da verdade continua sendo o Claude Docs;
-> estas specs ainda precisam ser levadas para lá.
+> **Situação: as cinco specs foram aprovadas e implementadas em 26/10/2026** (uma branch por spec, mergeadas na
+> `main`, branches mantidas). Cada spec termina com a seção "Implementação": as respostas adotadas para as questões em
+> aberto e os desvios do desenho. Dois pontos ainda dependem de vocês: o texto **"Salvar na agenda"** (texto novo,
+> SPEC-17) e a **duração de 6 h** do evento. A fonte da verdade continua sendo o Claude Docs; estas specs ainda precisam
+> ser levadas para lá.
 
 Revisão feita em 26/10/2026, cruzando três coisas: o que a noiva pediu no briefing (documento de requisitos, que
 transcreve as respostas dela), o que você decidiu e documentou (decisões, rascunho 2, épicos e as 12 specs) e o que

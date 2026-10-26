@@ -69,7 +69,8 @@ nas tabelas das SPEC-01 e do roteiro (requisitos).
   **SPEC-09**: animação reduzida, atalho de teclado, foco ao longo do caminho, modo de segurança, `<noscript>` gerado e contraste testado;
   **SPEC-11**: o botão e o encerramento já existiam; agora o `verificar` confere que os textos de prazo e de data batem com `config`, e há uma lista de conferência para a planilha e o formulário (passos manuais);
   **SPEC-07 completa**: contagem com números em destaque, mensagem do casal, traje e botões, cartões que surgem ao rolar;
-  `verificar` com 3 regras.
+  `verificar` com 3 regras;
+  **specs adicionais 13 a 17** ([specs-adicionais](./specs-adicionais/README.md)): história estática para quem não vê os balões, "Pular" fixo na segunda visita, "Role para ler" sobre a carta, verso opcional, compatibilidade com aparelhos antigos e plano B (ADR-0009), deslizar o selo, selo na entrada e "Salvar na agenda" (texto novo a aprovar).
 - **Próximo:** o que depende do casal e de aparelhos reais: arte gerada, fotos, MP3, verso do louvor, imagem da prévia e ícones, matriz de testes ([lançamento](./operacao/lancamento.md)).
 - **Pendências de conteúdo** (bloqueiam `pnpm verificar` e o envio): fotos dos balões, imagens geradas,
   músicas licenciadas e os 6 MP3 em `public/audio/`, **troca da arte provisória** (`config.imagens`, fotos dos balões e suas descrições), **verso do louvor** (entre colchetes em `content.mensagem`), URL publicada. Lista completa no fim de [documentacao.md](./documentacao.md).
