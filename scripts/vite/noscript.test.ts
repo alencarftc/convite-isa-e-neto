@@ -29,6 +29,29 @@ describe('gerarNoscript (SPEC-09, RF-09.9)', () => {
     }
   });
 
+  it('traz as cinco fotos e frases da história, na ordem dos balões, entre a carta e o traje (CT-13.6)', () => {
+    const posicoes = content.baloes.map((balao) => {
+      expect(html).toContain(`<img src="${escapar(balao.foto)}" alt="${escapar(balao.alt)}"`);
+      expect(html).toContain(`<figcaption>${escapar(balao.frase)}</figcaption>`);
+      return html.indexOf(escapar(balao.frase));
+    });
+
+    expect([...posicoes].sort((a, b) => a - b)).toEqual(posicoes);
+    expect(posicoes[0]).toBeGreaterThan(html.indexOf(escapar(content.carta.assinatura)));
+    expect(posicoes[4]).toBeLessThan(html.indexOf(escapar(content.rotulos.traje)));
+  });
+
+  it('as fotos da história carregam sob demanda e mantêm o recorte dos balões (RF-13.5, RF-13.4)', () => {
+    const fotos = [...html.matchAll(/<img [^>]*>/g)].map(([tag]) => tag);
+
+    expect(fotos).toHaveLength(content.baloes.length);
+    for (const [indice, tag] of fotos.entries()) {
+      expect(tag).toContain('loading="lazy"');
+      expect(tag).toContain('decoding="async"');
+      expect(tag).toContain(`object-position: ${content.baloes[indice]?.foco ?? ''}`);
+    }
+  });
+
   it('traz o traje e a mensagem do casal', () => {
     for (const texto of [content.dressCode, ...textosDe(content.mensagem)]) {
       expect(html).toContain(escapar(texto));

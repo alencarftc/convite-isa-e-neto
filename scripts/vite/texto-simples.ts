@@ -21,6 +21,9 @@ export const ESTILO_DO_TEXTO_SIMPLES = `
 .sem-js p, .sem-js h2, .sem-js h3 { margin: 0 0 var(--espaco-4); }
 .sem-js a { display: block; padding: var(--espaco-3); margin: 0 auto var(--espaco-3); max-width: 360px; color: var(--cor-texto); border: 1.5px solid var(--cor-texto); border-radius: 999px; text-decoration: none; }
 .sem-js a:first-of-type { color: var(--cor-marfim); background: var(--cor-texto); }
+.sem-js figure { margin: 0 0 var(--espaco-5); }
+.sem-js img { display: block; width: min(52vw, 200px); min-width: 160px; margin: 0 auto var(--espaco-3); aspect-ratio: 1; object-fit: cover; border-radius: 50%; }
+.sem-js figcaption { margin: 0; }
 `;
 
 /**
@@ -48,6 +51,18 @@ export function gerarTextoSimples(
     .map((texto) => p('mensagem', texto))
     .join('\n');
   const nomes = `${escapar(c.nomes.noiva)} ${escapar(c.nomes.e)} ${escapar(c.nomes.noivo)}`;
+  const historia = conteudo.baloes
+    .map((balao) => {
+      const foto =
+        balao.foto === ''
+          ? ''
+          : `<img src="${escaparAtributo(balao.foto)}" alt="${escaparAtributo(balao.alt)}" loading="lazy" decoding="async" style="object-position: ${escaparAtributo(balao.foco)}">`;
+      return `<figure>
+${foto}
+<figcaption>${escapar(balao.frase)}</figcaption>
+</figure>`;
+    })
+    .join('\n');
   const idDoTitulo = `carta-titulo-${sufixoDeId}`;
   const classes = classesExtras === '' ? 'sem-js' : `sem-js ${classesExtras}`;
 
@@ -68,6 +83,9 @@ ${p('referencia', c.referenciaFecho)}
 ${p('despedida', c.despedida)}
 ${p('assinatura', c.assinatura)}
 </article>
+<section aria-label="${escaparAtributo(conteudo.rotulos.historia)}">
+${historia}
+</section>
 <section aria-label="${escaparAtributo(conteudo.rotulos.informacoes)}">
 <h3>${escapar(conteudo.rotulos.traje)}</h3>
 ${p('traje', conteudo.dressCode)}
