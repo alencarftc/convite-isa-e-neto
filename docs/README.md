@@ -61,7 +61,8 @@ nas tabelas das SPEC-01 e do roteiro (requisitos).
   **SPEC-03**: bosque em camadas, revelação da névoa e profundidade (mouse no computador, deriva no celular);
   **SPEC-04**: baú, chave (cursor ou flutuante), dica, reforço, abertura em 2 s com pétalas;
   **SPEC-05**: cinco balões com foto e frase, luz do pôr do sol na mesma linha do tempo, aceleração por toque, anúncio ao leitor de tela — fotos e descrições provisórias;
+  **SPEC-06**: envelope que pousa sobre o baú, selo que se parte, carta que se desdobra com o casal ao fundo, pétalas e rolagem liberada; a carta e as informações no mesmo conteúdo;
   `verificar` com 3 regras.
-- **Próximo:** SPEC-06 (carta e convite) em diante.
+- **Próximo:** SPEC-07 (integração final das informações), SPEC-11, SPEC-09, SPEC-10 e SPEC-12.
 - **Pendências de conteúdo** (bloqueiam `pnpm verificar` e o envio): fotos dos balões, imagens geradas,
   músicas licenciadas e os 6 MP3 em `public/audio/`, **troca da arte provisória** (`config.imagens`, fotos dos balões e suas descrições), verso do louvor, URL publicada. Lista completa no fim de [documentacao.md](./documentacao.md).
