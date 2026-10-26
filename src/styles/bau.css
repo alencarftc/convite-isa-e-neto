@@ -1,0 +1,145 @@
+/*
+ * Baú e chave (SPEC-04). O baú fica centralizado, com a base a 16% da altura na vertical e 12% na
+ * horizontal; a largura acompanha a tela. A posição da fechadura é uma variável relativa ao baú
+ * (`--fechadura-x/y`), a ajustar com a imagem final. Só `transform` e `opacity` se animam.
+ */
+.bau {
+  --fechadura-x: 50%;
+  --fechadura-y: 41%; /* ajustar com a imagem 08 gerada (a spec sugere 58%) */
+
+  position: absolute;
+  inset: auto 0 16%;
+  z-index: var(--z-bau);
+  width: clamp(150px, 42vw, 280px);
+  margin-inline: auto;
+}
+
+@media (orientation: landscape) {
+  .bau {
+    bottom: 12%;
+    width: clamp(160px, 18vw, 300px);
+  }
+}
+
+.bau__corpo {
+  position: relative;
+}
+
+.bau__fechado {
+  position: relative; /* acima da aura, que vem antes no DOM */
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+.bau__aberto,
+.bau__luz,
+.bau__aura {
+  position: absolute;
+  pointer-events: none;
+}
+
+.bau__aberto {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Aura dourada atrás do baú: gradiente radial animado só por opacidade (RNF-04.1). */
+.bau__aura {
+  inset: -35%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--cor-dourado) 55%, transparent),
+    transparent
+  );
+}
+
+/* Luz de dentro do baú, que sobe da boca quando a tampa abre. */
+.bau__luz {
+  inset: -10% 5% 35%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--cor-luz) 85%, var(--cor-marfim)),
+    color-mix(in srgb, var(--cor-dourado) 30%, transparent) 60%,
+    transparent
+  );
+}
+
+/* A chave flutuante fica à direita da fechadura, com 22% da largura do baú. */
+.bau__chave {
+  position: absolute;
+  top: calc(var(--fechadura-y) - 12%);
+  left: calc(var(--fechadura-x) + 6%);
+  width: 22%;
+  pointer-events: none;
+}
+
+.bau__chave-imagem {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.bau__brilho {
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--cor-luz) 70%, transparent),
+    transparent
+  );
+  opacity: 0;
+}
+
+/* Botão que cobre o baú e a chave: 12 px de folga e no mínimo 48 × 48 px (RF-04.4). */
+.bau__botao {
+  position: absolute;
+  inset: -12px;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0;
+  cursor: inherit;
+  background: none;
+  border: 0;
+  border-radius: 16px;
+  pointer-events: auto;
+}
+
+.bau__botao:disabled {
+  pointer-events: none;
+}
+
+.bau__dica {
+  position: absolute;
+  top: calc(100% + var(--espaco-4));
+  right: 0;
+  left: 0;
+  width: fit-content;
+  max-width: 92vw;
+  padding: var(--espaco-2) var(--espaco-4);
+  margin: 0 auto;
+  font-size: var(--texto-corpo);
+  color: var(--cor-texto);
+  text-align: center;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--cor-marfim) 88%, transparent);
+  border-radius: 999px;
+}
+
+.bau__dica:empty {
+  display: none;
+}
+
+.petala {
+  position: absolute;
+  height: auto;
+  pointer-events: none;
+}
+
+/* No computador, o cursor sobre a cena vira a chave enquanto se espera o toque (RF-04.2). */
+body[data-fase='aguardando-bau'] {
+  cursor: var(--cursor-chave, auto);
+}

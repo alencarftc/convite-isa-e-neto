@@ -73,13 +73,7 @@
   object-position: bottom center;
 }
 
-/* Espaços das SPEC-04 (baú) e SPEC-06 (casal). */
-.bau {
-  position: absolute;
-  inset: 0;
-  z-index: var(--z-bau);
-}
-
+/* Espaço da SPEC-06 (casal); o do baú (`.bau`) é estilizado em bau.css (SPEC-04). */
 .casal {
   position: absolute;
   inset: 0;
