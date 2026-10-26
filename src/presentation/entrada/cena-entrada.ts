@@ -54,7 +54,6 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
     obter(entrada, '.entrada__chamada').textContent = conteudo.entrada.tocar;
     obter(entrada, '.entrada__volume').textContent = conteudo.entrada.volume;
     obter(entrada, '.entrada__aguarde').textContent = conteudo.entrada.aguarde;
-    obter(entrada, '.entrada__pular').textContent = conteudo.dicas.pular;
     return entrada;
   }
 
@@ -104,15 +103,16 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
     }, entrada);
   }
 
-  /** Mostra "Toque para entrar" (e "Pular", a partir da segunda visita) e espera o toque. */
+  /**
+   * Mostra "Toque para entrar" e espera o toque. "Pular para o convite" não é daqui: é um botão fixo
+   * que vale em toda a abertura, a partir da segunda visita (SPEC-14).
+   */
   function esperarToque(entrada: HTMLElement): Promise<EscolhaDeEntrada> {
     const tocar = obterBotao(entrada, '.entrada__tocar');
-    const pular = obterBotao(entrada, '.entrada__pular');
 
     tocar.hidden = false;
-    pular.hidden = !estado.visitado;
     gsap.fromTo(
-      [tocar, pular],
+      tocar,
       { opacity: 0 },
       { opacity: 1, duration: duracoes.entradaChamada, ease: curvas.saida },
     );
@@ -122,29 +122,18 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
     const { signal } = ouvintes;
     return new Promise((resolver) => {
       // Um toque só conta uma vez; o gesto libera o áudio dentro do próprio evento (RF-02.6).
-      const escolher = (escolha: EscolhaDeEntrada) => {
-        if (tocar.disabled) return;
-        tocar.disabled = true;
-        pular.disabled = true;
-        eventos.emit('entrada:tocou', { escolha });
-        gsap.to([obter(entrada, '.entrada__nomes'), tocar, pular], {
-          opacity: 0,
-          duration: duracoes.entradaSaida,
-          ease: curvas.saida,
-        });
-        resolver(escolha);
-      };
       tocar.addEventListener(
         'click',
         () => {
-          escolher('entrar');
-        },
-        { signal },
-      );
-      pular.addEventListener(
-        'click',
-        () => {
-          escolher('pular');
+          if (tocar.disabled) return;
+          tocar.disabled = true;
+          eventos.emit('entrada:tocou', { escolha: 'entrar' });
+          gsap.to([obter(entrada, '.entrada__nomes'), tocar], {
+            opacity: 0,
+            duration: duracoes.entradaSaida,
+            ease: curvas.saida,
+          });
+          resolver('entrar');
         },
         { signal },
       );
@@ -190,8 +179,8 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
       const entrada = secao ?? iniciar();
       await carregamento.critico(estado.orientacao);
       const escolha = await esperarToque(entrada);
-      // Pular e animação reduzida vão direto ao final: o bosque nem chega a ser mostrado.
-      if (escolha === 'pular' || estado.reduzido) return escolha;
+      // Animação reduzida vai direto ao final: o bosque nem chega a ser mostrado.
+      if (estado.reduzido) return escolha;
       await esperarBosque(entrada);
       return escolha;
     },

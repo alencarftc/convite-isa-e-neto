@@ -12,6 +12,7 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-ceu);
+  height: 100vh;
   height: 100dvh;
   overflow: hidden;
   pointer-events: none;

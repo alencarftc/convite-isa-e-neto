@@ -83,6 +83,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
   let linhaDoConvite: gsap.core.Timeline | undefined;
   let espera: gsap.core.Tween | undefined;
   let pulso: gsap.core.Tween | undefined;
+  let recolherDica: gsap.core.Tween | undefined;
   let ouvintes: AbortController | undefined;
   let ouvintesDoConvite: AbortController | undefined;
   let pararDeOuvirSeguranca: (() => void) | undefined;
@@ -144,9 +145,13 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     const chao = criar('div', 'convite__chao');
     chao.setAttribute('aria-hidden', 'true');
     gsap.set(chao, { opacity: 0 });
+    // "Role para ler" vive dentro do conteúdo, ancorada ao topo da carta, e rola junto com ela:
+    // nunca cobre o texto (SPEC-14, RF-14.4). É só um aviso visual; quem usa leitor de tela já navega.
     const rolar = criar('p', 'convite__rolar', conteudo.dicas.rolar);
+    rolar.setAttribute('aria-hidden', 'true');
     rolar.append(criarSeta());
     gsap.set(rolar, { opacity: 0 });
+    caixa.append(rolar);
 
     // O casal vive no espaço `.casal` da cena do bosque: sobe junto com ela.
     const espacoDoCasal = raiz.querySelector<HTMLElement>('.casal');
@@ -165,7 +170,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
       return petala;
     });
 
-    raiz.append(chao, envelope, caixa, rolar);
+    raiz.append(chao, envelope, caixa);
     // No modo de segurança, a carta já está sem `inert` quando o aviso chega: o foco vai ao título.
     pararDeOuvirSeguranca = eventos.on('seguranca', () => {
       titulo.focus({ preventScroll: true });
@@ -232,6 +237,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     linhaDoConvite?.kill();
     espera?.kill();
     pulso?.kill();
+    recolherDica?.kill();
     ouvintes?.abort();
     ouvintesDoConvite?.abort();
   }
@@ -514,7 +520,14 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
           )
           .set({}, {}, duracoes.convite);
 
-        // A dica "Role para ler" some na primeira rolagem.
+        // A dica "Role para ler" some na primeira rolagem ou depois de `rolarVisivel` segundos, o que
+        // vier primeiro (SPEC-14, RF-14.4).
+        recolherDica = gsap.to(e.rolar, {
+          opacity: 0,
+          duration: t.rolarAparece,
+          ease: curvas.saida,
+          delay: t.rolarEm + t.rolarAparece + t.rolarVisivel,
+        });
         ouvintesDoConvite = new AbortController();
         window.addEventListener(
           'scroll',

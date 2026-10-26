@@ -56,7 +56,8 @@ export function montarBotaoSom({ raiz, dicas, estado, eventos }: DependenciasBot
   refletir();
   botao.addEventListener('click', alternar);
   const pararDeOuvir = estado.aoMudar(refletir);
-  raiz.append(botao);
+  // Primeiro filho do contêiner: na ordem do Tab vem antes das etapas (SPEC-14, RF-14.3).
+  raiz.prepend(botao);
 
   return () => {
     pararDeOuvir();

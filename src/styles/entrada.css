@@ -59,6 +59,7 @@
   gap: var(--espaco-2);
   align-items: center;
   justify-content: flex-end;
+  padding: 0 var(--espaco-5) calc(20vh + env(safe-area-inset-bottom));
   padding: 0 var(--espaco-5) calc(20dvh + env(safe-area-inset-bottom));
   font: inherit;
   color: var(--cor-texto);
@@ -82,26 +83,9 @@
   color: var(--cor-texto-suave);
 }
 
-/* "Pular para o convite": outro botão, acima da área de toque, que não dispara a entrada. */
-.entrada__pular {
-  position: absolute;
-  bottom: calc(var(--espaco-6) + env(safe-area-inset-bottom));
-  left: 50%;
-  min-width: 44px;
-  min-height: 44px;
-  padding: var(--espaco-2) var(--espaco-5);
-  font: inherit;
-  font-size: var(--texto-corpo);
-  color: var(--cor-texto);
-  cursor: pointer;
-  background: var(--cor-marfim);
-  border: 1px solid var(--cor-dourado);
-  border-radius: 999px;
-  transform: translateX(-50%);
-}
-
 .entrada__aguarde {
   position: absolute;
+  bottom: calc(20vh + env(safe-area-inset-bottom));
   bottom: calc(20dvh + env(safe-area-inset-bottom));
   margin: 0;
   font-size: var(--texto-corpo);

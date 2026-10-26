@@ -73,6 +73,7 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
       petalas: { ...original.convite.petalas, duracao: esc(original.convite.petalas.duracao) },
       rolarEm: esc(original.convite.rolarEm),
       rolarAparece: esc(original.convite.rolarAparece),
+      rolarVisivel: esc(original.convite.rolarVisivel),
     },
     historia: {
       ...original.historia,

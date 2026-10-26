@@ -51,7 +51,8 @@ describe('CSS compatível com aparelhos mais antigos (SPEC-15)', () => {
     for (const { nome, css } of arquivos) {
       for (const declaracoes of blocos(css)) {
         declaracoes.forEach((declaracao, indice) => {
-          if (!/\bdvh\b/.test(declaracao.valor)) return;
+          // `\b` antes de "dvh" não serve: em "52dvh" não há fronteira entre o dígito e o "d".
+          if (!/dvh\b/.test(declaracao.valor)) return;
           const alternativa = declaracao.valor.replaceAll('dvh', 'vh');
           const anterior = declaracoes
             .slice(0, indice)

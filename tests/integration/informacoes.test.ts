@@ -4,20 +4,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { criarObterInformacoes } from '@/application/use-cases/obter-informacoes';
 import { config } from '@/config/config';
 import { content } from '@/config/content';
+import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import { criarRelogio } from '@/infrastructure/relogio/relogio';
 import { montarInformacoes } from '@/presentation/informacoes/informacoes';
 
 /** Camadas reais (config, caso de uso, relógio, DOM), com a data simulada por `?data=`. */
-function montarEm(dataSimulada: string, animar = false) {
+function montarEm(dataSimulada: string, animar = false, conteudo: ConteudoConvite = content) {
   const raiz = document.createElement('div');
   document.body.append(raiz);
   const relogio = criarRelogio({ desenvolvimento: true, busca: `?data=${dataSimulada}` });
   const montadas = montarInformacoes({
     raiz,
-    conteudo: content,
+    conteudo,
     config,
     relogio,
-    obterInformacoes: criarObterInformacoes({ relogio, config, conteudo: content }),
+    obterInformacoes: criarObterInformacoes({ relogio, config, conteudo }),
     animar,
   });
   return { raiz, montadas };
@@ -194,6 +195,21 @@ describe('cartões da mensagem e do traje (SPEC-07)', () => {
     expect(raiz.querySelector('.mensagem__assinatura')?.textContent).toBe(
       'Com carinho, Isabella & David',
     );
+  });
+
+  it('verso do louvor vazio: o parágrafo não é criado e a mensagem termina na assinatura (CT-14.4)', () => {
+    const { raiz } = montarEm('2026-11-15T10:00', false, {
+      ...content,
+      mensagem: { ...content.mensagem, versoLouvor: '' },
+    });
+
+    const filhos = [...(raiz.querySelector('.cartao--mensagem')?.children ?? [])].map(
+      (filho) => filho.className,
+    );
+
+    expect(raiz.querySelector('.mensagem__verso')).toBeNull();
+    expect(filhos.at(-1)).toBe('mensagem__assinatura');
+    expect(filhos.filter((classe) => classe === 'mensagem__paragrafo')).toHaveLength(3);
   });
 
   it('o traje mostra "Esporte fino" sob o título (CA-07.2.2)', () => {
