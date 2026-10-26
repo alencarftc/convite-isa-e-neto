@@ -66,6 +66,21 @@ describe('CSS compatível com aparelhos mais antigos (SPEC-15)', () => {
     expect(semAlternativa).toEqual([]);
   });
 
+  it('nenhuma regra usa as propriedades de transformação individuais (translate, rotate, scale): o Chrome 90 não as entende', () => {
+    const usadas: string[] = [];
+    for (const { nome, css } of arquivos) {
+      for (const declaracoes of blocos(css)) {
+        for (const { propriedade, valor } of declaracoes) {
+          if (['translate', 'rotate', 'scale'].includes(propriedade)) {
+            usadas.push(`${nome}: ${propriedade}: ${valor}`);
+          }
+        }
+      }
+    }
+
+    expect(usadas).toEqual([]);
+  });
+
   it('as media queries usam a notação clássica, que todo navegador entende (RF-15.4)', () => {
     for (const { nome, css } of arquivos) {
       expect(css, nome).not.toMatch(/@media[^{]*\(\s*(?:width|height)\s*[<>]=?/);
