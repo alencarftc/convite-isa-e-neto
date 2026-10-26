@@ -102,6 +102,17 @@ describe('src/main.ts', () => {
     expect(document.querySelector<HTMLElement>('.entrada')?.hidden).toBe(true);
   });
 
+  it('a carta e as informações ficam no mesmo conteúdo, a carta primeiro, com a rolagem liberada', async () => {
+    await ateAsInformacoes();
+
+    const conteudo = document.querySelector('#app .conteudo');
+    expect(conteudo?.querySelector('.carta')).not.toBeNull();
+    expect(conteudo?.querySelector('.informacoes')).not.toBeNull();
+    expect(conteudo?.firstElementChild?.className).toBe('carta');
+    expect(conteudo?.hasAttribute('inert')).toBe(false);
+    expect(document.body.style.overflow).toBe('');
+  });
+
   it('?erro=<cena> faz a cena falhar: registra o erro e ainda mostra as informações (CT-01.7)', async () => {
     const erro = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     window.history.replaceState({}, '', '/?data=2026-11-15T10:00&erro=informacoes');
