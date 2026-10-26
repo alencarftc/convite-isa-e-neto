@@ -1,64 +1,120 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { montarIndexHtml } from './suporte/index-html';
+
+/** Imagem que decodifica na hora: o convite não espera por rede nos testes. */
+class ImagemInstantanea {
+  src = '';
+  fetchPriority = 'auto';
+  decode(): Promise<void> {
+    return Promise.resolve();
+  }
+}
+
+const fase = () => document.body.getAttribute('data-fase');
+
+/**
+ * Cada `import('@/main')` registra ouvintes em window e document que sobrevivem ao teste (o main
+ * não tem como ser desmontado de fora). Guardamos para remover no fim, senão um convite de um teste
+ * anterior reage aos eventos do teste seguinte.
+ */
+const ouvintes: { alvo: EventTarget; tipo: string; escuta: EventListenerOrEventListenerObject }[] =
+  [];
+function registrarOuvintes(alvo: EventTarget): void {
+  const original = alvo.addEventListener.bind(alvo);
+  vi.spyOn(alvo, 'addEventListener').mockImplementation((tipo, escuta, opcoes) => {
+    if (escuta) ouvintes.push({ alvo, tipo, escuta });
+    original(tipo, escuta, opcoes);
+  });
+}
+
+/** Abre o convite e dá o toque de entrada, como o convidado. */
+async function abrirEntrando(): Promise<void> {
+  await import('@/main');
+  await vi.waitFor(() => {
+    expect(document.querySelector<HTMLButtonElement>('.entrada__tocar')?.hidden).toBe(false);
+  });
+  document.querySelector<HTMLButtonElement>('.entrada__tocar')?.click();
+}
+
 /** Fumaça da raiz de composição: o main.ts liga config, orquestrador, adaptadores e apresentação. */
 describe('src/main.ts', () => {
   beforeEach(() => {
     vi.resetModules();
-    document.body.innerHTML = '<div id="app"></div>';
-    document.body.removeAttribute('data-fase');
+    vi.stubGlobal('Image', ImagemInstantanea);
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined); // sem MP3 de verdade, o Howler avisa
+    registrarOuvintes(window);
+    registrarOuvintes(document);
+    montarIndexHtml();
     window.history.replaceState({}, '', '/?data=2026-11-15T10:00');
   });
 
   afterEach(() => {
+    for (const { alvo, tipo, escuta } of ouvintes.splice(0)) alvo.removeEventListener(tipo, escuta);
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
-  it('monta o bloco de informações em #app usando a data simulada', async () => {
+  it('abre na entrada: nomes do casal, botão de som e "Toque para entrar" (SPEC-02, SPEC-08)', async () => {
     await import('@/main');
 
-    const contagem = document.querySelector('#app .cartao--contagem');
-    expect(contagem?.textContent).toBe('Faltam 68 dias, 7 horas e 0 minutos para o nosso sim');
+    expect(document.querySelector('.entrada__nomes')?.textContent).toBe('Isabella & David');
+    expect(document.querySelector('#app .botao-som')?.getAttribute('aria-pressed')).toBe('true');
+    await vi.waitFor(() => {
+      expect(document.querySelector<HTMLButtonElement>('.entrada__tocar')?.hidden).toBe(false);
+    });
+    expect(fase()).toBe('aguardando-entrada');
+    expect(document.querySelector('.cartao--contagem')).toBeNull();
   });
 
-  it('mostra o botão de som desde o início, com o som ligado (SPEC-08, CA-08.4.1)', async () => {
-    await import('@/main');
-
-    const botao = document.querySelector('#app .botao-som');
-    expect(botao?.getAttribute('aria-pressed')).toBe('true');
-    expect(botao?.getAttribute('aria-label')).toBe('Som');
-  });
-
-  it('percorre o orquestrador até o final e reflete a fase no <body> (CA-01.4.1)', async () => {
-    await import('@/main');
+  it('depois do toque, percorre o orquestrador até as informações com a data simulada (CA-01.4.1)', async () => {
+    await abrirEntrando();
 
     await vi.waitFor(() => {
-      expect(document.body.getAttribute('data-fase')).toBe('informacoes');
+      expect(fase()).toBe('informacoes');
     });
+    const contagem = document.querySelector('#app .cartao--contagem');
+    expect(contagem?.textContent).toBe('Faltam 68 dias, 7 horas e 0 minutos para o nosso sim');
+    expect(document.querySelector<HTMLElement>('.entrada')?.hidden).toBe(true);
   });
 
   it('?erro=<cena> faz a cena falhar: registra o erro e ainda mostra as informações (CT-01.7)', async () => {
     const erro = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     window.history.replaceState({}, '', '/?data=2026-11-15T10:00&erro=informacoes');
 
-    await import('@/main');
+    await abrirEntrando();
 
     await vi.waitFor(() => {
       expect(erro).toHaveBeenCalled();
     });
     // O final é a própria cena que falhou: o orquestrador a mostra de novo, sem animação.
     expect(document.querySelector('#app .cartao--contagem')).not.toBeNull();
-    expect(document.body.getAttribute('data-fase')).toBe('informacoes');
+    expect(fase()).toBe('informacoes');
     expect(erro).toHaveBeenCalledWith(
       '[convite] modo de segurança',
       expect.objectContaining({ message: expect.stringContaining('informacoes') as string }),
     );
   });
 
+  it('?erro=entrada leva ao modo de segurança com as informações à vista (SPEC-09)', async () => {
+    const erro = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    window.history.replaceState({}, '', '/?data=2026-11-15T10:00&erro=entrada');
+
+    await import('@/main');
+
+    await vi.waitFor(() => {
+      expect(fase()).toBe('seguranca');
+    });
+    expect(erro).toHaveBeenCalled();
+    expect(document.querySelector('#app .cartao--contagem')).not.toBeNull();
+    expect(document.querySelector<HTMLElement>('.entrada')?.hidden).toBe(true);
+  });
+
   it('um erro não tratado do próprio site depois do final só é registrado', async () => {
     const erro = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    await import('@/main');
+    await abrirEntrando();
     await vi.waitFor(() => {
-      expect(document.body.getAttribute('data-fase')).toBe('informacoes');
+      expect(fase()).toBe('informacoes');
     });
 
     window.dispatchEvent(
@@ -69,7 +125,7 @@ describe('src/main.ts', () => {
       }),
     );
 
-    expect(document.body.getAttribute('data-fase')).toBe('informacoes');
+    expect(fase()).toBe('informacoes');
     expect(erro).toHaveBeenCalledWith('[convite] modo de segurança', new Error('tardio'));
   });
 
