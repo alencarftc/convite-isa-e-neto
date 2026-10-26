@@ -68,6 +68,75 @@ export interface ConfigConvite {
     };
   };
   /**
+   * Envelope (SPEC-06, `tlCarta`, 3 s): pousa sobre o baú e espera o toque no selo. Instantes
+   * contados do início da etapa.
+   */
+  readonly carta: {
+    readonly pouso: number;
+    /** O envelope parte a esta fração da altura acima do centro, inclinado. */
+    readonly alturaDeSaida: number;
+    readonly inclinacao: number;
+    readonly sombraEm: number;
+    readonly sombra: number;
+    readonly opacidadeDaSombra: number;
+    /** `carta:pousou` e o início da contagem de `duracoes.esperaSelo`. */
+    readonly pousouEm: number;
+    readonly dicaEm: number;
+    readonly dicaAparece: number;
+    readonly pulsoDoSelo: { readonly escala: number; readonly periodo: number };
+  };
+  /**
+   * Abertura do envelope e carta (SPEC-06, `tlConvite`, 7 s). Instantes contados do rompimento do
+   * selo.
+   */
+  readonly convite: {
+    readonly dicaSome: number;
+    readonly seloCresce: { readonly escala: number; readonly duracao: number };
+    readonly seloParte: {
+      readonly duracao: number;
+      /** Giro de cada metade, em graus, e queda, em pixels. */
+      readonly giro: number;
+      readonly queda: number;
+    };
+    readonly abaEm: number;
+    readonly aba: number;
+    readonly abaEscala: number;
+    readonly cartaSobeEm: number;
+    readonly cartaSobe: number;
+    readonly envelopeDesceEm: number;
+    readonly envelopeDesce: number;
+    readonly cenaSobeEm: number;
+    readonly cenaSobe: number;
+    /** A cena inteira sobe esta fração da altura da tela. */
+    readonly cenaSobeFracao: number;
+    readonly bauSome: number;
+    readonly casalEm: number;
+    readonly casalAparece: number;
+    readonly casalDeslocamento: number;
+    readonly desdobraEm: number;
+    readonly desdobra: number;
+    /** Escala vertical da carta ainda dobrada. */
+    readonly escalaDobrada: number;
+    readonly blocosEm: number;
+    readonly blocosIntervalo: number;
+    readonly blocosAparecem: number;
+    readonly blocosDeslocamento: number;
+    readonly petalasEm: number;
+    readonly petalas: {
+      readonly minimo: number;
+      readonly maximo: number;
+      readonly duracao: number;
+      /** Queda mínima e máxima, em fração da altura da tela. */
+      readonly quedaMinima: number;
+      readonly quedaMaxima: number;
+      readonly balanco: number;
+      readonly rotacao: number;
+      readonly largura: string;
+    };
+    readonly rolarEm: number;
+    readonly rolarAparece: number;
+  };
+  /**
    * História em balões (SPEC-05). Cada balão dura `duracoes.balao` = 3 s e os instantes são contados
    * do início dele. A história inteira soma `duracoes.balao` × número de balões.
    */
@@ -170,6 +239,8 @@ export interface ConfigConvite {
     readonly leve: string;
     /** Saída de seno (`sine.out`): a luz que assenta. */
     readonly senoSaida: string;
+    /** Vai e vem forte (`power3.inOut`): a carta que se desdobra. */
+    readonly viaDuplaForte: string;
     /** Entrada leve (`power1.in`): o balão sobe rápido e some pelo alto. */
     readonly entradaLeve: string;
   };

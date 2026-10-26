@@ -22,6 +22,8 @@ export const CHAVES_CRITICAS = [
 export const FILA_SECUNDARIA = [
   ['bauAberto', 'petalaA', 'petalaB', 'petalaC', 'cursorChave', 'balaoA', 'balaoB', 'balaoC'], // 09, 16, 11 e o cursor · baú e história
   ['ceuPorDoSol'], // 03 · história
+  ['envelopeFechado', 'envelopeAberto', 'selo', 'papelCarta'], // 12, 13, 15, 14 · carta
+  ['casal'], // 17 · convite
 ] as const;
 
 type ChaveCritica = (typeof CHAVES_CRITICAS)[number];
