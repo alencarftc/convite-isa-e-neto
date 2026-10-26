@@ -48,6 +48,7 @@ export function gerarTextoSimples(
     conteudo.mensagem.versoLouvor,
     conteudo.mensagem.assinatura,
   ]
+    .filter((texto) => texto !== '') // verso vazio: sem parágrafo (SPEC-14, RF-14.5)
     .map((texto) => p('mensagem', texto))
     .join('\n');
   const nomes = `${escapar(c.nomes.noiva)} ${escapar(c.nomes.e)} ${escapar(c.nomes.noivo)}`;

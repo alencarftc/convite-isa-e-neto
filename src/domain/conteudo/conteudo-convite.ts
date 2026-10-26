@@ -88,7 +88,10 @@ export interface ConteudoConvite {
   /** Mensagem do casal, abaixo da contagem (SPEC-07, RF-07.7). */
   readonly mensagem: {
     readonly paragrafos: readonly string[];
-    /** Verso do louvor, em itálico, com o nome da música; pendência do casal (entre colchetes). */
+    /**
+     * Verso do louvor, em itálico, com o nome da música. Vazio omite o parágrafo (SPEC-14, RF-14.5);
+     * entre colchetes é pendência do casal e o `pnpm verificar` barra a publicação.
+     */
     readonly versoLouvor: string;
     readonly assinatura: string;
   };

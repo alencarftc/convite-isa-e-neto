@@ -103,6 +103,7 @@ export const config: ConfigConvite = {
     },
     rolarEm: 6,
     rolarAparece: 0.5,
+    rolarVisivel: 8,
   },
   historia: {
     saida: 0.8,

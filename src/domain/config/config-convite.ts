@@ -151,6 +151,8 @@ export interface ConfigConvite {
     };
     readonly rolarEm: number;
     readonly rolarAparece: number;
+    /** Tempo que "Role para ler" fica à vista, se o convidado não rolar antes (SPEC-14). */
+    readonly rolarVisivel: number;
   };
   /**
    * História em balões (SPEC-05). Cada balão dura `duracoes.balao` = 3 s e os instantes são contados

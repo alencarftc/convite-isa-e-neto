@@ -162,6 +162,16 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(document.body.style.overflow).toBe('hidden');
     });
 
+    it('"Role para ler" fica dentro do conteúdo, depois da carta, e é só um aviso visual (SPEC-14, RF-14.4)', () => {
+      const { el, raiz } = montar();
+
+      const dica = el('.conteudo > .convite__rolar');
+      expect(dica.previousElementSibling?.className).toBe('carta');
+      expect(dica.textContent).toBe(content.dicas.rolar);
+      expect(dica.getAttribute('aria-hidden')).toBe('true');
+      expect(raiz.querySelector(':scope > .convite__rolar')).toBeNull();
+    });
+
     it('o casal vai para o espaço da cena do bosque, para subir junto com ela', () => {
       const { el } = montar();
 
@@ -280,6 +290,20 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(document.body.style.overflow).toBe('');
       expect(el('.conteudo').hasAttribute('inert')).toBe(false);
       expect(document.activeElement).toBe(el('#carta-titulo'));
+    });
+
+    it('"Role para ler" aparece e some sozinha depois de rolarVisivel, sem precisar rolar (SPEC-14, RF-14.4)', async () => {
+      const { abrirTudo, opacidade } = montar();
+
+      await abrirTudo('toque');
+      expect(opacidade('.convite__rolar')).toBe(1);
+
+      await vi.waitFor(
+        () => {
+          expect(opacidade('.convite__rolar')).toBe(0);
+        },
+        { timeout: 2000 },
+      );
     });
 
     it('registra a visita no aparelho só ao terminar de abrir (RF-06.10)', async () => {

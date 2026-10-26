@@ -27,6 +27,10 @@ describe('encontrarTextoPendente', () => {
     ]);
   });
 
+  it('verso vazio é uma escolha, não uma pendência (SPEC-14, RF-14.5)', () => {
+    expect(encontrarTextoPendente({ mensagem: { versoLouvor: '' } })).toEqual([]);
+  });
+
   it('ignora números, booleanos e nulos', () => {
     expect(encontrarTextoPendente({ a: 1, b: true, c: null })).toEqual([]);
   });

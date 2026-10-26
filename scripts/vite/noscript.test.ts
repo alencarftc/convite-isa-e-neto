@@ -52,6 +52,19 @@ describe('gerarNoscript (SPEC-09, RF-09.9)', () => {
     }
   });
 
+  it('verso do louvor vazio: não gera parágrafo vazio, e a assinatura continua (SPEC-14, RF-14.5)', () => {
+    const semVerso = gerarNoscript(
+      { ...content, mensagem: { ...content.mensagem, versoLouvor: '' } },
+      config,
+    );
+
+    expect(semVerso).not.toContain('<p class="mensagem"></p>');
+    expect(semVerso).toContain(escapar(content.mensagem.assinatura));
+    expect(semVerso.match(/<p class="mensagem">/g)).toHaveLength(
+      content.mensagem.paragrafos.length + 1,
+    );
+  });
+
   it('traz o traje e a mensagem do casal', () => {
     for (const texto of [content.dressCode, ...textosDe(content.mensagem)]) {
       expect(html).toContain(escapar(texto));

@@ -123,7 +123,10 @@ export function montarInformacoes(dependencias: DependenciasInformacoes): Inform
     ...conteudo.mensagem.paragrafos.map((paragrafo) =>
       criarParagrafo('mensagem__paragrafo', paragrafo),
     ),
-    criarParagrafo('mensagem__verso', conteudo.mensagem.versoLouvor),
+    // Verso vazio: o parágrafo não existe, sem linha em branco (SPEC-14, RF-14.5).
+    ...(conteudo.mensagem.versoLouvor === ''
+      ? []
+      : [criarParagrafo('mensagem__verso', conteudo.mensagem.versoLouvor)]),
     criarParagrafo('mensagem__assinatura', conteudo.mensagem.assinatura),
   );
 

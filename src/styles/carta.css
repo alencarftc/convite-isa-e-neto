@@ -146,12 +146,14 @@
   background: var(--cor-chao);
 }
 
+/* Dica logo acima do topo da carta, dentro do .conteudo: rola junto e nunca cobre texto (SPEC-14, RF-14.4).
+   O 'top' repete o recuo do .conteudo (52 ou 55 da altura da tela), porque ele não pode ser uma variável com dvh. */
 .convite__rolar {
-  position: fixed;
+  position: absolute;
+  top: 52vh;
+  top: 52dvh;
   right: 0;
-  bottom: calc(var(--espaco-4) + env(safe-area-inset-bottom));
   left: 0;
-  z-index: var(--z-informacoes);
   width: fit-content;
   padding: var(--espaco-2) var(--espaco-4);
   margin: 0 auto;
@@ -163,6 +165,7 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   pointer-events: none;
+  transform: translateY(calc(-100% - var(--espaco-3)));
 }
 
 .convite__seta {
@@ -214,6 +217,11 @@
   .conteudo {
     padding-top: 55vh;
     padding-top: 55dvh;
+  }
+
+  .convite__rolar {
+    top: 55vh;
+    top: 55dvh;
   }
 }
 
