@@ -8,10 +8,17 @@ export const content: ConteudoConvite = {
   rotulos: {
     informacoes: 'Informações do casamento',
   },
+  entrada: {
+    nomes: 'Isabella & David',
+    tocar: 'Toque para entrar',
+    volume: 'Para uma experiência completa, aumente o volume.',
+    aguarde: 'Preparando o bosque…',
+  },
   dicas: {
     som: 'Som',
     somLigado: 'Som ligado',
     somDesligado: 'Som desligado',
+    pular: 'Pular para o convite',
   },
   contagem: {
     antes: 'Faltam {dias}, {horas} e {minutos} para o nosso sim',
