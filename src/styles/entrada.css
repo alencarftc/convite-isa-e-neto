@@ -71,6 +71,24 @@
   color: var(--cor-dourado);
 }
 
+/*
+ * Telas baixas (celular deitado, até 560 px de altura): o grupo do selo e dos nomes, centrado, desceria
+ * sobre "Toque para entrar", que fica na base. A reserva da base empurra o centro do grupo para cima
+ * (20% da altura mais as duas linhas de texto) e o selo encolhe um pouco.
+ */
+@media (max-height: 560px) {
+  .entrada {
+    padding-bottom: calc(20vh + 5.5rem);
+    padding-bottom: calc(20dvh + 5.5rem);
+  }
+
+  .entrada__selo {
+    --tamanho: 64px;
+
+    margin-bottom: var(--espaco-2);
+  }
+}
+
 .entrada__nomes {
   position: relative;
   margin: 0;

@@ -1,13 +1,8 @@
 import type { CartaDoConvite } from '@/domain/conteudo/conteudo-convite';
 
-const NAMESPACE_SVG = 'http://www.w3.org/2000/svg';
+import { criar } from '../dom';
 
-function criar(tag: string, classe: string, texto?: string): HTMLElement {
-  const elemento = document.createElement(tag);
-  elemento.className = classe;
-  if (texto !== undefined) elemento.textContent = texto;
-  return elemento;
-}
+const NAMESPACE_SVG = 'http://www.w3.org/2000/svg';
 
 /** Linha dourada fina com um pequeno ornamento central (blocos 3 e 10). */
 function criarFilete(): SVGSVGElement {

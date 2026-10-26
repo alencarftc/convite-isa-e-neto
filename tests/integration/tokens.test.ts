@@ -38,6 +38,12 @@ describe('tokens.css (SPEC-09, SPEC-01)', () => {
     expect(razaoDeContraste(cor('cor-serenidade'), cor('cor-marfim'))).toBeLessThan(3);
   });
 
+  it('"Ir direto ao convite" fica sobre "Pular" quando recebe foco: --z-atalho vence --z-interface', () => {
+    const z = (nome: string) => Number(new RegExp(String.raw`--${nome}:\s*(\d+)`).exec(css)?.[1]);
+
+    expect(z('z-atalho')).toBeGreaterThan(z('z-interface'));
+  });
+
   it('o corpo do texto tem pelo menos 18 px no celular (RF de tamanho)', () => {
     expect(css).toMatch(/--texto-corpo:\s*clamp\(18px,/);
   });

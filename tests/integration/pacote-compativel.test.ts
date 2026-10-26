@@ -32,6 +32,18 @@ function* percorrer(no: unknown): Generator<No> {
   }
 }
 
+/** Sintaxe de ES2022 que o piso do convite (Safari/iOS 15.1) ainda não tem. */
+function sintaxeAlemDoPiso(codigo: string): string[] {
+  const tipos = new Set<string>();
+  for (const no of percorrer(parse(codigo, { ecmaVersion: 2022, sourceType: 'module' }))) {
+    if (no.type === 'StaticBlock') tipos.add('bloco estático');
+    if (no.type === 'BinaryExpression' && ehNo(no.left) && no.left.type === 'PrivateIdentifier') {
+      tipos.add('#campo in objeto');
+    }
+  }
+  return [...tipos];
+}
+
 let javascript = '';
 let css = '';
 
@@ -60,17 +72,17 @@ describe('pacote gerado dentro do alvo (SPEC-15, RF-15.5)', () => {
   });
 
   it('não usa blocos estáticos de classe nem `#campo in objeto`, que chegam só no Safari 16.4', () => {
-    const arvore = parse(javascript, { ecmaVersion: 2022, sourceType: 'module' });
+    expect(sintaxeAlemDoPiso(javascript)).toEqual([]);
+  });
 
-    const tipos = new Set<string>();
-    for (const no of percorrer(arvore)) {
-      if (no.type === 'StaticBlock') tipos.add('bloco estático');
-      if (no.type === 'BinaryExpression' && ehNo(no.left) && no.left.type === 'PrivateIdentifier') {
-        tipos.add('#campo in objeto');
-      }
-    }
-
-    expect([...tipos]).toEqual([]);
+  it('o verificador de sintaxe enxerga o que procura: não é um teste que sempre passa', () => {
+    expect(sintaxeAlemDoPiso('class A { static { A.x = 1; } }')).toEqual(['bloco estático']);
+    expect(sintaxeAlemDoPiso('class A { #p = 1; static t(o) { return #p in o; } }')).toEqual([
+      '#campo in objeto',
+    ]);
+    expect(
+      sintaxeAlemDoPiso('class A { #p = 1; static x = 2; get() { return this.#p; } }'),
+    ).toEqual([]);
   });
 
   it('o CSS gerado não tem color-mix() nem media query de faixa (CT-15.3)', () => {

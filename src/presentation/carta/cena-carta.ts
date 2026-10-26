@@ -8,7 +8,10 @@ import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
+import { criar, criarImagem } from '../dom';
+import { carregarImagensTardias } from '../imagens/imagens-tardias';
 import { chuvaDePetalas } from '../petalas/chuva-de-petalas';
+import { removerPetalas } from '../petalas/petalas';
 import { ligarGestoDoSelo } from './gesto-do-selo';
 import { montarCarta } from './montar-carta';
 
@@ -41,23 +44,8 @@ interface Elementos {
   readonly chao: HTMLElement;
   readonly rolar: HTMLElement;
   readonly casal: HTMLElement | null;
-  readonly petalas: readonly HTMLImageElement[];
-}
-
-function criar(tag: string, classe: string, texto?: string): HTMLElement {
-  const elemento = document.createElement(tag);
-  elemento.className = classe;
-  if (texto !== undefined) elemento.textContent = texto;
-  return elemento;
-}
-
-function criarImagem(classe: string, url: string): HTMLImageElement {
-  const imagem = document.createElement('img');
-  imagem.className = classe;
-  imagem.src = url;
-  imagem.alt = '';
-  imagem.draggable = false;
-  return imagem;
+  /** Preenchida em `carta.run`: as variações da chuva de pétalas, já pedidas ao navegador. */
+  readonly petalas: HTMLImageElement[];
 }
 
 /**
@@ -101,10 +89,12 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     const fechado = criarImagem(
       'envelope__fechado',
       urlDaImagem(config.imagens.envelopeFechado, 'vertical'),
+      true,
     );
     const aberto = criarImagem(
       'envelope__aberto',
       urlDaImagem(config.imagens.envelopeAberto, 'vertical'),
+      true,
     );
     const para = criar('p', 'envelope__para', conteudo.envelope.para);
     const selo = criar('div', 'selo');
@@ -112,7 +102,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     // O selo se parte em duas metades recortadas da mesma imagem (RF-06.5).
     const metades = (['esquerda', 'direita'] as const).map((lado) => {
       const metade = criar('div', `selo__metade selo__metade--${lado}`);
-      metade.append(criarImagem('selo__imagem', urlDoSelo));
+      metade.append(criarImagem('selo__imagem', urlDoSelo, true));
       return metade;
     });
     const iniciais = criar('span', 'selo__iniciais', conteudo.envelope.iniciais);
@@ -164,12 +154,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
       gsap.set(casal, { opacity: 0 });
     }
 
-    // Pede as pétalas já, para estarem prontas quando a chuva começar.
-    const petalas = (['petalaA', 'petalaB', 'petalaC'] as const).map((chave) => {
-      const petala = new Image();
-      petala.src = urlDaImagem(config.imagens[chave], 'vertical');
-      return petala;
-    });
+    // As pétalas são pedidas quando o envelope começa (`carta.run`), e não no `init`, antes do toque.
+    const petalas: HTMLImageElement[] = [];
 
     raiz.append(chao, envelope, caixa);
     // No modo de segurança, a carta já está sem `inert` quando o aviso chega: o foco vai ao título.
@@ -241,6 +227,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     recolherDica?.kill();
     ouvintes?.abort();
     ouvintesDoConvite?.abort();
+    // A chuva interrompida não chega ao fim em que cada pétala se remove: tira as que sobraram.
+    if (elementos) removerPetalas(elementos.conteudo);
   }
 
   /** Estado final da primeira tela, sem animação: carta aberta, sem envelope, rolagem liberada. */
@@ -261,6 +249,9 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     gsap.set(e.carta, { opacity: 1, scaleY: 1 });
     gsap.set(e.blocos, { opacity: 1, y: 0 });
     liberarRolagem();
+    // Quem chega aqui sem ver a abertura (Pular, atalho, animação reduzida) tem o foco no título,
+    // como quem a viu (SPEC-09, RF-09.6); o botão que o levou até aqui acabou de sumir.
+    e.titulo.focus({ preventScroll: true });
   }
 
   const carta: Cena = {
@@ -271,6 +262,15 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     run() {
       const e = montar();
       const t = tempoDaCarta;
+      // O envelope, o selo e as pétalas só são pedidos agora (SPEC-02, RF-02.7).
+      carregarImagensTardias(e.envelope);
+      if (e.petalas.length === 0) {
+        for (const chave of ['petalaA', 'petalaB', 'petalaC'] as const) {
+          const petala = new Image();
+          petala.src = urlDaImagem(config.imagens[chave], 'vertical');
+          e.petalas.push(petala);
+        }
+      }
       return new Promise<void>((resolver) => {
         const abrir = (como: OrigemDaAbertura) => {
           if (aberta) return;

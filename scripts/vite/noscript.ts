@@ -28,7 +28,8 @@ export function pluginNoscript(conteudo: ConteudoConvite, config: ConfigConvite)
     name: 'convite-noscript',
     transformIndexHtml: {
       order: 'pre',
-      handler: (html) => html.replace(MARCADOR_DO_NOSCRIPT, gerarNoscript(conteudo, config)),
+      // Substituição por função: com texto, `$&` e `$'` do conteúdo seriam lidos como padrões.
+      handler: (html) => html.replace(MARCADOR_DO_NOSCRIPT, () => gerarNoscript(conteudo, config)),
     },
   };
 }

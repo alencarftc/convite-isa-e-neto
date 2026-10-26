@@ -123,7 +123,7 @@ describe('história em balões (SPEC-05)', () => {
       montar();
 
       const nuvens = [...document.querySelectorAll('.balao__nuvem')].map((i) =>
-        i.getAttribute('src'),
+        i.getAttribute('data-src'),
       );
 
       expect(nuvens.slice(0, 3)).toEqual([
@@ -131,6 +131,30 @@ describe('história em balões (SPEC-05)', () => {
         config.imagens.balaoB,
         config.imagens.balaoC,
       ]);
+    });
+
+    it('nuvens e fotos NÃO são pedidas no init, antes do toque de entrada: só quando a história começa (SPEC-02, RF-02.7)', () => {
+      const { cena } = montar();
+      const imagens = () => [...document.querySelectorAll<HTMLImageElement>('.historia img')];
+
+      expect(imagens()).toHaveLength(content.baloes.length * 2);
+      expect(imagens().every((imagem) => !imagem.hasAttribute('src'))).toBe(true);
+
+      void cena.run();
+
+      expect(imagens().every((imagem) => imagem.hasAttribute('src'))).toBe(true);
+      const fotos = [...document.querySelectorAll('.balao__foto img')].map((i) =>
+        i.getAttribute('src'),
+      );
+      expect(fotos).toEqual(content.baloes.map((balao) => balao.foto));
+    });
+
+    it('um balão que nunca chega a rodar (Pular) não pede nenhuma imagem', () => {
+      const { cena } = montar();
+
+      cena.skip();
+
+      expect(document.querySelectorAll('.historia img[src]')).toHaveLength(0);
     });
   });
 
@@ -155,10 +179,13 @@ describe('história em balões (SPEC-05)', () => {
     it('a região aria-live recebe cada frase uma vez, só em texto (RF-05.8, CT-05.6)', async () => {
       const { cena, el } = montar();
       const anunciadas: string[] = [];
-      new MutationObserver(() => anunciadas.push(el('.historia [aria-live]').textContent)).observe(
-        el('.historia [aria-live]'),
-        { childList: true },
-      );
+      // Uma entrada por mutação, não por chamada: com a máquina ocupada dois balões podem cair no mesmo
+      // quadro e o navegador entrega os dois registros juntos, numa chamada só.
+      new MutationObserver((registros) => {
+        for (const registro of registros) {
+          for (const no of registro.addedNodes) anunciadas.push(no.textContent ?? '');
+        }
+      }).observe(el('.historia [aria-live]'), { childList: true });
 
       await cena.run();
 
@@ -187,6 +214,15 @@ describe('história em balões (SPEC-05)', () => {
       expect(el('.historia').hidden).toBe(false);
       expect(botao().hidden).toBe(false);
       expect(botao().getAttribute('aria-label')).toBe('Avançar a história');
+    });
+
+    it('ao terminar, esconde a região e o botão de avançar: ele não fica no Tab nem cobre a tela (SPEC-05, SPEC-09)', async () => {
+      const { cena, el, botao } = montar();
+
+      await cena.run();
+
+      expect(botao().hidden).toBe(true);
+      expect(el('.historia').hidden).toBe(true);
     });
 
     it('a luz caminha ao pôr do sol dentro da própria história e termina nele (CA-03.3.1, CA-03.3.2)', async () => {

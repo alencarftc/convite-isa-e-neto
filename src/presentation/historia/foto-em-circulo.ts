@@ -1,13 +1,20 @@
 import type { BalaoDoConvite } from '@/domain/conteudo/conteudo-convite';
 
+import { adiarImagem } from '../imagens/imagens-tardias';
+
 export interface OpcoesDaFoto {
   /** Classe do contêiner que posiciona o círculo (o tratamento da foto vem de `foto-em-circulo`). */
   readonly classe: string;
   /**
    * Foto abaixo da dobra: o navegador só baixa quando ela se aproxima da tela e decodifica sem
-   * travar a rolagem (SPEC-13, RF-13.5). Os balões não usam: a história já as pré-carregou.
+   * travar a rolagem (SPEC-13, RF-13.5). Os balões não usam: a fila secundária já as deixou no cache quando a história começa.
    */
   readonly tardia?: boolean;
+  /**
+   * O `src` só entra quando a etapa começa (`carregarImagensTardias`): a foto do balão não pode ser
+   * baixada no `init()`, antes do toque de entrada (SPEC-02, RF-02.7).
+   */
+  readonly adiada?: boolean;
 }
 
 /**
@@ -17,7 +24,7 @@ export interface OpcoesDaFoto {
  */
 export function criarFotoEmCirculo(
   balao: BalaoDoConvite,
-  { classe, tardia = false }: OpcoesDaFoto,
+  { classe, tardia = false, adiada = false }: OpcoesDaFoto,
 ): HTMLElement | null {
   if (balao.foto === '') return null;
   const quadro = document.createElement('span');
@@ -37,7 +44,8 @@ export function criarFotoEmCirculo(
     },
     { once: true },
   );
-  imagem.src = balao.foto;
+  if (adiada) adiarImagem(imagem, balao.foto);
+  else imagem.src = balao.foto;
   quadro.append(imagem);
   return quadro;
 }

@@ -89,6 +89,9 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
   Não reproduza letra de música (o verso do louvor é pendência do casal).
 - Não use fonte, imagem ou som de fora do que a documentação define; assets são gerados/licenciados.
 - Não bloqueie zoom, não autoexecute áudio antes do toque de entrada, não ignore `prefers-reduced-motion`.
+- Não peça imagem de etapa no `init()` da cena (ela roda antes do toque e baixaria tudo de uma vez): use
+  `data-src` e `carregarImagensTardias` no `run()` (ADR-0010). Não use API de navegador acima do piso
+  (Safari/iOS 15.1, Chrome 90): o ESLint barra `.at()`, `findLast`, `structuredClone` e afins.
 - Não reformate nem edite à mão os espelhos em `docs/` (requisitos, documentacao, epicos, specs) sem
   atualizar a fonte; eles estão no `.prettierignore` de propósito.
 - Não faça `git push --force`, `reset --hard` nem commits que pulem hooks.
@@ -108,6 +111,6 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
 Feito: ferramentas e CI; SPEC-01 completa (barramento, fases, estado, orquestrador, contrato `Cena`,
 modo de segurança); fatia vertical da SPEC-07 (contagem e estados por data, botões). SPEC-08 (porta de áudio, Howler,
 botão de som; faltam os MP3). SPEC-02 (entrada e carregamento, com arte
-provisória). SPEC-03 (bosque em camadas, névoa, profundidade). SPEC-04 (baú e chave, abertura em 2 s). SPEC-05 (balões, foto, frase, aceleração). SPEC-06 (envelope, selo, carta, abertura em 7 s). SPEC-07 completa (mensagem, traje, cartões ao rolar). SPEC-11 (consistência de datas no `verificar`, lista de conferência da planilha). SPEC-09 (acessibilidade, segurança, noscript). SPEC-10 (publicação, prévia), SPEC-12 (orçamento de peso, matriz de testes). As 12 specs têm código, e também as specs adicionais 13 a 17 (`docs/specs-adicionais/`): falta o conteúdo do casal, os testes em aparelhos reais e a aprovação do texto "Salvar na agenda".
+provisória). SPEC-03 (bosque em camadas, névoa, profundidade). SPEC-04 (baú e chave, abertura em 2 s). SPEC-05 (balões, foto, frase, aceleração). SPEC-06 (envelope, selo, carta, abertura em 7 s). SPEC-07 completa (mensagem, traje, cartões ao rolar). SPEC-11 (consistência de datas no `verificar`, lista de conferência da planilha). SPEC-09 (acessibilidade, segurança, noscript). SPEC-10 (publicação, prévia), SPEC-12 (orçamento de peso, matriz de testes). As 12 specs têm código, e também as specs adicionais 13 a 17 (`docs/specs-adicionais/`): a revisão do código (ADR-0010) corrigiu 14 defeitos de acessibilidade, carregamento e compatibilidade. Falta o conteúdo do casal, os testes em aparelhos reais e a aprovação do texto "Salvar na agenda".
 Pendências de conteúdo: fotos dos balões, imagens geradas, músicas licenciadas, verso do louvor, URL
 publicada (lista em `docs/documentacao.md`).

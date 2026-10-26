@@ -105,6 +105,56 @@ describe('baú e chave (SPEC-04)', () => {
     });
   });
 
+  describe('imagens só quando o baú aceita o toque (SPEC-02, RF-02.7)', () => {
+    /** Conta as imagens criadas por `new Image()` (as pétalas) e guarda o `src` de cada uma. */
+    function espionarImagens() {
+      const criadas: { src: string }[] = [];
+      vi.stubGlobal(
+        'Image',
+        class {
+          src = '';
+          constructor() {
+            criadas.push(this);
+          }
+        },
+      );
+      return criadas;
+    }
+
+    it('a tampa aberta e as pétalas não são pedidas no init, antes do toque de entrada', () => {
+      const criadas = espionarImagens();
+      const { el } = montar();
+
+      expect(el('.bau__aberto').hasAttribute('src')).toBe(false);
+      expect(el('.bau__aberto').getAttribute('data-src')).toBe(config.imagens.bauAberto);
+      expect(criadas).toHaveLength(0);
+    });
+
+    it('o run pede a tampa aberta e as três variações de pétala', () => {
+      const criadas = espionarImagens();
+      const { cena, el } = montar();
+
+      void cena.run();
+
+      expect(el('.bau__aberto').getAttribute('src')).toBe(config.imagens.bauAberto);
+      expect(criadas.map((imagem) => imagem.src)).toEqual([
+        config.imagens.petalaA,
+        config.imagens.petalaB,
+        config.imagens.petalaC,
+      ]);
+    });
+
+    it('quem pula nunca pede a tampa aberta nem as pétalas', () => {
+      const criadas = espionarImagens();
+      const { cena, el } = montar();
+
+      cena.skip();
+
+      expect(el('.bau__aberto').hasAttribute('src')).toBe(false);
+      expect(criadas).toHaveLength(0);
+    });
+  });
+
   describe('espera pelo toque', () => {
     it('habilita o botão só quando o baú começa a esperar, e a chave flutua no celular (RF-04.3, CT-04.2)', async () => {
       const { cena, botao, opacidade } = montar({ toque: true });
@@ -317,6 +367,22 @@ describe('baú e chave (SPEC-04)', () => {
       await esperar(120);
 
       expect(ordem).not.toContain('abriu'); // a tampa só abriria em 1,0 × fator
+    });
+
+    it('skip no meio da abertura tira as pétalas que ficaram no ar, em vez de deixá-las congeladas', () => {
+      const { cena, botao } = montar({ toque: true });
+      void cena.run();
+      botao().click();
+      const corpo = document.querySelector('.bau__corpo');
+      for (let i = 0; i < 3; i += 1) {
+        const petala = document.createElement('img');
+        petala.className = 'petala';
+        corpo?.append(petala);
+      }
+
+      cena.skip();
+
+      expect(document.querySelectorAll('.bau .petala')).toHaveLength(0);
     });
 
     it('skip funciona sem run (a segurança chama skip em tudo)', () => {

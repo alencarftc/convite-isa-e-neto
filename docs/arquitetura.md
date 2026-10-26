@@ -50,10 +50,13 @@ src/
 ├── domain/                      # regras puras, sem I/O, determinísticas
 │   ├── config/                  # tipo ConfigConvite
 │   ├── acessibilidade/          # razão de contraste WCAG (SPEC-09)
+│   ├── agenda/                  # evento do casamento: .ics e link do Google Agenda (SPEC-17)
 │   ├── conteudo/                # tipo ConteudoConvite
 │   ├── contagem/                # estado por data, contagem regressiva, plural (SPEC-07)
 │   ├── eventos/                 # EventosConvite: nomes e dados do barramento (SPEC-01)
 │   ├── fase/                    # fases do orquestrador (SPEC-01)
+│   ├── gesto/                   # distância e resistência do gesto de deslizar o selo (SPEC-16)
+│   ├── plano-b/                 # contrato entre o script do <head> e o pacote (SPEC-15)
 │   ├── historia/                # posições verticais dos balões, com limite em telas baixas (SPEC-05)
 │   ├── profundidade/            # deslocamento por ponteiro (SPEC-03)
 │   ├── imagens/                 # catálogo: críticas, fila secundária, arte por orientação (SPEC-02)
@@ -66,7 +69,7 @@ src/
 │   ├── cena.ts                  # contrato Cena { init, run, skip, destroy } (RF-01.6)
 │   └── estado-convite.ts        # fase, som, visita, movimento, orientação (RF-01.8)
 ├── infrastructure/              # adaptadores das portas
-│   ├── ambiente/                # matchMedia (animação reduzida, toque, orientação) e visibilidade da página
+│   ├── ambiente/                # matchMedia (animação reduzida, toque, orientação), capacidades e visibilidade da página
 │   ├── audio/                   # AudioPort com Howler.js (SPEC-08)
 │   ├── imagens/                 # download e decodificação de imagens (SPEC-02)
 │   ├── tempo/                   # Temporizador real
@@ -76,7 +79,9 @@ src/
 │   └── armazenamento/           # preferências em localStorage, à prova de falha
 ├── presentation/                # tudo que desenha: cenas, componentes, GSAP
 │   ├── audio/                   # botão de som (SPEC-08)
-│   ├── acessibilidade/          # atalho "Ir direto ao convite" (SPEC-09)
+│   ├── acessibilidade/          # atalho, "Pular para o convite" e a marca do plano B (SPEC-09, SPEC-14, SPEC-15)
+│   ├── imagens/                 # imagens de etapa adiadas até o run (SPEC-02, RF-02.7)
+│   ├── dom.ts                   # criar() e criarImagem(), compartilhados pelas cenas
 │   ├── bau/                     # baú, chave, dica e abertura (SPEC-04)
 │   ├── carta/                   # envelope, selo, carta e abertura em 7 s (SPEC-06)
 │   ├── historia/                # balões, frases, aceleração e tlHistoria (SPEC-05)

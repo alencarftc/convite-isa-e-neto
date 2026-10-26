@@ -33,6 +33,25 @@ const blocosDoConteudo = () =>
 const COM_HISTORIA_ESTATICA = ['carta', 'historia-estatica', 'informacoes'];
 
 /**
+ * Elementos que o teclado alcança (habilitados e não escondidos) mas que o leitor de tela não
+ * enxerga, por estarem dentro de `aria-hidden`, ou que ficaram inertes: a combinação que deixa
+ * alguém sem saber onde está o foco (WCAG 4.1.2).
+ */
+const focaveisInalcancaveis = () =>
+  [...document.querySelectorAll<HTMLElement>('button, a[href], [tabindex]')]
+    .filter((e) => !(e as HTMLButtonElement).disabled && !e.closest('[hidden]'))
+    .filter((e) => e.closest('[aria-hidden="true"]') !== null)
+    .map((e) => e.className);
+
+/** Botões e links que o Tab alcança agora. */
+const noTab = () =>
+  [...document.querySelectorAll<HTMLElement>('button, a[href]')]
+    .filter(
+      (e) => !(e as HTMLButtonElement).disabled && !e.closest('[hidden]') && !e.closest('[inert]'),
+    )
+    .map((e) => e.className);
+
+/**
  * Cada `import('@/main')` registra ouvintes em window e document que sobrevivem ao teste (o main
  * não tem como ser desmontado de fora). Guardamos para remover no fim, senão um convite de um teste
  * anterior reage aos eventos do teste seguinte.
@@ -114,6 +133,25 @@ describe('src/main.ts', () => {
     expect(document.documentElement.classList.contains(PLANO_B.classe)).toBe(false);
   });
 
+  it('ao abrir, só as imagens da entrada e do estado final são pedidas: a experiência inteira não baixa antes do toque (SPEC-02, RF-02.7)', async () => {
+    await import('@/main');
+
+    const pedidas = [...document.querySelectorAll('img[src]')].map((imagem) =>
+      (imagem.getAttribute('src') ?? '').split('/').at(-1),
+    );
+
+    // Críticas (bosque, baú fechado, chave), o céu do pôr do sol e o casal, que o estado final mostra,
+    // e o selo da entrada: nada de balões, fotos, tampa aberta, envelope nem pétalas.
+    for (const adiada of ['foto-', 'balao-', 'bau-aberto', 'envelope-', 'petala-']) {
+      expect(
+        pedidas.filter((nome) => nome?.includes(adiada)),
+        adiada,
+      ).toEqual([]);
+    }
+    expect(document.querySelectorAll('img[data-src]').length).toBeGreaterThan(10);
+    expect(document.querySelectorAll('.selo__imagem[src]')).toHaveLength(0);
+  });
+
   it('depois do toque e do baú, percorre o orquestrador até as informações (CA-01.4.1)', async () => {
     await ateAsInformacoes();
 
@@ -139,6 +177,35 @@ describe('src/main.ts', () => {
     expect(conteudo?.firstElementChild?.className).toBe('carta');
     expect(conteudo?.hasAttribute('inert')).toBe(false);
     expect(document.body.style.overflow).toBe('');
+  });
+
+  it('em nenhuma etapa o teclado alcança algo que o leitor de tela não enxerga (WCAG 4.1.2)', async () => {
+    await abrirEntrando();
+    expect(focaveisInalcancaveis(), 'entrada').toEqual([]);
+
+    // O baú só é conferido com o botão habilitado: depois do toque ele fica desabilitado e sai do Tab.
+    await vi.waitFor(() => {
+      expect(document.querySelector<HTMLButtonElement>('.bau__botao')?.disabled).toBe(false);
+    });
+    expect(focaveisInalcancaveis(), 'baú').toEqual([]);
+    document.querySelector<HTMLButtonElement>('.bau__botao')?.click();
+
+    await vi.waitFor(() => {
+      expect(fase()).toBe('informacoes');
+    });
+    expect(focaveisInalcancaveis(), 'final').toEqual([]);
+  });
+
+  it('no estado final sobram no Tab só o som, o título, e os botões das informações: nada da abertura (SPEC-05, SPEC-09)', async () => {
+    await ateAsInformacoes();
+
+    const botoes = noTab();
+
+    expect(botoes).not.toContain('historia__avancar');
+    expect(botoes).not.toContain('visualmente-oculto atalho');
+    expect(botoes).not.toContain('botao-pular');
+    expect(botoes).not.toContain('carta__abrir');
+    expect(botoes).toContain('botao-som');
   });
 
   it('no caminho completo, a história não é repetida abaixo da carta (CT-13.3)', async () => {
@@ -172,6 +239,8 @@ describe('src/main.ts', () => {
       expect(blocosDoConteudo()).toEqual(COM_HISTORIA_ESTATICA);
       expect(document.querySelector<HTMLElement>('.entrada')?.hidden).toBe(true);
       expect(document.body.style.overflow).toBe('');
+      expect(document.activeElement?.id).toBe('carta-titulo'); // o foco segue o convidado até a carta
+      expect(document.querySelector<HTMLElement>('button.atalho')?.hidden).toBe(true);
     });
 
     it('a segunda visita mostra "Pular para o convite" e ele leva ao final (CA-09.2.1, CA-09.2.2)', async () => {

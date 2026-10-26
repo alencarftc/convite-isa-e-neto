@@ -53,4 +53,5 @@
   --z-informacoes: 70;
   --z-nevoa: 90;
   --z-interface: 100; /* acima da névoa: o botão de som fica à vista desde a entrada (SPEC-08, RF-08.5) */
+  --z-atalho: 110; /* "Ir direto ao convite" ao receber foco: fica sobre "Pular", que ocupa o mesmo canto */
 }

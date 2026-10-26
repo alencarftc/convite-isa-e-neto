@@ -61,6 +61,60 @@ describe('plano B no navegador (SPEC-15, RF-15.6)', () => {
     pacote.remove();
   });
 
+  /** Um erro de execução, como o navegador o entrega à janela. */
+  const erroDeExecucao = (arquivo: string) => {
+    window.dispatchEvent(new ErrorEvent('error', { filename: arquivo, message: 'falhou' }));
+  };
+
+  it('o pacote lança um erro do próprio site antes de deixar a marca: a classe liga na hora, sem esperar o limite', () => {
+    rodarOScriptDoHead();
+
+    erroDeExecucao(`${window.location.origin}/assets/index-abc.js`);
+
+    expect(planoBLigado()).toBe(true);
+  });
+
+  it('erro de outro endereço (extensão do navegador, script de terceiros) não liga o plano B', () => {
+    rodarOScriptDoHead();
+
+    erroDeExecucao('chrome-extension://abc/contentscript.js');
+    erroDeExecucao('');
+
+    expect(planoBLigado()).toBe(false);
+  });
+
+  it('depois da marca, um erro do site não liga o plano B: quem cuida dele é o modo de segurança', () => {
+    rodarOScriptDoHead();
+    marcarInicioDoConvite(window, document);
+
+    erroDeExecucao(`${window.location.origin}/assets/index-abc.js`);
+
+    expect(planoBLigado()).toBe(false);
+  });
+
+  it('ao ligar, o plano B pede as fotos do texto simples, que esperavam em data-src; antes disso ninguém as pede', () => {
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      '<main class="plano-b-texto"><img id="f1" data-src="assets/foto-1.svg"><img id="f2" data-src="assets/foto-2.svg"></main><img id="de-fora" data-src="assets/outra.svg">',
+    );
+    rodarOScriptDoHead();
+    const fotos = () => [...document.querySelectorAll<HTMLImageElement>('.plano-b-texto img')];
+
+    vi.advanceTimersByTime(limiteEmMs - 1);
+    expect(fotos().every((foto) => !foto.hasAttribute('src'))).toBe(true);
+
+    vi.advanceTimersByTime(1);
+    expect(fotos().map((foto) => foto.getAttribute('src'))).toEqual([
+      'assets/foto-1.svg',
+      'assets/foto-2.svg',
+    ]);
+    expect(fotos().every((foto) => !foto.hasAttribute('data-src'))).toBe(true);
+    // só as do texto simples: outras imagens da página não são tocadas
+    expect(document.querySelector('#de-fora')?.hasAttribute('src')).toBe(false);
+    document.querySelector('.plano-b-texto')?.remove();
+    document.querySelector('#de-fora')?.remove();
+  });
+
   it('falha em outro recurso (uma imagem) não liga o plano B', () => {
     rodarOScriptDoHead();
     const imagem = document.createElement('img');

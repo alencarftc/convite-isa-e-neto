@@ -54,9 +54,6 @@ import { refletirFaseNoCorpo } from '@/presentation/fase-no-corpo';
 import { criarCenaHistoria } from '@/presentation/historia/cena-historia';
 import { criarCenaInformacoes } from '@/presentation/informacoes/cena-informacoes';
 
-// Primeira instrução depois dos imports: o script do <head> espera por esta marca (SPEC-15, RF-15.6).
-marcarInicioDoConvite(window, document);
-
 const raiz = document.querySelector<HTMLElement>('#app');
 if (!raiz) throw new Error('Elemento #app não encontrado no index.html');
 
@@ -115,6 +112,7 @@ const carregamento = criarCarregamento({
   imagens: criarCarregadorDeImagens(),
   temporizador: criarTemporizador(),
   config,
+  fotos: content.baloes.map((balao) => balao.foto),
 });
 
 const cartaEConvite = criarCartaEConvite({ raiz, conteudo: content, config, estado, eventos });
@@ -191,11 +189,22 @@ const removerBotaoPular = montarBotaoPular({
 const removerAtalho = montarAtalhoParaOConvite({
   corpo: document.body,
   conteudo: content,
+  estado,
   aoAcionar: acionarPular,
 });
-const pararDeOuvirErros = ouvirErrosGlobais(window, (erro) => {
-  orquestrador.falhar(erro);
-});
+const pararDeOuvirErros = ouvirErrosGlobais(
+  window,
+  (erro) => {
+    orquestrador.falhar(erro);
+  },
+  (aviso) => {
+    console.warn('[convite] som indisponível', aviso);
+  },
+);
+// O pacote só "iniciou" quando tudo acima foi montado sem erro: o script do <head> espera por esta marca
+// (SPEC-15, RF-15.6). Um erro antes daqui não deixa a marca e leva ao plano B; depois dela, ao modo de
+// segurança.
+marcarInicioDoConvite(window, document);
 void orquestrador.iniciar();
 
 // Recarga a quente do Vite: desfaz tudo antes de montar de novo, para não duplicar cenas.

@@ -58,13 +58,17 @@
   text-align: center;
 }
 
+/*
+ * O centro do selo fica a 50% da largura e a 60% da altura do envelope. Sem `translate` (só o Chrome
+ * 104 o entende; o piso é o 90, SPEC-15): metade da largura do selo é 12% da largura do envelope e a
+ * metade da altura, sendo o selo quadrado e o envelope 3 : 2, são 18% da altura do envelope.
+ */
 .selo {
   position: absolute;
-  top: 60%;
-  left: 50%;
+  top: 42%;
+  left: 38%;
   width: 24%;
   aspect-ratio: 1;
-  translate: -50% -50%;
 }
 
 .selo__metade {

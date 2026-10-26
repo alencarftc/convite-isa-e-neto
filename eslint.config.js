@@ -34,6 +34,28 @@ const TEMPORIZADORES = ['setTimeout', 'setInterval', 'clearTimeout', 'clearInter
   }),
 );
 
+// O convite promete Safari e iOS 15.1 e Chrome 90 (browserslist, SPEC-15). O build converte a sintaxe,
+// mas não inclui APIs novas: elas simplesmente não existem nesses aparelhos e quebram a execução.
+const MENSAGEM_DO_PISO =
+  'API mais nova que o piso do convite (Safari/iOS 15.1, Chrome 90): use a alternativa clássica.';
+const APIS_ALEM_DO_PISO = [
+  { object: 'Object', property: 'hasOwn' },
+  { object: 'crypto', property: 'randomUUID' },
+  ...['at', 'findLast', 'findLastIndex', 'toSorted', 'toReversed', 'toSpliced'].map((property) => ({
+    property,
+  })),
+].map((regra) => ({ ...regra, message: MENSAGEM_DO_PISO }));
+const GLOBAIS_ALEM_DO_PISO = [{ name: 'structuredClone', message: MENSAGEM_DO_PISO }];
+
+const PROPRIEDADES_DO_DOMINIO = [
+  { object: 'Date', property: 'now', message: 'Receba o instante por parâmetro (porta Relogio).' },
+  { object: 'Math', property: 'random', message: 'O domínio é determinístico.' },
+];
+const PROPRIEDADES_DA_APLICACAO = [
+  { object: 'Date', property: 'now', message: 'Use a porta Relogio.' },
+  { object: 'Math', property: 'random', message: 'Injete a aleatoriedade por uma porta.' },
+];
+
 export default defineConfig(
   globalIgnores(['dist/', 'coverage/', 'reports/', 'node_modules/', 'docs/', '.changeset/']),
 
@@ -77,15 +99,7 @@ export default defineConfig(
     files: ['src/domain/**/*.ts'],
     rules: {
       'no-restricted-globals': ['error', ...GLOBAIS_DO_NAVEGADOR, ...TEMPORIZADORES],
-      'no-restricted-properties': [
-        'error',
-        {
-          object: 'Date',
-          property: 'now',
-          message: 'Receba o instante por parâmetro (porta Relogio).',
-        },
-        { object: 'Math', property: 'random', message: 'O domínio é determinístico.' },
-      ],
+      'no-restricted-properties': ['error', ...PROPRIEDADES_DO_DOMINIO],
     },
   },
 
@@ -94,11 +108,47 @@ export default defineConfig(
     files: ['src/application/**/*.ts'],
     rules: {
       'no-restricted-globals': ['error', ...GLOBAIS_DO_NAVEGADOR],
-      'no-restricted-properties': [
+      'no-restricted-properties': ['error', ...PROPRIEDADES_DA_APLICACAO],
+    },
+  },
+
+  // O piso do navegador vale para o código que vai para o aparelho, não para os testes (que rodam
+  // no Node). Cada bloco repete as regras da sua camada, porque uma regra substitui a anterior.
+  {
+    name: 'piso-do-dominio',
+    files: ['src/domain/**/*.ts'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-globals': [
         'error',
-        { object: 'Date', property: 'now', message: 'Use a porta Relogio.' },
-        { object: 'Math', property: 'random', message: 'Injete a aleatoriedade por uma porta.' },
+        ...GLOBAIS_DO_NAVEGADOR,
+        ...TEMPORIZADORES,
+        ...GLOBAIS_ALEM_DO_PISO,
       ],
+      'no-restricted-properties': ['error', ...PROPRIEDADES_DO_DOMINIO, ...APIS_ALEM_DO_PISO],
+    },
+  },
+  {
+    name: 'piso-da-aplicacao',
+    files: ['src/application/**/*.ts'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-globals': ['error', ...GLOBAIS_DO_NAVEGADOR, ...GLOBAIS_ALEM_DO_PISO],
+      'no-restricted-properties': ['error', ...PROPRIEDADES_DA_APLICACAO, ...APIS_ALEM_DO_PISO],
+    },
+  },
+  {
+    name: 'piso-do-navegador',
+    files: [
+      'src/presentation/**/*.ts',
+      'src/infrastructure/**/*.ts',
+      'src/config/**/*.ts',
+      'src/main.ts',
+    ],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-globals': ['error', ...GLOBAIS_ALEM_DO_PISO],
+      'no-restricted-properties': ['error', ...APIS_ALEM_DO_PISO],
     },
   },
 

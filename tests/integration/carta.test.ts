@@ -143,6 +143,71 @@ describe('montarCarta (SPEC-06, "Layout da carta")', () => {
 });
 
 describe('envelope e carta (SPEC-06)', () => {
+  describe('imagens só quando o envelope começa (SPEC-02, RF-02.7)', () => {
+    /** Conta as imagens criadas por `new Image()` (as pétalas da chuva). */
+    function espionarImagens() {
+      const criadas: { src: string }[] = [];
+      vi.stubGlobal(
+        'Image',
+        class {
+          src = '';
+          constructor() {
+            criadas.push(this);
+          }
+        },
+      );
+      return criadas;
+    }
+    const imagensDoEnvelope = () => [
+      ...document.querySelectorAll<HTMLImageElement>('.envelope img'),
+    ];
+
+    it('o envelope, o selo e as pétalas não são pedidos no init, antes do toque de entrada', () => {
+      const criadas = espionarImagens();
+      montar();
+
+      expect(imagensDoEnvelope()).toHaveLength(4); // fechado, aberto e as duas metades do selo
+      expect(imagensDoEnvelope().every((imagem) => !imagem.hasAttribute('src'))).toBe(true);
+      expect(criadas).toHaveLength(0);
+    });
+
+    it('a carta e o casal, que o estado final também mostra, continuam sendo pedidos no init', () => {
+      montar();
+
+      expect(document.querySelector('.casal__imagem')?.getAttribute('src')).toBe(
+        config.imagens.casal,
+      );
+      expect(document.querySelector<HTMLElement>('.carta')?.style.backgroundImage).toContain(
+        config.imagens.papelCarta,
+      );
+    });
+
+    it('o run da carta pede o envelope, o selo e as três variações de pétala', () => {
+      const criadas = espionarImagens();
+      const { carta } = montar();
+
+      void carta.run();
+
+      expect(imagensDoEnvelope().every((imagem) => imagem.hasAttribute('src'))).toBe(true);
+      expect(criadas.map((imagem) => imagem.src)).toEqual([
+        config.imagens.petalaA,
+        config.imagens.petalaB,
+        config.imagens.petalaC,
+      ]);
+    });
+
+    it('quem pula nunca pede o envelope', () => {
+      const criadas = espionarImagens();
+      const { carta, convite } = montar();
+
+      carta.skip();
+      convite.skip();
+
+      expect(imagensDoEnvelope().every((imagem) => !imagem.hasAttribute('src'))).toBe(true);
+      expect(criadas).toHaveLength(0);
+    });
+  });
+
   describe('estrutura (init)', () => {
     it('monta o envelope com "para", o selo em duas metades com as iniciais em texto e o botão (RF-06.1 a 06.3)', () => {
       const { el, botao } = montar();
@@ -394,6 +459,32 @@ describe('envelope e carta (SPEC-06)', () => {
       );
     });
 
+    it('"Role para ler" some na primeira rolagem, sem esperar os segundos de rolarVisivel (SPEC-14, RF-14.4)', async () => {
+      const { abrirTudo, el } = montar();
+      await abrirTudo('toque');
+      const para = vi.spyOn(gsap, 'to');
+
+      window.dispatchEvent(new Event('scroll'));
+
+      const apagouADica = para.mock.calls.some(
+        ([alvo, vars]) => alvo === el('.convite__rolar') && vars.opacity === 0,
+      );
+      expect(apagouADica).toBe(true);
+      para.mockRestore();
+    });
+
+    it('a rolagem só conta uma vez: a segunda não refaz o desvanecimento', async () => {
+      const { abrirTudo } = montar();
+      await abrirTudo('toque');
+      window.dispatchEvent(new Event('scroll'));
+      const para = vi.spyOn(gsap, 'to');
+
+      window.dispatchEvent(new Event('scroll'));
+
+      expect(para).not.toHaveBeenCalled();
+      para.mockRestore();
+    });
+
     it('registra a visita no aparelho só ao terminar de abrir (RF-06.10)', async () => {
       const { abrirTudo, estado } = montar();
 
@@ -442,6 +533,27 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(el('.conteudo').hasAttribute('inert')).toBe(false);
       expect(opacidade('.bau')).toBe(0);
       expect(opacidade('.casal__imagem')).toBe(1);
+    });
+
+    it('skip leva o foco ao título da carta, como quem viu a abertura (SPEC-09, RF-09.6)', () => {
+      const { carta, el } = montar();
+
+      carta.skip();
+
+      expect(document.activeElement).toBe(el('#carta-titulo'));
+    });
+
+    it('skip no meio da chuva de pétalas tira as que ficaram no ar, em vez de deixá-las congeladas', () => {
+      const { convite, el } = montar();
+      for (let i = 0; i < 3; i += 1) {
+        const petala = document.createElement('img');
+        petala.className = 'petala petala--chuva';
+        el('.conteudo').append(petala);
+      }
+
+      convite.skip();
+
+      expect(document.querySelectorAll('.petala--chuva')).toHaveLength(0);
     });
 
     it('skip da etapa do convite faz o mesmo, mesmo sem init (modo de segurança)', () => {

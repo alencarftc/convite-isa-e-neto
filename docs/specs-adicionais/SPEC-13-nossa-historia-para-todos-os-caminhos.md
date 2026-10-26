@@ -104,4 +104,7 @@ aberto e desvios do desenho acima:
   esfumada e o gradiente) serve aos balões e aos cartões; `.balao__foto` ficou só com a posição.
 - **`<noscript>` e plano B:** o bloco de texto simples (`scripts/vite/texto-simples.ts`) ganhou as cinco `<img>`
   (`loading="lazy"`, mesmo recorte `object-position`) e frases, entre a carta e o traje.
+- **Peso (RF-13.5):** só a partir da revisão do código (ADR-0010) quem pula deixa de baixar as fotos: os
+  balões as pediam já na abertura da página. Agora elas ficam em `data-src` até a história começar, entram
+  na fila secundária depois do toque e, no estado final, os cartões estáticos as pedem sob demanda.
 - **Ordem no `.conteudo`:** carta, história estática, informações (teste em `composicao.test.ts`).

@@ -30,6 +30,7 @@ function criarCamada(
   const arte = config.imagens[chave];
   const quadro = document.createElement('picture');
   quadro.className = `camada camada--${nome}`;
+  quadro.setAttribute('aria-hidden', 'true');
   quadro.setAttribute('data-prof', String(profundidade));
 
   // O navegador troca a arte sozinho ao girar o aparelho (SPEC-03, RF-03.1).
@@ -45,9 +46,10 @@ function criarCamada(
   return quadro;
 }
 
-function criarEspaco(classe: string, profundidade?: number): HTMLElement {
+function criarEspaco(classe: string, profundidade?: number, decorativo = true): HTMLElement {
   const espaco = document.createElement('div');
   espaco.className = classe;
+  if (decorativo) espaco.setAttribute('aria-hidden', 'true');
   if (profundidade !== undefined) espaco.setAttribute('data-prof', String(profundidade));
   return espaco;
 }
@@ -71,13 +73,14 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
     if (cena) return cena;
     const nova = document.createElement('div');
     nova.className = 'cena';
-    nova.setAttribute('aria-hidden', 'true');
+    // Sem `aria-hidden` aqui: o botão do baú vive dentro de `.bau` e precisa ser alcançado pelo leitor de
+    // tela (SPEC-09, RF-09.6). Cada camada decorativa se esconde sozinha (SPEC-03, RNF-03.3).
     nova.append(
       criarCamada(config, 'ceu', 'ceu', camadas.ceu, 'high'),
       criarCamada(config, 'ceu-sol', 'ceuPorDoSol', camadas.ceu, 'low'),
       criarCamada(config, 'lago', 'lago', camadas.lago, 'high'),
       criarCamada(config, 'arvores', 'arvores', camadas.arvores, 'high'),
-      criarEspaco('bau', camadas.bau),
+      criarEspaco('bau', camadas.bau, false),
       criarCamada(config, 'frente', 'primeiroPlano', camadas.frente, 'high'),
       criarEspaco('camada camada--luz'),
       criarEspaco('casal'),
