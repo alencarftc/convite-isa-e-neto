@@ -19,16 +19,16 @@ Vitest · ESLint · Prettier · Stylelint · dependency-cruiser · Husky · comm
 
 ## Comandos (sempre `pnpm`, nunca `npm`/`yarn`)
 
-| Comando                                                                     | Faz                                                                                          |
-| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `pnpm dev`                                                                  | servidor de desenvolvimento em **http://localhost:5173** (porta fixa)                        |
-| `pnpm dev:rede`                                                             | idem, exposto na rede (teste no celular)                                                     |
-| `pnpm check`                                                                | **todos os gates**: formato, lint, css, tipos, arquitetura, testes+cobertura, build, tamanho |
-| `pnpm test` / `test:unit` / `test:integration` / `test:arch` / `test:watch` | Vitest, por projeto                                                                          |
-| `pnpm lint:fix` · `pnpm format`                                             | corrige lint e formatação                                                                    |
-| `pnpm arch`                                                                 | regras de dependência entre camadas                                                          |
-| `pnpm verificar`                                                            | gate de **publicação** (texto pendente, datas, links); falha enquanto houver pendência       |
-| `pnpm changeset`                                                            | cria o changeset do PR (`--empty` se não muda comportamento)                                 |
+| Comando                                                                     | Faz                                                                                                      |
+| --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                                                  | servidor de desenvolvimento em **http://localhost:5173** (porta fixa)                                    |
+| `pnpm dev:rede`                                                             | idem, exposto na rede (teste no celular)                                                                 |
+| `pnpm check`                                                                | **todos os gates**: formato, lint, css, tipos, arquitetura, testes+cobertura, build, tamanho             |
+| `pnpm test` / `test:unit` / `test:integration` / `test:arch` / `test:watch` | Vitest, por projeto                                                                                      |
+| `pnpm lint:fix` · `pnpm format`                                             | corrige lint e formatação                                                                                |
+| `pnpm arch`                                                                 | regras de dependência entre camadas                                                                      |
+| `pnpm verificar`                                                            | gate de **publicação** (texto, datas, links, arte provisória, arquivos); falha enquanto houver pendência |
+| `pnpm changeset`                                                            | cria o changeset do PR (`--empty` se não muda comportamento)                                             |
 
 **Dev server:** deve ficar ligado na **5173** (`strictPort`). Se já estiver rodando, reutilize; não suba
 outro. No Claude Code ele sobe por `.claude/launch.json` (config `dev`), o que dá acesso ao log do Vite
@@ -107,6 +107,7 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
 
 Feito: ferramentas e CI; SPEC-01 completa (barramento, fases, estado, orquestrador, contrato `Cena`,
 modo de segurança); fatia vertical da SPEC-07 (contagem e estados por data, botões). SPEC-08 (porta de áudio, Howler,
-botão de som; faltam os MP3). Próximo: SPEC-02 → SPEC-03…
+botão de som; faltam os MP3). SPEC-02 (entrada e carregamento, com arte
+provisória). Próximo: SPEC-03…
 Pendências de conteúdo: fotos dos balões, imagens geradas, músicas licenciadas, verso do louvor, URL
 publicada (lista em `docs/documentacao.md`).
