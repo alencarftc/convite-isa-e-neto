@@ -138,6 +138,21 @@ describe('criarEstado', () => {
     expect(escuta).not.toHaveBeenCalled();
   });
 
+  it('marcarVisitado grava a visita e avisa uma só vez (RF-06.10)', () => {
+    const { ambiente } = ambienteFalso();
+    const preferencias = preferenciasFalsas();
+    const estado = criarEstado({ preferencias, ambiente });
+    const escuta = vi.fn();
+    estado.aoMudar(escuta);
+
+    estado.marcarVisitado();
+    estado.marcarVisitado();
+
+    expect(estado.visitado).toBe(true);
+    expect(preferencias.gravar).toHaveBeenCalledExactlyOnceWith('convite:visitado', true);
+    expect(escuta).toHaveBeenCalledTimes(1);
+  });
+
   it('quem cancela o aviso deixa de ser chamado', () => {
     const { ambiente } = ambienteFalso();
     const estado = criarEstado({ preferencias: preferenciasFalsas(), ambiente });

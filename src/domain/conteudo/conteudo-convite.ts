@@ -16,6 +16,27 @@ export interface BalaoDoConvite {
   readonly foco: string;
 }
 
+/** A carta, bloco a bloco (SPEC-06, "Layout da carta"). Textos aprovados em docs/requisitos.md. */
+export interface CartaDoConvite {
+  readonly versiculo: string;
+  readonly referencia: string;
+  readonly bencao: string;
+  /** Um nome por linha. */
+  readonly paisNoiva: readonly string[];
+  readonly paisNoivo: readonly string[];
+  /** O "e" fica separado porque é dourado no título da carta. */
+  readonly nomes: { readonly noiva: string; readonly e: string; readonly noivo: string };
+  readonly convite: string;
+  readonly data: string;
+  readonly cerimonia: string;
+  readonly local: string;
+  readonly endereco: string;
+  readonly fecho: string;
+  readonly referenciaFecho: string;
+  readonly despedida: string;
+  readonly assinatura: string;
+}
+
 export interface ConteudoConvite {
   readonly rotulos: {
     /** Rótulo acessível da seção de informações. */
@@ -26,6 +47,14 @@ export interface ConteudoConvite {
     readonly historia: string;
     /** Nome acessível do botão transparente que acelera a história. */
     readonly avancarHistoria: string;
+    /** Nome acessível do botão que cobre o envelope (SPEC-06, RF-06.3). */
+    readonly abrirEnvelope: string;
+  };
+  readonly envelope: {
+    /** Escrito no envelope, acima do selo. */
+    readonly para: string;
+    /** Iniciais no selo; são texto, não imagem (RF-06.2). */
+    readonly iniciais: string;
   };
   readonly entrada: {
     readonly nomes: string;
@@ -42,7 +71,10 @@ export interface ConteudoConvite {
     readonly chaveComputador: string;
     readonly chaveCelular: string;
     readonly avancar: string;
+    readonly selo: string;
+    readonly rolar: string;
   };
+  readonly carta: CartaDoConvite;
   /** Os balões da história, na ordem em que aparecem (SPEC-05). */
   readonly baloes: readonly BalaoDoConvite[];
   readonly contagem: {

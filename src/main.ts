@@ -7,6 +7,7 @@ import './styles/fontes.css';
 import './styles/base.css';
 import './styles/bau.css';
 import './styles/bosque.css';
+import './styles/carta.css';
 import './styles/entrada.css';
 import './styles/historia.css';
 import './styles/informacoes.css';
@@ -22,6 +23,7 @@ import { conectarAudio } from '@/application/use-cases/audio-do-convite';
 import { criarCarregamento } from '@/application/use-cases/carregamento';
 import { criarObterInformacoes } from '@/application/use-cases/obter-informacoes';
 import { criarOrquestrador, type EtapaDoConvite } from '@/application/use-cases/orquestrador';
+import { registrarVisita } from '@/application/use-cases/registrar-visita';
 import { config } from '@/config/config';
 import { content } from '@/config/content';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
@@ -40,6 +42,7 @@ import { criarTemporizador } from '@/infrastructure/tempo/temporizador';
 import { montarBotaoSom } from '@/presentation/audio/botao-som';
 import { criarCenaBau } from '@/presentation/bau/cena-bau';
 import { criarCenaBosque } from '@/presentation/bosque/cena-bosque';
+import { criarCartaEConvite } from '@/presentation/carta/cena-carta';
 import { criarCenaEntrada } from '@/presentation/entrada/cena-entrada';
 import { refletirFaseNoCorpo } from '@/presentation/fase-no-corpo';
 import { criarCenaHistoria } from '@/presentation/historia/cena-historia';
@@ -99,6 +102,8 @@ const carregamento = criarCarregamento({
   config,
 });
 
+const cartaEConvite = criarCartaEConvite({ raiz, conteudo: content, config, estado, eventos });
+
 // Cada spec de cena (SPEC-03 a SPEC-06) acrescenta a sua aqui, na ordem do caminho.
 const etapas: readonly EtapaDoConvite[] = [
   {
@@ -116,6 +121,8 @@ const etapas: readonly EtapaDoConvite[] = [
     fase: 'historia',
     cena: criarCenaHistoria({ raiz, conteudo: content, config, estado, eventos }),
   },
+  { nome: 'carta', fase: 'carta', cena: cartaEConvite.carta },
+  { nome: 'convite', fase: 'convite', cena: cartaEConvite.convite },
 ];
 
 const orquestrador = criarOrquestrador({
@@ -127,13 +134,17 @@ const orquestrador = criarOrquestrador({
     etapas: etapas.map((etapa) => ({ ...etapa, cena: naCena(etapa.nome, etapa.cena) })),
     final: naCena(
       'informacoes',
-      criarCenaInformacoes({
-        raiz,
-        conteudo: content,
-        config,
-        relogio,
-        obterInformacoes: criarObterInformacoes({ relogio, config, conteudo: content }),
-      }),
+      criarCenaInformacoes(
+        {
+          raiz,
+          conteudo: content,
+          config,
+          relogio,
+          obterInformacoes: criarObterInformacoes({ relogio, config, conteudo: content }),
+        },
+        // As informações rolam abaixo da carta, dentro do `.conteudo` criado por ela (SPEC-06).
+        () => raiz.querySelector<HTMLElement>('.conteudo') ?? raiz,
+      ),
     ),
   },
   estado,
@@ -143,6 +154,7 @@ const orquestrador = criarOrquestrador({
   },
 });
 
+const pararDeRegistrarVisita = registrarVisita({ estado, eventos });
 const pararDeOuvirErros = ouvirErrosGlobais(window, (erro) => {
   orquestrador.falhar(erro);
 });
@@ -151,6 +163,7 @@ void orquestrador.iniciar();
 // Recarga a quente do Vite: desfaz tudo antes de montar de novo, para não duplicar cenas.
 import.meta.hot?.dispose(() => {
   pararDeOuvirErros();
+  pararDeRegistrarVisita();
   pararDeOuvirSaidaEVolta();
   removerBotaoSom();
   audioDoConvite.destruir();

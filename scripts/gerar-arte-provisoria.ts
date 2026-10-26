@@ -238,6 +238,74 @@ function foto(numero: number): string {
   );
 }
 
+const TAMANHO_ENVELOPE: Tamanho = { largura: 720, altura: 480 };
+
+/** Envelope bege, sem selo (a imagem 12 deve nascer sem selo; SPEC-06, questões em aberto). */
+function envelopeFechado(): string {
+  return svg(
+    TAMANHO_ENVELOPE,
+    `<rect x="10" y="30" width="700" height="440" rx="14" fill="${COR.bege}" stroke="#b9aa86" stroke-width="4"/>
+<path d="M10 40 L360 290 L710 40" fill="none" stroke="#b9aa86" stroke-width="4"/>
+<path d="M10 470 L260 250 M710 470 L460 250" fill="none" stroke="#b9aa86" stroke-width="3"/>
+<path d="M10 40 Q360 330 710 40 z" fill="#e3d7b9"/>`,
+    'envelope fechado',
+  );
+}
+
+/** Envelope com a aba aberta (o interior escuro aparece). */
+function envelopeAberto(): string {
+  return svg(
+    TAMANHO_ENVELOPE,
+    `<rect x="10" y="130" width="700" height="340" rx="14" fill="${COR.bege}" stroke="#b9aa86" stroke-width="4"/>
+<path d="M10 140 L360 360 L710 140 z" fill="#c8ba94"/>
+<path d="M10 140 L360 20 L710 140 z" fill="#d6c8a4" stroke="#b9aa86" stroke-width="4"/>
+<path d="M10 470 L260 300 M710 470 L460 300" fill="none" stroke="#b9aa86" stroke-width="3"/>`,
+    'envelope aberto',
+  );
+}
+
+const TAMANHO_SELO: Tamanho = { largura: 240, altura: 240 };
+
+/** Selo de cera azul; as iniciais I&D são texto por cima (SPEC-06, RF-06.2). */
+function selo(): string {
+  return svg(
+    TAMANHO_SELO,
+    `<circle cx="120" cy="120" r="108" fill="#6f8cbf" stroke="#4f6b9c" stroke-width="6"/>
+<circle cx="120" cy="120" r="84" fill="none" stroke="#8aa6d3" stroke-width="4"/>
+<circle cx="80" cy="76" r="26" fill="#ffffff" fill-opacity="0.18"/>`,
+    'selo de cera',
+  );
+}
+
+const TAMANHO_PAPEL: Tamanho = { largura: 560, altura: 900 };
+
+/** Papel da carta: marfim com fibras sutis. */
+function papelCarta(): string {
+  const fibras = Array.from(
+    { length: 24 },
+    (_, i) =>
+      `<path d="M${(i * 83) % 560} ${(i * 197) % 900} q40 -10 80 6" stroke="#d9cfae" stroke-opacity="0.35" stroke-width="2" fill="none"/>`,
+  ).join('');
+  return svg(
+    TAMANHO_PAPEL,
+    `<rect width="560" height="900" fill="#f8f4e2"/>${fibras}<rect x="6" y="6" width="548" height="888" fill="none" stroke="#e5dbbb" stroke-width="3"/>`,
+    'papel da carta',
+  );
+}
+
+const TAMANHO_CASAL: Tamanho = { largura: 320, altura: 520 };
+
+/** Casal de costas à beira do lago: duas silhuetas lado a lado. */
+function casal(): string {
+  return svg(
+    TAMANHO_CASAL,
+    `<g fill="${COR.texto}" fill-opacity="0.85"><circle cx="120" cy="90" r="34"/><path d="M60 480 L80 150 q40 -26 80 0 L190 480 z"/></g>
+<g fill="${COR.dourado}" fill-opacity="0.9"><circle cx="215" cy="110" r="30"/><path d="M165 480 L175 175 q40 -20 80 0 L280 480 z"/></g>
+${rotulo(TAMANHO_CASAL, 'casal')}`,
+    'casal de costas',
+  );
+}
+
 /** Altura da faixa em relação à tela, por orientação (SPEC-03, tabela "Camadas"). */
 const FAIXA_LAGO = { vertical: 0.3, horizontal: 0.4 } as const;
 const FAIXA_FRENTE = { vertical: 0.34, horizontal: 0.3 } as const;
@@ -268,6 +336,11 @@ const arquivos: Record<string, string> = {
   'balao-a.svg': balao('a'),
   'balao-b.svg': balao('b'),
   'balao-c.svg': balao('c'),
+  'envelope-fechado.svg': envelopeFechado(),
+  'envelope-aberto.svg': envelopeAberto(),
+  'selo.svg': selo(),
+  'papel-carta.svg': papelCarta(),
+  'casal.svg': casal(),
   'foto-1.svg': foto(1),
   'foto-2.svg': foto(2),
   'foto-3.svg': foto(3),

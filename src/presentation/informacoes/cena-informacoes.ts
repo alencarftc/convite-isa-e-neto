@@ -11,11 +11,15 @@ import {
  * mostrado. `run()` e `skip()` fazem o mesmo (o bloco não tem animação própria ainda) e funcionam
  * mesmo que `init()` não tenha rodado, porque o modo de segurança depende disto (SPEC-09).
  */
-export function criarCenaInformacoes(dependencias: DependenciasInformacoes): Cena {
+export function criarCenaInformacoes(
+  dependencias: DependenciasInformacoes,
+  /** Onde o bloco é montado, resolvido na hora de mostrar (a carta cria o `.conteudo`, SPEC-06). */
+  destino?: () => HTMLElement,
+): Cena {
   let montadas: InformacoesMontadas | undefined;
 
   function mostrar(): void {
-    montadas ??= montarInformacoes(dependencias);
+    montadas ??= montarInformacoes({ ...dependencias, raiz: destino?.() ?? dependencias.raiz });
   }
 
   return {

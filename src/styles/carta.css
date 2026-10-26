@@ -1,0 +1,328 @@
+/*
+ * Envelope, selo e carta (SPEC-06). O envelope é posicionado pela animação (transform); aqui ficam
+ * tamanho e camadas. A carta e as informações rolam sobre a cena, que fica fixa por trás.
+ * Só `transform` e `opacity` se animam.
+ */
+.envelope {
+  --envelope-largura: min(78vw, 360px);
+
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: var(--z-carta);
+  width: var(--envelope-largura);
+  aspect-ratio: 3 / 2;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.envelope__fechado,
+.envelope__aberto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.envelope__sombra {
+  position: absolute;
+  right: 6%;
+  bottom: -9%;
+  left: 6%;
+  height: 18%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--cor-texto) 55%, transparent),
+    transparent
+  );
+}
+
+/* A carta dobrada fica atrás das imagens do envelope e sobe pela abertura. */
+.envelope__dobrada {
+  position: absolute;
+  right: 7%;
+  bottom: 10%;
+  left: 7%;
+  height: 78%;
+  background: var(--cor-marfim);
+  border: 1px solid var(--cor-bege);
+  border-radius: 6px;
+}
+
+.envelope__para {
+  position: absolute;
+  top: 24%;
+  right: 0;
+  left: 0;
+  margin: 0;
+  font-family: var(--fonte-cursiva), var(--fonte-cursiva-reserva);
+  font-size: calc(var(--envelope-largura) * 0.085);
+  line-height: 1.2;
+  color: var(--cor-texto);
+  text-align: center;
+}
+
+.selo {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  width: 24%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+}
+
+.selo__metade {
+  position: absolute;
+  inset: 0;
+}
+
+.selo__metade--esquerda {
+  clip-path: inset(0 50% 0 0);
+  transform-origin: 100% 50%;
+}
+
+.selo__metade--direita {
+  clip-path: inset(0 0 0 50%);
+  transform-origin: 0 50%;
+}
+
+.selo__imagem {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Iniciais em Great Vibes dourada, com cerca de 40% da largura do selo (RF-06.2). */
+.selo__iniciais {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--fonte-cursiva), var(--fonte-cursiva-reserva);
+  font-size: calc(var(--envelope-largura) * 0.075);
+  line-height: 1;
+  color: var(--cor-dourado);
+}
+
+/* Botão que cobre o envelope inteiro; a área do selo passa de 64 × 64 px (RF-06.3). */
+.carta__abrir {
+  position: absolute;
+  inset: 0;
+  min-width: 64px;
+  min-height: 64px;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  pointer-events: auto;
+}
+
+.carta__abrir:disabled {
+  pointer-events: none;
+}
+
+.carta__dica {
+  position: absolute;
+  top: calc(100% + var(--espaco-4));
+  right: 0;
+  left: 0;
+  width: fit-content;
+  padding: var(--espaco-2) var(--espaco-4);
+  margin: 0 auto;
+  font-size: var(--texto-corpo);
+  color: var(--cor-texto);
+  background: color-mix(in srgb, var(--cor-marfim) 88%, transparent);
+  border-radius: 999px;
+}
+
+.carta__dica:empty {
+  display: none;
+}
+
+/* A base da cena que fica à mostra depois que ela sobe 18% (a cor segue a arte do primeiro plano). */
+.convite__chao {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: var(--z-primeiro-plano);
+  height: 20dvh;
+  pointer-events: none;
+  background: var(--cor-chao);
+}
+
+.convite__rolar {
+  position: fixed;
+  right: 0;
+  bottom: calc(var(--espaco-4) + env(safe-area-inset-bottom));
+  left: 0;
+  z-index: var(--z-informacoes);
+  width: fit-content;
+  padding: var(--espaco-2) var(--espaco-4);
+  margin: 0 auto;
+  font-size: var(--texto-rotulo);
+  color: var(--cor-texto-suave);
+  text-align: center;
+  background: color-mix(in srgb, var(--cor-marfim) 90%, transparent);
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
+
+.convite__seta {
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin: 0 auto;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+/* O casal, de costas, na margem do lago, sob a árvore da direita (RF-06.8); variáveis ajustáveis. */
+.casal__imagem {
+  --casal-x: 62%;
+  --casal-base: 30%;
+
+  position: absolute;
+  bottom: var(--casal-base);
+  left: var(--casal-x);
+  width: auto;
+  height: 16%;
+}
+
+@media (orientation: landscape) {
+  .casal__imagem {
+    --casal-base: 22%;
+  }
+}
+
+.petala--chuva {
+  position: absolute;
+}
+
+/* A carta, na primeira tela final, começa a 52% da altura (55% na horizontal). */
+.conteudo {
+  position: relative;
+  z-index: var(--z-carta);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 52dvh var(--espaco-3) 0;
+}
+
+@media (orientation: landscape) {
+  .conteudo {
+    padding-top: 55dvh;
+  }
+}
+
+.carta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  align-items: center;
+  width: min(92vw, 560px);
+  padding: var(--espaco-6) var(--espaco-5);
+  color: var(--cor-texto);
+  text-align: center;
+  background-color: var(--cor-marfim);
+  background-size: cover;
+  border-radius: 6px;
+  box-shadow: var(--sombra-cartao);
+  transform-origin: 50% 0;
+}
+
+@media (width >= 768px) {
+  .carta {
+    padding: var(--espaco-7);
+  }
+}
+
+.carta p,
+.carta h2 {
+  margin: 0;
+}
+
+.carta__versiculo,
+.carta__despedida {
+  font-size: var(--texto-corpo);
+  font-style: italic;
+}
+
+.carta__rotulo {
+  font-size: var(--texto-rotulo);
+  color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.carta__filete {
+  width: min(60%, 240px);
+  height: 12px;
+  fill: var(--cor-dourado);
+  stroke: var(--cor-dourado);
+  stroke-width: 1;
+}
+
+.carta__pais {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espaco-4);
+  width: 100%;
+  font-size: 16px;
+}
+
+.carta__coluna {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.carta__separador {
+  display: none;
+}
+
+/* Em telas com menos de 360 px, os pais viram uma coluna só, com um filete curto entre eles. */
+@media (width <= 359px) {
+  .carta__pais {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .carta__separador {
+    display: block;
+    width: 40px;
+    border: 0;
+    border-top: 1px solid var(--cor-dourado);
+  }
+}
+
+.carta__nomes {
+  font-family: var(--fonte-cursiva), var(--fonte-cursiva-reserva);
+  font-size: var(--texto-nomes);
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+.carta__e {
+  color: var(--cor-dourado);
+}
+
+.carta__convite,
+.carta__local {
+  font-size: var(--texto-corpo);
+}
+
+.carta__data {
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.carta__assinatura {
+  font-family: var(--fonte-cursiva), var(--fonte-cursiva-reserva);
+  font-size: 32px;
+}

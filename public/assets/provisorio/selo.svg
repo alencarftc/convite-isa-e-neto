@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ARTE PROVISÓRIA: substituir pela imagem gerada (docs/requisitos.md, "Imagens a gerar") · selo de cera -->
+<svg xmlns="http://www.w3.org/2000/svg" data-provisorio="true" width="240" height="240" viewBox="0 0 240 240">
+<circle cx="120" cy="120" r="108" fill="#6f8cbf" stroke="#4f6b9c" stroke-width="6"/>
+<circle cx="120" cy="120" r="84" fill="none" stroke="#8aa6d3" stroke-width="4"/>
+<circle cx="80" cy="76" r="26" fill="#ffffff" fill-opacity="0.18"/>
+</svg>
