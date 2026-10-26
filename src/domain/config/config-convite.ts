@@ -52,6 +52,14 @@ export interface ConfigConvite {
     /** Depois do toque, tempo de espera antes de mostrar "Preparando o bosque…". */
     readonly avisoDeEspera: number;
   };
+  /** "Salvar na agenda" (SPEC-17): o evento do casamento no calendário do aparelho. */
+  readonly agenda: {
+    /** Duração do evento (a data e a hora de início vêm de `casamento`). */
+    readonly duracaoEmHoras: number;
+    /** O lembrete dispara tantos dias antes do início. */
+    readonly lembreteEmDias: number;
+    readonly nomeDoArquivo: string;
+  };
   /** Selo da tela de entrada (SPEC-16): pulsa devagar enquanto o convidado decide tocar. */
   readonly entrada: {
     /** Tempo de um ciclo completo de pulsar, em segundos. */

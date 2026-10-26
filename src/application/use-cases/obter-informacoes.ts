@@ -16,6 +16,8 @@ export interface InformacoesDoMomento {
   /** `aberta`: botão ativo · `encerrada`: aviso de prazo · `oculta`: nada. */
   readonly confirmacao: 'aberta' | 'encerrada' | 'oculta';
   readonly comoChegarVisivel: boolean;
+  /** "Salvar na agenda" some junto com "Como chegar", depois do casamento (SPEC-17, RF-17.5). */
+  readonly agendaVisivel: boolean;
 }
 
 export interface DependenciasObterInformacoes {
@@ -50,6 +52,7 @@ export function criarObterInformacoes(
           agradecimento: null,
           confirmacao: 'aberta',
           comoChegarVisivel: true,
+          agendaVisivel: true,
         };
       case 'depois-do-prazo':
         return {
@@ -58,6 +61,7 @@ export function criarObterInformacoes(
           agradecimento: null,
           confirmacao: 'encerrada',
           comoChegarVisivel: true,
+          agendaVisivel: true,
         };
       case 'no-dia':
         return {
@@ -66,6 +70,7 @@ export function criarObterInformacoes(
           agradecimento: null,
           confirmacao: 'encerrada',
           comoChegarVisivel: true,
+          agendaVisivel: true,
         };
       case 'depois':
         return {
@@ -74,6 +79,7 @@ export function criarObterInformacoes(
           agradecimento: depois,
           confirmacao: 'oculta',
           comoChegarVisivel: false,
+          agendaVisivel: false,
         };
     }
   };

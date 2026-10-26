@@ -1,3 +1,4 @@
+import { URL_BASE_DO_GOOGLE_AGENDA } from '../../src/domain/agenda/evento-de-agenda';
 import type { ConfigConvite } from '../../src/domain/config/config-convite';
 import type { ConteudoConvite } from '../../src/domain/conteudo/conteudo-convite';
 import { urlsDaImagem } from '../../src/domain/imagens/catalogo-de-imagens';
@@ -239,6 +240,7 @@ export function verificarTudo({
       config.links.formulario,
       config.links.mapa,
       config.publicacao.url,
+      URL_BASE_DO_GOOGLE_AGENDA, // "Salvar na agenda" em quem não baixa arquivos (SPEC-17)
     ]),
     ...validarConsistenciaDeDatas(config, conteudo),
     ...validarArteDefinitiva(config, conteudo),

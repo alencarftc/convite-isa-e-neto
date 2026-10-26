@@ -4,12 +4,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { criarObterInformacoes } from '@/application/use-cases/obter-informacoes';
 import { config } from '@/config/config';
 import { content } from '@/config/content';
+import { URL_BASE_DO_GOOGLE_AGENDA } from '@/domain/agenda/evento-de-agenda';
 import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import { criarRelogio } from '@/infrastructure/relogio/relogio';
 import { montarInformacoes } from '@/presentation/informacoes/informacoes';
 
 /** Camadas reais (config, caso de uso, relógio, DOM), com a data simulada por `?data=`. */
-function montarEm(dataSimulada: string, animar = false, conteudo: ConteudoConvite = content) {
+function montarEm(
+  dataSimulada: string,
+  animar = false,
+  conteudo: ConteudoConvite = content,
+  baixaArquivos = false,
+) {
   const raiz = document.createElement('div');
   document.body.append(raiz);
   const relogio = criarRelogio({ desenvolvimento: true, busca: `?data=${dataSimulada}` });
@@ -20,6 +26,7 @@ function montarEm(dataSimulada: string, animar = false, conteudo: ConteudoConvit
     relogio,
     obterInformacoes: criarObterInformacoes({ relogio, config, conteudo }),
     animar,
+    baixaArquivos,
   });
   return { raiz, montadas };
 }
@@ -210,6 +217,60 @@ describe('cartões da mensagem e do traje (SPEC-07)', () => {
     expect(raiz.querySelector('.mensagem__verso')).toBeNull();
     expect(filhos.at(-1)).toBe('mensagem__assinatura');
     expect(filhos.filter((classe) => classe === 'mensagem__paragrafo')).toHaveLength(3);
+  });
+
+  describe('Salvar na agenda (SPEC-17)', () => {
+    const ANTES = '2026-11-15T10:00';
+
+    it('é o último botão do cartão de ações, secundário, com o texto de content.botoes.agenda (RF-17.4)', () => {
+      const { raiz } = montarEm(ANTES);
+
+      const botoes = [...raiz.querySelectorAll('.cartao--acoes .botao')];
+      expect(botoes.at(-1)?.textContent).toBe(content.botoes.agenda);
+      expect(botoes.at(-1)?.classList.contains('botao--secundario')).toBe(true);
+      expect(botoes.at(-2)?.textContent).toBe(content.botoes.comoChegar); // abaixo de "Como chegar"
+    });
+
+    it('aparece antes do prazo, depois do prazo e no dia; some depois do casamento (CT-17.4, RF-17.5)', () => {
+      const botao = (data: string) =>
+        montarEm(data).raiz.querySelector<HTMLElement>('.cartao--acoes a:last-of-type');
+
+      expect(botao(ANTES)?.hidden).toBe(false);
+      expect(botao('2027-01-10T12:00')?.hidden).toBe(false);
+      expect(botao('2027-01-22T09:00')?.hidden).toBe(false);
+      expect(botao('2027-01-23T00:00')?.hidden).toBe(true);
+    });
+
+    it('depois do casamento, o cartão de ações some por inteiro (sem botões)', () => {
+      const { raiz } = montarEm('2027-01-23T00:00');
+
+      expect(raiz.querySelector<HTMLElement>('.cartao--acoes')?.hidden).toBe(true);
+    });
+
+    it('onde o navegador não baixa arquivos (iPhone, WhatsApp), abre o Google Agenda em outra aba (CT-17.2, RF-17.3)', () => {
+      const { raiz } = montarEm(ANTES, false, content, false);
+
+      const link = raiz.querySelector<HTMLAnchorElement>('.cartao--acoes a:last-of-type');
+      expect(link?.href.startsWith(URL_BASE_DO_GOOGLE_AGENDA)).toBe(true);
+      expect(link?.target).toBe('_blank');
+      expect(link?.rel).toBe('noopener');
+      expect(link?.hasAttribute('download')).toBe(false);
+    });
+
+    it('onde o navegador baixa (computador, Android), baixa o .ics com o evento certo (CT-17.1, RF-17.3)', () => {
+      const { raiz } = montarEm(ANTES, false, content, true);
+
+      const link = raiz.querySelector<HTMLAnchorElement>('.cartao--acoes a:last-of-type');
+      expect(link?.getAttribute('download')).toBe(config.agenda.nomeDoArquivo);
+      expect(link?.hasAttribute('target')).toBe(false);
+      const href = link?.getAttribute('href') ?? '';
+      expect(href.startsWith('data:text/calendar')).toBe(true);
+      const ics = decodeURIComponent(href.slice(href.indexOf(',') + 1));
+      expect(ics).toContain('BEGIN:VCALENDAR');
+      expect(ics).toContain('DTSTART:20270122T200000Z');
+      expect(ics).toContain('TRIGGER:-P1D');
+      expect(ics).toContain('Sítio Olinda');
+    });
   });
 
   it('o traje mostra "Esporte fino" sob o título (CA-07.2.2)', () => {

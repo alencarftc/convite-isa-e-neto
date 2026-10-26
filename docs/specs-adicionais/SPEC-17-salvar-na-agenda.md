@@ -69,3 +69,30 @@ Ao tocar, o aparelho oferece abrir o evento no aplicativo de agenda.
 
 - Vocês querem esse botão? Ele cria mais um item no cartão de ações, que hoje tem só dois botões.
 - Duração do evento no calendário (proposta: 6 h) e texto do botão.
+
+## Implementação (26/10/2026)
+
+Implementada na branch `feat/spec-17-salvar-na-agenda`. Respostas adotadas para as questões em aberto e desvios do
+desenho acima:
+
+- **O botão entrou**, abaixo de "Como chegar", com o texto **"Salvar na agenda"**. É **texto novo e ainda não aprovado
+  pelo casal**: está em `content.botoes.agenda`, com um comentário avisando; se não gostarem, basta trocar o texto ou
+  apagar o botão (`criarBotaoDaAgenda`).
+- **Duração do evento: 6 h** (`config.agenda.duracaoEmHoras`), a confirmar: o convite não diz quando a festa termina.
+  Lembrete 1 dia antes (`lembreteEmDias`) e nome do arquivo (`nomeDoArquivo`) também ficam em `config.agenda`, o que
+  muda o item "`config.ts` não muda" do desenho.
+- **Domínio puro** (`src/domain/agenda/evento-de-agenda.ts`): `gerarEventoDeAgenda` devolve o `.ics` (CRLF, linhas
+  dobradas em 75 bytes sem partir caractere, vírgulas e ponto e vírgula escapados, `UID` estável, alarme `-P1D`) e o
+  link do Google Agenda, os dois do mesmo evento. O título é "nomes · cerimônia", o local é "local, endereço", e a
+  descrição leva o endereço do convite e o mapa: nada digitado de novo. Testado com os dados reais em
+  `tests/integration/evento-de-agenda.test.ts` (o domínio não pode importar `config` nem `content`, nem nos testes).
+- **Escolha do caminho:** nova porta `Capacidades.baixaArquivos()`, com adaptador em
+  `infrastructure/ambiente/capacidades-do-navegador.ts`. Baixa o `.ics` (`<a download>` com `data:text/calendar`)
+  onde o navegador baixa; **no iPhone e no iPad (qualquer navegador, inclusive o do WhatsApp) e na dúvida abre o Google
+  Agenda** em outra aba. Não foi possível testar em aparelho real (CT-17.1 e CT-17.2 estão na matriz).
+- **O `.ics` é montado quando o bloco de informações aparece**, não no toque: são cerca de 1 kB e isso evita código
+  para refazer o `href` (RNF-17.1 pedia "sob demanda"; o custo medido é desprezível).
+- **Peso:** o JavaScript crítico cresceu 1,1 kB gzip (de 54,7 para 55,8 kB), um pouco acima da meta de 1 kB da
+  RNF-17.1, e segue longe do orçamento de 120 kB.
+- **`pnpm verificar`:** o endereço base do Google Agenda entrou na lista de permitidos da regra `servico-externo`.
+- **Some depois do casamento** junto com "Como chegar" (`agendaVisivel`), e o cartão de ações some por inteiro.

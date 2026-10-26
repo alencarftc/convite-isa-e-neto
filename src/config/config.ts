@@ -38,6 +38,8 @@ export const config: ConfigConvite = {
     esmaecimentoReduzido: 0.4,
     cartoes: 0.5,
   },
+  // Duração a confirmar com o casal (SPEC-17): o convite não diz quando a festa termina.
+  agenda: { duracaoEmHoras: 6, lembreteEmDias: 1, nomeDoArquivo: 'casamento-isabella-e-david.ics' },
   entrada: { seloPeriodo: 3.2, seloEscala: 1.05 },
   movimento: {
     deslocamentoDosCartoes: 16,

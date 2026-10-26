@@ -62,7 +62,7 @@ const conteudo: ConteudoConvite = {
     depois: 'Obrigado!',
     unidades: { dia: ['dia', 'dias'], hora: ['hora', 'horas'], minuto: ['minuto', 'minutos'] },
   },
-  botoes: { confirmar: 'c', prazo: 'p', comoChegar: 'm', encerrado: 'e' },
+  botoes: { confirmar: 'c', prazo: 'p', comoChegar: 'm', agenda: 'a', encerrado: 'e' },
 };
 
 function informacoesEm(iso: string) {
@@ -78,6 +78,7 @@ describe('criarObterInformacoes', () => {
       agradecimento: null,
       confirmacao: 'aberta',
       comoChegarVisivel: true,
+      agendaVisivel: true,
     });
   });
 
@@ -95,6 +96,7 @@ describe('criarObterInformacoes', () => {
       agradecimento: null,
       confirmacao: 'encerrada',
       comoChegarVisivel: true,
+      agendaVisivel: true,
     });
   });
 
@@ -105,7 +107,24 @@ describe('criarObterInformacoes', () => {
       agradecimento: 'Obrigado!',
       confirmacao: 'oculta',
       comoChegarVisivel: false,
+      agendaVisivel: false,
     });
+  });
+
+  it('"Salvar na agenda" acompanha "Como chegar" em todos os estados, e some depois do casamento (CT-17.4)', () => {
+    const datas = [
+      '2026-11-15T10:00:00-03:00',
+      '2027-01-10T12:00:00-03:00',
+      '2027-01-22T09:00:00-03:00',
+      '2027-01-23T00:00:00-03:00',
+      '2027-02-15T00:00:00-03:00',
+    ];
+
+    for (const data of datas) {
+      const informacoes = informacoesEm(data);
+      expect(informacoes.agendaVisivel, data).toBe(informacoes.comoChegarVisivel);
+    }
+    expect(informacoesEm('2027-01-23T00:00:00-03:00').agendaVisivel).toBe(false);
   });
 
   it('relê o relógio a cada chamada', () => {
