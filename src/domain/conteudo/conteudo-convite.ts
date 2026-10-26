@@ -80,6 +80,11 @@ export interface ConteudoConvite {
     readonly rolar: string;
   };
   readonly carta: CartaDoConvite;
+  /** O que aparece na prévia do link no WhatsApp e na aba do navegador (SPEC-10, RF-10.1). */
+  readonly previa: {
+    readonly titulo: string;
+    readonly descricao: string;
+  };
   /** Mensagem do casal, abaixo da contagem (SPEC-07, RF-07.7). */
   readonly mensagem: {
     readonly paragrafos: readonly string[];
