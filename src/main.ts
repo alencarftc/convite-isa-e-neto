@@ -8,6 +8,7 @@ import './styles/base.css';
 import './styles/bau.css';
 import './styles/bosque.css';
 import './styles/entrada.css';
+import './styles/historia.css';
 import './styles/informacoes.css';
 import './styles/botao-som.css';
 
@@ -41,6 +42,7 @@ import { criarCenaBau } from '@/presentation/bau/cena-bau';
 import { criarCenaBosque } from '@/presentation/bosque/cena-bosque';
 import { criarCenaEntrada } from '@/presentation/entrada/cena-entrada';
 import { refletirFaseNoCorpo } from '@/presentation/fase-no-corpo';
+import { criarCenaHistoria } from '@/presentation/historia/cena-historia';
 import { criarCenaInformacoes } from '@/presentation/informacoes/cena-informacoes';
 
 const raiz = document.querySelector<HTMLElement>('#app');
@@ -108,6 +110,11 @@ const etapas: readonly EtapaDoConvite[] = [
     nome: 'bau',
     fase: 'aguardando-bau',
     cena: criarCenaBau({ raiz, conteudo: content, config, estado, eventos }),
+  },
+  {
+    nome: 'historia',
+    fase: 'historia',
+    cena: criarCenaHistoria({ raiz, conteudo: content, config, estado, eventos }),
   },
 ];
 

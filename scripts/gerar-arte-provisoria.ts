@@ -185,6 +185,59 @@ function petala(curva: number, tom: string): string {
   );
 }
 
+const TAMANHO_BALAO: Tamanho = { largura: 360, altura: 300 };
+
+/** Balão-nuvem; as três variações mudam a silhueta (SPEC-05, RF-05.2). */
+function balao(variacao: 'a' | 'b' | 'c'): string {
+  const formas = {
+    a: [
+      [110, 190, 80],
+      [180, 140, 100],
+      [260, 180, 78],
+      [190, 200, 90],
+    ],
+    b: [
+      [100, 170, 70],
+      [170, 120, 95],
+      [250, 150, 85],
+      [270, 200, 65],
+      [160, 200, 90],
+    ],
+    c: [
+      [120, 200, 75],
+      [190, 160, 95],
+      [265, 190, 70],
+      [210, 120, 70],
+    ],
+  } as const;
+  const nuvens = formas[variacao]
+    .map(
+      ([cx, cy, r]) =>
+        `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#ffffff" fill-opacity="0.92" stroke="${COR.serenidade}" stroke-opacity="0.5" stroke-width="3"/>`,
+    )
+    .join('');
+  return svg(
+    TAMANHO_BALAO,
+    `<g>${nuvens}</g><path d="M180 285 q-6 -22 0 -40 q6 18 0 40z" fill="${COR.serenidade}" fill-opacity="0.7"/>${rotulo(TAMANHO_BALAO, `balão ${variacao}`)}`,
+    `balão-nuvem ${variacao}`,
+  );
+}
+
+const TAMANHO_FOTO: Tamanho = { largura: 400, altura: 400 };
+
+/** Retrato provisório: fundo quente e duas silhuetas; as fotos reais vêm do casal (SPEC-05). */
+function foto(numero: number): string {
+  const fundo = ['#e9d3b0', '#d6dfe9', '#e6d0cf', '#d3e0cf', '#e9dcb4'][numero - 1] ?? '#e9d3b0';
+  return svg(
+    TAMANHO_FOTO,
+    `<rect width="400" height="400" fill="${fundo}"/>
+<circle cx="150" cy="150" r="42" fill="${COR.texto}" fill-opacity="0.55"/><path d="M80 330 q0 -110 70 -110 q70 0 70 110z" fill="${COR.texto}" fill-opacity="0.55"/>
+<circle cx="255" cy="165" r="38" fill="${COR.texto}" fill-opacity="0.4"/><path d="M190 330 q0 -100 65 -100 q65 0 65 100z" fill="${COR.texto}" fill-opacity="0.4"/>
+<text x="200" y="380" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="${COR.texto}" fill-opacity="0.6">PROVISÓRIO · foto ${numero}</text>`,
+    `foto ${numero}`,
+  );
+}
+
 /** Altura da faixa em relação à tela, por orientação (SPEC-03, tabela "Camadas"). */
 const FAIXA_LAGO = { vertical: 0.3, horizontal: 0.4 } as const;
 const FAIXA_FRENTE = { vertical: 0.34, horizontal: 0.3 } as const;
@@ -212,6 +265,14 @@ const arquivos: Record<string, string> = {
   'petala-a.svg': petala(0, '#8fa9d3'),
   'petala-b.svg': petala(12, '#7f9bc9'),
   'petala-c.svg': petala(-10, '#a3b8dc'),
+  'balao-a.svg': balao('a'),
+  'balao-b.svg': balao('b'),
+  'balao-c.svg': balao('c'),
+  'foto-1.svg': foto(1),
+  'foto-2.svg': foto(2),
+  'foto-3.svg': foto(3),
+  'foto-4.svg': foto(4),
+  'foto-5.svg': foto(5),
 };
 
 const destino = join(import.meta.dirname, '..', 'public', 'assets', 'provisorio');

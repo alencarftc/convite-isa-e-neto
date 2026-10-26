@@ -13,6 +13,7 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
       ...original.duracoes,
       nevoa: esc(original.duracoes.nevoa),
       bau: esc(original.duracoes.bau),
+      balao: esc(original.duracoes.balao),
       dicaChave: 0.05,
       reforcoDica: 0.15,
       esmaecimentoReduzido: 0.02,
@@ -23,6 +24,20 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
         ...original.movimento.profundidade,
         suavizacao: 0.02,
         periodoDaDeriva: 0.2,
+      },
+    },
+    historia: {
+      ...original.historia,
+      saida: esc(original.historia.saida),
+      fraseEm: esc(original.historia.fraseEm),
+      fraseAparece: esc(original.historia.fraseAparece),
+      leituraEm: esc(original.historia.leituraEm),
+      leitura: esc(original.historia.leitura),
+      subidaFinalEm: esc(original.historia.subidaFinalEm),
+      subidaFinal: esc(original.historia.subidaFinal),
+      dica: {
+        aparece: esc(original.historia.dica.aparece),
+        some: esc(original.historia.dica.some),
       },
     },
     bau: {

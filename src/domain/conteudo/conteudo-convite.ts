@@ -5,12 +5,27 @@ import type { UnidadesDeTempo } from '../contagem/contagem-regressiva';
  * (SPEC-01, RNF-01.2). Este tipo cresce a cada spec implementada; a estrutura
  * completa prevista está em docs/documentacao.md, seção "Conteúdo".
  */
+/** Um balão da história (SPEC-05, RF-05.1): a frase e a foto que a acompanha. */
+export interface BalaoDoConvite {
+  readonly frase: string;
+  /** Caminho da foto, relativo à página. */
+  readonly foto: string;
+  /** Texto alternativo da foto (RF-05.8); entre colchetes enquanto a foto não chega. */
+  readonly alt: string;
+  /** Ponto de foco do recorte circular, como `50% 35%`. */
+  readonly foco: string;
+}
+
 export interface ConteudoConvite {
   readonly rotulos: {
     /** Rótulo acessível da seção de informações. */
     readonly informacoes: string;
     /** Nome acessível do botão que cobre o baú e a chave (SPEC-04, RF-04.4). */
     readonly abrirBau: string;
+    /** Nome acessível da região que reúne os balões. */
+    readonly historia: string;
+    /** Nome acessível do botão transparente que acelera a história. */
+    readonly avancarHistoria: string;
   };
   readonly entrada: {
     readonly nomes: string;
@@ -26,7 +41,10 @@ export interface ConteudoConvite {
     readonly pular: string;
     readonly chaveComputador: string;
     readonly chaveCelular: string;
+    readonly avancar: string;
   };
+  /** Os balões da história, na ordem em que aparecem (SPEC-05). */
+  readonly baloes: readonly BalaoDoConvite[];
   readonly contagem: {
     /** Modelo com `{dias}`, `{horas}` e `{minutos}`. */
     readonly antes: string;

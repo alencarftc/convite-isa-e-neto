@@ -68,6 +68,36 @@ export interface ConfigConvite {
     };
   };
   /**
+   * História em balões (SPEC-05). Cada balão dura `duracoes.balao` = 3 s e os instantes são contados
+   * do início dele. A história inteira soma `duracoes.balao` × número de balões.
+   */
+  readonly historia: {
+    /** O balão sai da boca do baú e sobe até a altura de leitura. */
+    readonly saida: number;
+    readonly escalaInicial: number;
+    /** A frase surge abaixo do balão. */
+    readonly fraseEm: number;
+    readonly fraseAparece: number;
+    /** Leitura: o balão sobe mais um pouco, balançando; a frase fica parada e legível. */
+    readonly leituraEm: number;
+    readonly leitura: number;
+    readonly balanco: number;
+    readonly subidaFinalEm: number;
+    readonly subidaFinal: number;
+    /** Altura de leitura, como fração da tela contada de baixo para cima (62%). */
+    readonly alturaDaSaida: number;
+    /** Quanto o balão sobe durante a leitura, em fração da altura da tela (8%). */
+    readonly subidaDaLeitura: number;
+    /** Espaço mínimo entre o balão e o alto da tela, em pixels (telas baixas). */
+    readonly margemSuperior: number;
+    /** Desvio horizontal de cada balão, em fração da largura, a partir do centro. */
+    readonly desvios: readonly number[];
+    /** Velocidade de `tlHistoria` depois de um toque, até o próximo balão. */
+    readonly aceleracao: number;
+    /** A dica "Toque para avançar" aparece e some nesses instantes da história. */
+    readonly dica: { readonly aparece: number; readonly some: number };
+  };
+  /**
    * Baú e chave (SPEC-04). A abertura (`tlBau`) soma `duracoes.bau` = 2 s; os instantes são
    * contados do toque, como na tabela "Abertura" da spec.
    */
@@ -140,6 +170,8 @@ export interface ConfigConvite {
     readonly leve: string;
     /** Saída de seno (`sine.out`): a luz que assenta. */
     readonly senoSaida: string;
+    /** Entrada leve (`power1.in`): o balão sobe rápido e some pelo alto. */
+    readonly entradaLeve: string;
   };
   readonly volumes: {
     readonly ambiente: number;

@@ -53,6 +53,7 @@ src/
 │   ├── contagem/                # estado por data, contagem regressiva, plural (SPEC-07)
 │   ├── eventos/                 # EventosConvite: nomes e dados do barramento (SPEC-01)
 │   ├── fase/                    # fases do orquestrador (SPEC-01)
+│   ├── historia/                # posições verticais dos balões, com limite em telas baixas (SPEC-05)
 │   ├── profundidade/            # deslocamento por ponteiro (SPEC-03)
 │   ├── imagens/                 # catálogo: críticas, fila secundária, arte por orientação (SPEC-02)
 │   ├── tela/                    # orientação (vertical, horizontal)
@@ -75,6 +76,7 @@ src/
 ├── presentation/                # tudo que desenha: cenas, componentes, GSAP
 │   ├── audio/                   # botão de som (SPEC-08)
 │   ├── bau/                     # baú, chave, dica e abertura (SPEC-04)
+│   ├── historia/                # balões, frases, aceleração e tlHistoria (SPEC-05)
 │   ├── petalas/                 # função de pétalas, compartilhada com a SPEC-06
 │   ├── bosque/                  # cena do bosque: camadas, revelação e profundidade (SPEC-03)
 │   ├── entrada/                 # névoa, nomes e "Toque para entrar" (SPEC-02)
@@ -99,7 +101,8 @@ docs/                            # documentação e contexto (ver docs/README.md
 | SPEC-02 `preload`                                     | portas `CarregadorDeImagens` e `Temporizador` em `application`, adaptadores em `infrastructure` | feito: `use-cases/carregamento.ts`; `img.decode()` no adaptador (ADR-0006)                                             |
 | SPEC-03 bosque                                        | `presentation/bosque`                                                                           | feito: `cena-bosque.ts` (camadas, revelação) e `profundidade.ts` (mouse/deriva); a matemática em `domain/profundidade` |
 | SPEC-04 baú e chave                                   | `presentation/bau`                                                                              | feito: `cena-bau.ts` (cursor ou chave flutuante, dica, reforço, `tlBau`) e `petalas/soltar-petalas.ts`                 |
-| SPEC-02/05/06 cenas e GSAP                            | `presentation/scenes/`                                                                          | cada cena recebe `ctx = { root, content, config, state, events, audio }`                                               |
+| SPEC-05 história em balões                            | `presentation/historia`                                                                         | feito: `cena-historia.ts` (`tlHistoria` com `tlLuz`, aceleração 3×, região `aria-live`); posições em `domain/historia` |
+| SPEC-02/06 cenas e GSAP                               | `presentation/scenes/`                                                                          | cada cena recebe `ctx = { root, content, config, state, events, audio }`                                               |
 | SPEC-04 cursor de chave                               | `presentation`                                                                                  | detecção de `pointer` via porta ou `matchMedia` no adaptador                                                           |
 | SPEC-07 contagem e estados                            | `domain` + `application` + `presentation`                                                       | feito (fatia vertical de referência)                                                                                   |
 | SPEC-08 áudio                                         | porta `AudioPort` em `application`, Howler em `infrastructure/audio`                            | feito: `conectarAudio` liga os eventos à porta; botão de som em `presentation/audio` (ADR-0005)                        |
