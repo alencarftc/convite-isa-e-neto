@@ -4,10 +4,12 @@ import type { BarramentoEventos } from '@/application/barramento-eventos';
 import type { Cena } from '@/application/cena';
 import type { EstadoConvite } from '@/application/estado-convite';
 import type { ConfigConvite } from '@/domain/config/config-convite';
-import type { BalaoDoConvite, ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
+import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { posicoesDoBalao } from '@/domain/historia/posicoes';
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
+
+import { criarFotoEmCirculo } from './foto-em-circulo';
 
 export interface DependenciasDaHistoria {
   readonly raiz: HTMLElement;
@@ -33,26 +35,6 @@ function criar(tag: string, classe: string): HTMLElement {
   const elemento = document.createElement(tag);
   elemento.className = classe;
   return elemento;
-}
-
-/** Foto em círculo; se não existir ou falhar, o balão fica só com a frase (RF-05.9). */
-function criarFoto(balao: BalaoDoConvite): HTMLElement | null {
-  if (balao.foto === '') return null;
-  const quadro = criar('span', 'balao__foto');
-  const imagem = document.createElement('img');
-  imagem.alt = balao.alt;
-  imagem.style.objectPosition = balao.foco;
-  imagem.draggable = false;
-  imagem.addEventListener(
-    'error',
-    () => {
-      quadro.remove();
-    },
-    { once: true },
-  );
-  imagem.src = balao.foto;
-  quadro.append(imagem);
-  return quadro;
 }
 
 /**
@@ -88,7 +70,7 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
       const frase = criar('p', 'balao__frase');
       frase.textContent = balao.frase;
       elemento.append(nuvem);
-      const foto = criarFoto(balao);
+      const foto = criarFotoEmCirculo(balao, { classe: 'balao__foto' });
       if (foto) elemento.append(foto);
       elemento.append(frase);
       gsap.set(elemento, { opacity: 0, xPercent: -50, yPercent: -50 });
