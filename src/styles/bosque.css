@@ -1,0 +1,105 @@
+/*
+ * Cena do bosque (SPEC-03): camadas empilhadas, da mais distante à mais próxima. Só `transform` e
+ * `opacity` se animam. As camadas têm 24 px de sobra em cada lado para o deslocamento nunca mostrar
+ * borda. Posições e proporções são o ponto de partida da spec e devem ser ajustadas com a arte final.
+ */
+.cena {
+  --sobra: 24px;
+  --lago-altura: 30%;
+  --lago-base: 30%;
+  --frente-altura: 34%;
+
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-ceu);
+  height: 100dvh;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--cor-marfim);
+  opacity: 0;
+  transform-origin: 50% 70%;
+}
+
+@media (orientation: landscape) {
+  .cena {
+    --lago-altura: 40%;
+    --lago-base: 22%;
+    --frente-altura: 30%;
+  }
+}
+
+.camada {
+  position: absolute;
+  inset: calc(var(--sobra) * -1);
+  display: block;
+  will-change: transform;
+}
+
+.camada img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+
+.camada--ceu {
+  z-index: var(--z-ceu);
+}
+
+/* O céu do pôr do sol começa invisível; a história o revela em 15 s (SPEC-05). */
+.camada--ceu-sol {
+  z-index: var(--z-ceu);
+  opacity: 0;
+}
+
+.camada--lago {
+  inset: auto calc(var(--sobra) * -1) var(--lago-base);
+  z-index: var(--z-lago);
+  height: var(--lago-altura);
+}
+
+.camada--arvores {
+  z-index: var(--z-arvores);
+}
+
+.camada--frente {
+  inset: auto calc(var(--sobra) * -1) calc(var(--sobra) * -1);
+  z-index: var(--z-primeiro-plano);
+  height: calc(var(--frente-altura) + var(--sobra));
+}
+
+.camada--frente img {
+  object-position: bottom center;
+}
+
+/* Espaços das SPEC-04 (baú) e SPEC-06 (casal). */
+.bau {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-bau);
+}
+
+.casal {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-primeiro-plano);
+}
+
+/* Luz quente do pôr do sol, vinda do fundo à direita (SPEC-03, "Luz"). */
+.camada--luz {
+  z-index: var(--z-primeiro-plano);
+  background: radial-gradient(
+    120% 90% at 85% 35%,
+    color-mix(in srgb, var(--cor-luz) 45%, transparent),
+    color-mix(in srgb, var(--cor-dourado) 15%, transparent) 55%,
+    transparent 80%
+  );
+  opacity: 0;
+  mix-blend-mode: soft-light;
+}
+
+/* Modo de segurança: sem cena, fundo marfim, carta e informações (SPEC-09). */
+body[data-fase='seguranca'] .cena {
+  display: none;
+}

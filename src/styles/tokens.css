@@ -6,6 +6,7 @@
   --cor-dourado: #b18e4a; /* só decoração: 2,8:1 sobre marfim */
   --cor-texto: #32425d; /* 9,1:1 sobre marfim; 6,5:1 sobre bege */
   --cor-texto-suave: #4e5f7e; /* 5,8:1 só sobre marfim (4,1:1 sobre bege: não usar) */
+  --cor-luz: #e5aa6e; /* luz quente do pôr do sol sobre o bosque (SPEC-03) */
 
   --sombra-cartao: 0 4px 20px rgb(50 66 93 / 12%);
 
