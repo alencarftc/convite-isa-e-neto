@@ -1,6 +1,8 @@
 import type { ConfigConvite } from '../../src/domain/config/config-convite';
 import type { ConteudoConvite } from '../../src/domain/conteudo/conteudo-convite';
 import { urlsDaImagem } from '../../src/domain/imagens/catalogo-de-imagens';
+import { dataPorExtenso, diaDaSemana, horaCurta } from '../../src/domain/tempo/formato-de-data';
+import { analisarInstante } from '../../src/domain/tempo/tempo';
 
 /**
  * Regras do gate de publicação (SPEC-12, "Checagem automática"). São funções
@@ -69,6 +71,55 @@ export function validarLinks(config: ConfigConvite): Problema[] {
     }));
 }
 
+/**
+ * Os textos que citam o prazo e a data do casamento precisam bater com `config` (SPEC-07, SPEC-11):
+ * o botão de confirmar some pela data de `config`, mas quem lê é o texto de `content`.
+ */
+export function validarConsistenciaDeDatas(
+  config: ConfigConvite,
+  conteudo: Pick<ConteudoConvite, 'botoes' | 'carta' | 'contagem'>,
+): Problema[] {
+  // Data inválida já é acusada por `validarDatas`; aqui não há o que comparar.
+  let prazoEmMs: number;
+  let casamento: number;
+  try {
+    prazoEmMs = analisarInstante(config.prazoConfirmacao);
+    casamento = analisarInstante(config.casamento);
+  } catch {
+    return [];
+  }
+  const problemas: Problema[] = [];
+  const prazo = dataPorExtenso(prazoEmMs);
+
+  for (const [nome, texto] of [
+    ['content.botoes.prazo', conteudo.botoes.prazo],
+    ['content.botoes.encerrado', conteudo.botoes.encerrado],
+  ] as const) {
+    if (!texto.includes(prazo)) {
+      problemas.push({
+        regra: 'datas-nos-textos',
+        mensagem: `${nome} precisa citar o prazo de config.prazoConfirmacao ("${prazo}"): "${texto}"`,
+      });
+    }
+  }
+
+  const dataDaCarta = `${diaDaSemana(casamento)} · ${dataPorExtenso(casamento)} · ${horaCurta(casamento)}`;
+  if (conteudo.carta.data !== dataDaCarta.toUpperCase()) {
+    problemas.push({
+      regra: 'datas-nos-textos',
+      mensagem: `content.carta.data precisa ser "${dataDaCarta.toUpperCase()}" (de config.casamento): "${conteudo.carta.data}"`,
+    });
+  }
+
+  if (!conteudo.contagem.noDia.includes(horaCurta(casamento))) {
+    problemas.push({
+      regra: 'datas-nos-textos',
+      mensagem: `content.contagem.noDia precisa citar o horário do casamento ("${horaCurta(casamento)}"): "${conteudo.contagem.noDia}"`,
+    });
+  }
+  return problemas;
+}
+
 /** Arte provisória (SVG gerado por `pnpm arte:provisoria`) não pode ir para o ar (docs/decisions/0006). */
 export function validarArteDefinitiva(
   config: ConfigConvite,
@@ -132,6 +183,7 @@ export function verificarTudo({
     ...encontrarTextoPendente(conteudo),
     ...validarDatas(config),
     ...validarLinks(config),
+    ...validarConsistenciaDeDatas(config, conteudo),
     ...validarArteDefinitiva(config, conteudo),
     ...validarArquivos(config, conteudo, arquivosDeAudio, existe),
   ];
