@@ -1,0 +1,22 @@
+/* "Pular para o convite" fixo no canto superior esquerdo, da entrada à carta aberta (SPEC-14, RF-14.1). */
+.botao-pular {
+  position: fixed;
+  top: max(var(--espaco-3), env(safe-area-inset-top));
+  left: max(var(--espaco-3), env(safe-area-inset-left));
+  z-index: var(--z-interface);
+  min-width: 44px;
+  min-height: 44px;
+  padding: var(--espaco-2) var(--espaco-4);
+  font: inherit;
+  font-size: var(--texto-corpo);
+  color: var(--cor-texto);
+  cursor: pointer;
+  background: var(--cor-marfim);
+  border: 1px solid var(--cor-dourado);
+  border-radius: 999px;
+  box-shadow: var(--sombra-cartao);
+}
+
+.botao-pular:active {
+  transform: scale(0.97);
+}

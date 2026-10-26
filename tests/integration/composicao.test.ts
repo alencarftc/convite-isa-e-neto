@@ -26,7 +26,9 @@ const fase = () => document.body.getAttribute('data-fase');
 
 /** Filhos do .conteudo, na ordem: a carta, a história estática (só para quem não viu os balões) e as informações. */
 const blocosDoConteudo = () =>
-  [...(document.querySelector('#app .conteudo')?.children ?? [])].map((filho) => filho.className);
+  [...(document.querySelector('#app .conteudo')?.children ?? [])]
+    .map((filho) => filho.className)
+    .filter((classe) => classe !== 'convite__rolar'); // dica visual, ancorada acima da carta (SPEC-14)
 
 const COM_HISTORIA_ESTATICA = ['carta', 'historia-estatica', 'informacoes'];
 
@@ -85,6 +87,7 @@ describe('src/main.ts', () => {
   });
 
   afterEach(() => {
+    localStorage.clear(); // a visita registrada num teste não pode valer para o seguinte
     for (const { alvo, tipo, escuta } of ouvintes.splice(0)) alvo.removeEventListener(tipo, escuta);
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
@@ -94,7 +97,7 @@ describe('src/main.ts', () => {
     await import('@/main');
 
     expect(document.querySelector('.entrada__nomes')?.textContent).toBe('Isabella & David');
-    expect(document.querySelector('#app .botao-som')?.getAttribute('aria-pressed')).toBe('true');
+    expect(document.querySelector('.botao-som')?.getAttribute('aria-pressed')).toBe('true');
     await vi.waitFor(() => {
       expect(document.querySelector<HTMLButtonElement>('.entrada__tocar')?.hidden).toBe(false);
     });
@@ -175,10 +178,11 @@ describe('src/main.ts', () => {
       localStorage.setItem('convite:visitado', 'true');
       await import('@/main');
       await vi.waitFor(() => {
-        expect(document.querySelector<HTMLButtonElement>('.entrada__pular')?.hidden).toBe(false);
+        expect(document.querySelector<HTMLButtonElement>('.entrada__tocar')?.hidden).toBe(false);
       });
+      expect(document.querySelector<HTMLButtonElement>('.botao-pular')?.hidden).toBe(false);
 
-      document.querySelector<HTMLButtonElement>('.entrada__pular')?.click();
+      document.querySelector<HTMLButtonElement>('.botao-pular')?.click();
 
       await vi.waitFor(() => {
         expect(fase()).toBe('informacoes');
@@ -188,13 +192,56 @@ describe('src/main.ts', () => {
       localStorage.removeItem('convite:visitado');
     });
 
+    it('segunda visita: "Pular" continua à mão no baú e leva à carta com a história estática (CT-14.1)', async () => {
+      localStorage.setItem('convite:visitado', 'true');
+      await abrirEntrando();
+      await vi.waitFor(() => {
+        expect(document.querySelector<HTMLButtonElement>('.bau__botao')?.disabled).toBe(false);
+      });
+      expect(fase()).toBe('aguardando-bau');
+      expect(document.querySelector<HTMLButtonElement>('.botao-pular')?.hidden).toBe(false);
+
+      document.querySelector<HTMLButtonElement>('.botao-pular')?.click();
+
+      await vi.waitFor(() => {
+        expect(fase()).toBe('informacoes');
+      });
+      expect(blocosDoConteudo()).toEqual(COM_HISTORIA_ESTATICA);
+      expect(document.querySelector('.botao-pular')?.hasAttribute('hidden')).toBe(true); // CT-14.2
+    });
+
+    it('a ordem do Tab é o atalho, "Pular", o som e só depois a etapa atual (CT-14.5, RF-14.3)', async () => {
+      localStorage.setItem('convite:visitado', 'true');
+      await import('@/main');
+
+      // Só entram na ordem do Tab os botões habilitados e à vista: o do baú, que fica antes no DOM,
+      // está desabilitado até o bosque ficar pronto.
+      const tabulaveis = [...document.querySelectorAll('button')]
+        .filter((botao) => !botao.disabled && !botao.hidden)
+        .map((botao) => botao.className);
+
+      expect(tabulaveis.slice(0, 3)).toEqual([
+        'visualmente-oculto atalho',
+        'botao-pular',
+        'botao-som',
+      ]);
+      await vi.waitFor(() => {
+        expect(document.querySelector<HTMLButtonElement>('.entrada__tocar')?.hidden).toBe(false);
+      });
+      const depoisDoSom = [...document.querySelectorAll('button')]
+        .filter((botao) => !botao.disabled && !botao.hidden)
+        .map((botao) => botao.className)
+        .slice(3);
+      expect(depoisDoSom[0]).toBe('entrada__tocar');
+    });
+
     it('na primeira visita, "Pular para o convite" não aparece', async () => {
       await import('@/main');
       await vi.waitFor(() => {
         expect(document.querySelector<HTMLButtonElement>('.entrada__tocar')?.hidden).toBe(false);
       });
 
-      expect(document.querySelector<HTMLButtonElement>('.entrada__pular')?.hidden).toBe(true);
+      expect(document.querySelector('.botao-pular')?.hasAttribute('hidden')).toBe(true);
     });
 
     it('com animação reduzida, o toque leva direto à carta aberta, sem balões nem envelope (CA-09.1.1, CA-09.1.2)', async () => {

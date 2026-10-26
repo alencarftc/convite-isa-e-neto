@@ -13,6 +13,7 @@ import './styles/historia.css';
 import './styles/historia-estatica.css';
 import './styles/informacoes.css';
 import './styles/botao-som.css';
+import './styles/botao-pular.css';
 
 import { Howl, Howler } from 'howler';
 
@@ -41,6 +42,7 @@ import { criarCarregadorDeImagens } from '@/infrastructure/imagens/carregador-de
 import { criarRelogio } from '@/infrastructure/relogio/relogio';
 import { criarTemporizador } from '@/infrastructure/tempo/temporizador';
 import { montarAtalhoParaOConvite } from '@/presentation/acessibilidade/atalho-para-o-convite';
+import { montarBotaoPular } from '@/presentation/acessibilidade/botao-pular';
 import { marcarInicioDoConvite } from '@/presentation/acessibilidade/plano-b';
 import { montarBotaoSom } from '@/presentation/audio/botao-som';
 import { criarCenaBau } from '@/presentation/bau/cena-bau';
@@ -94,7 +96,13 @@ const pararDeOuvirSaidaEVolta = ouvirSaidaEVolta(
     audioDoConvite.aoVoltar();
   },
 );
-const removerBotaoSom = montarBotaoSom({ raiz, dicas: content.dicas, estado, eventos });
+// Fora do #app, antes de "Pular" e do atalho: a ordem do Tab é atalho, Pular, som e a etapa atual (SPEC-14, RF-14.3).
+const removerBotaoSom = montarBotaoSom({
+  raiz: document.body,
+  dicas: content.dicas,
+  estado,
+  eventos,
+});
 
 // ?erro=<cena> (só em desenvolvimento) faz a cena indicada falhar, para provar o modo de segurança.
 const erroForcado = lerErroForcado({ desenvolvimento, busca });
@@ -162,17 +170,25 @@ const orquestrador = criarOrquestrador({
 });
 
 const pararDeRegistrarVisita = registrarVisita({ estado, eventos });
-// Atalho de teclado e leitor de tela (SPEC-09): mesmo destino de "Pular para o convite". Se o som
-// ainda não foi liberado, o próprio clique libera (como o toque de entrada).
+// "Pular para o convite" (SPEC-14) e o atalho de teclado e leitor de tela (SPEC-09) levam ao mesmo
+// destino. Se o som ainda não foi liberado, o próprio clique libera (como o toque de entrada).
+function acionarPular(): void {
+  if (estado.fase === 'carregando' || estado.fase === 'aguardando-entrada') {
+    eventos.emit('entrada:tocou', { escolha: 'pular' });
+  }
+  orquestrador.pular();
+}
+// O botão entra antes: na ordem do Tab vem o atalho, depois "Pular", o som e a etapa atual (RF-14.3).
+const removerBotaoPular = montarBotaoPular({
+  corpo: document.body,
+  conteudo: content,
+  estado,
+  aoAcionar: acionarPular,
+});
 const removerAtalho = montarAtalhoParaOConvite({
   corpo: document.body,
   conteudo: content,
-  aoAcionar: () => {
-    if (estado.fase === 'carregando' || estado.fase === 'aguardando-entrada') {
-      eventos.emit('entrada:tocou', { escolha: 'pular' });
-    }
-    orquestrador.pular();
-  },
+  aoAcionar: acionarPular,
 });
 const pararDeOuvirErros = ouvirErrosGlobais(window, (erro) => {
   orquestrador.falhar(erro);
@@ -184,6 +200,7 @@ import.meta.hot?.dispose(() => {
   pararDeOuvirErros();
   pararDeRegistrarVisita();
   removerAtalho();
+  removerBotaoPular();
   pararDeOuvirSaidaEVolta();
   removerBotaoSom();
   audioDoConvite.destruir();

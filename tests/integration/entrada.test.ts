@@ -52,7 +52,6 @@ describe('cena de entrada (SPEC-02)', () => {
       expect(textoDoIndexHtml('.entrada__chamada')).toBe(content.entrada.tocar);
       expect(textoDoIndexHtml('.entrada__volume')).toBe(content.entrada.volume);
       expect(textoDoIndexHtml('.entrada__aguarde')).toBe(content.entrada.aguarde);
-      expect(textoDoIndexHtml('.entrada__pular')).toBe(content.dicas.pular);
       expect(document.querySelectorAll('.nevoa > span')).toHaveLength(2);
       expect(document.querySelector('.entrada__tocar')?.hasAttribute('hidden')).toBe(true);
     });
@@ -64,7 +63,6 @@ describe('cena de entrada (SPEC-02)', () => {
       cena.init();
 
       expect(el('.entrada__nomes').textContent).toBe(content.entrada.nomes);
-      expect(el('.entrada__pular').textContent).toBe(content.dicas.pular);
     });
 
     it('sem a seção .entrada no HTML, falha com mensagem clara', () => {
@@ -109,23 +107,10 @@ describe('cena de entrada (SPEC-02)', () => {
       expect(estado.fase).toBe('aguardando-entrada');
     });
 
-    it('"Pular para o convite" só aparece a partir da segunda visita (CA-09)', async () => {
-      const primeira = montar({ visitado: false });
-      primeira.cena.init();
-      void primeira.cena.run();
-      primeira.concluirImagens();
-      await vi.waitFor(() => {
-        expect(primeira.el('.entrada__tocar').hidden).toBe(false);
-      });
-      expect(primeira.el('.entrada__pular').hidden).toBe(true);
+    it('"Pular para o convite" não é mais da entrada: é o botão fixo da SPEC-14', () => {
+      montar();
 
-      const segunda = montar({ visitado: true });
-      segunda.cena.init();
-      void segunda.cena.run();
-      segunda.concluirImagens();
-      await vi.waitFor(() => {
-        expect(segunda.el('.entrada__pular').hidden).toBe(false);
-      });
+      expect(document.querySelector('.entrada__pular')).toBeNull();
     });
   });
 
@@ -161,15 +146,6 @@ describe('cena de entrada (SPEC-02)', () => {
 
       expect(aoTocar).toHaveBeenCalledTimes(1);
       expect(tocar.disabled).toBe(true);
-    });
-
-    it('"Pular" resolve na hora, sem esperar o bosque, e não dispara a entrada', async () => {
-      const { botao, aoTocar, execucao } = await ateOToque({ visitado: true });
-
-      botao('.entrada__pular').click();
-
-      expect(aoTocar).toHaveBeenCalledExactlyOnceWith({ escolha: 'pular' });
-      await expect(execucao).resolves.toBe('pular');
     });
 
     it('com animação reduzida, o toque não espera o bosque', async () => {
