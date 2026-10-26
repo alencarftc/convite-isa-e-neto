@@ -49,11 +49,7 @@
 /* Aura dourada atrás do baú: gradiente radial animado só por opacidade (RNF-04.1). */
 .bau__aura {
   inset: -35%;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, var(--cor-dourado) 55%, transparent),
-    transparent
-  );
+  background: radial-gradient(closest-side, var(--cor-dourado-55), transparent);
 }
 
 /* Luz de dentro do baú, que sobe da boca quando a tampa abre. */
@@ -61,8 +57,8 @@
   inset: -10% 5% 35%;
   background: radial-gradient(
     closest-side,
-    color-mix(in srgb, var(--cor-luz) 85%, var(--cor-marfim)),
-    color-mix(in srgb, var(--cor-dourado) 30%, transparent) 60%,
+    var(--cor-luz-claro),
+    var(--cor-dourado-30) 60%,
     transparent
   );
 }
@@ -86,11 +82,7 @@
 .bau__brilho {
   position: absolute;
   inset: -40%;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, var(--cor-luz) 70%, transparent),
-    transparent
-  );
+  background: radial-gradient(closest-side, var(--cor-luz-70), transparent);
   opacity: 0;
 }
 
@@ -125,7 +117,7 @@
   color: var(--cor-texto);
   text-align: center;
   pointer-events: none;
-  background: color-mix(in srgb, var(--cor-marfim) 88%, transparent);
+  background: var(--cor-marfim-88);
   border-radius: 999px;
 }
 

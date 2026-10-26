@@ -27,6 +27,7 @@ export const config: ConfigConvite = {
     reforcoDica: 8,
     limiteCritico: 8,
     limiteSeguranca: 20,
+    limitePlanoB: 10,
     novaTentativaDeImagem: 1,
     entradaNomes: 0.6,
     entradaNomesAtraso: 0.2,

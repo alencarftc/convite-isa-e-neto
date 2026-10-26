@@ -31,6 +31,8 @@ export interface ConfigConvite {
     readonly reforcoDica: number;
     readonly limiteCritico: number;
     readonly limiteSeguranca: number;
+    /** Sem o pacote iniciar até aqui, a página mostra o texto simples (SPEC-15, RF-15.6). */
+    readonly limitePlanoB: number;
     /** Espera antes de tentar baixar de novo uma imagem que falhou (SPEC-02). */
     readonly novaTentativaDeImagem: number;
     /** Nomes do casal aparecem (SPEC-02, "Animações da entrada"). */

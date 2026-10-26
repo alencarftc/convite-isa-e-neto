@@ -85,8 +85,8 @@
   z-index: var(--z-primeiro-plano);
   background: radial-gradient(
     120% 90% at 85% 35%,
-    color-mix(in srgb, var(--cor-luz) 45%, transparent),
-    color-mix(in srgb, var(--cor-dourado) 15%, transparent) 55%,
+    var(--cor-luz-45),
+    var(--cor-dourado-15) 55%,
     transparent 80%
   );
   opacity: 0;

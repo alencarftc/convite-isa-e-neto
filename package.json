@@ -10,6 +10,13 @@
     "node": ">=22.12.0",
     "pnpm": ">=10.34.0"
   },
+  "browserslist": [
+    "chrome >= 90",
+    "edge >= 90",
+    "firefox >= 90",
+    "safari >= 15.1",
+    "ios_saf >= 15.1"
+  ],
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
@@ -60,6 +67,7 @@
     "@types/howler": "2.2.13",
     "@types/node": "22.20.5",
     "@vitest/coverage-v8": "5.0.5",
+    "acorn": "8.19.0",
     "dependency-cruiser": "18.7.0",
     "eslint": "10.13.0",
     "eslint-config-prettier": "10.1.8",

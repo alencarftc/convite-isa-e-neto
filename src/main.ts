@@ -40,6 +40,7 @@ import { criarCarregadorDeImagens } from '@/infrastructure/imagens/carregador-de
 import { criarRelogio } from '@/infrastructure/relogio/relogio';
 import { criarTemporizador } from '@/infrastructure/tempo/temporizador';
 import { montarAtalhoParaOConvite } from '@/presentation/acessibilidade/atalho-para-o-convite';
+import { marcarInicioDoConvite } from '@/presentation/acessibilidade/plano-b';
 import { montarBotaoSom } from '@/presentation/audio/botao-som';
 import { criarCenaBau } from '@/presentation/bau/cena-bau';
 import { criarCenaBosque } from '@/presentation/bosque/cena-bosque';
@@ -48,6 +49,9 @@ import { criarCenaEntrada } from '@/presentation/entrada/cena-entrada';
 import { refletirFaseNoCorpo } from '@/presentation/fase-no-corpo';
 import { criarCenaHistoria } from '@/presentation/historia/cena-historia';
 import { criarCenaInformacoes } from '@/presentation/informacoes/cena-informacoes';
+
+// Primeira instrução depois dos imports: o script do <head> espera por esta marca (SPEC-15, RF-15.6).
+marcarInicioDoConvite(window, document);
 
 const raiz = document.querySelector<HTMLElement>('#app');
 if (!raiz) throw new Error('Elemento #app não encontrado no index.html');

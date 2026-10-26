@@ -9,6 +9,23 @@
   --cor-chao: #4f6b58; /* base do primeiro plano que fica à mostra quando a cena sobe (SPEC-06); ajustar com a arte final */
   --cor-luz: #e5aa6e; /* luz quente do pôr do sol sobre o bosque (SPEC-03) */
 
+  /* Cores com transparência, pré-calculadas (hex de 8 dígitos): `color-mix()` não existe em aparelhos mais antigos (SPEC-15). */
+  --cor-bege-55: #dbceb08c;
+  --cor-bege-70: #dbceb0b3;
+  --cor-dourado-15: #b18e4a26;
+  --cor-dourado-30: #b18e4a4d;
+  --cor-dourado-55: #b18e4a8c;
+  --cor-dourado-70: #b18e4ab3;
+  --cor-luz-45: #e5aa6e73;
+  --cor-luz-70: #e5aa6eb3;
+  --cor-luz-90: #e5aa6ee6;
+  --cor-marfim-85: #f6f3e0d9;
+  --cor-marfim-88: #f6f3e0e0;
+  --cor-marfim-90: #f6f3e0e6;
+  --cor-serenidade-28: #91a8d047;
+  --cor-texto-55: #32425d8c;
+  --cor-luz-claro: #e8b57f; /* luz 85% sobre marfim */
+
   --sombra-cartao: 0 4px 20px rgb(50 66 93 / 12%);
 
   --fonte-cursiva: 'Great Vibes';
