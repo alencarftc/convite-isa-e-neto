@@ -11,6 +11,8 @@ export const content: ConteudoConvite = {
     historia: 'História do casal',
     avancarHistoria: 'Avançar a história',
     abrirEnvelope: 'Abrir o envelope',
+    mensagem: 'Mensagem do casal',
+    traje: 'Traje',
   },
   entrada: {
     nomes: 'Isabella & David',
@@ -96,6 +98,18 @@ export const content: ConteudoConvite = {
       minuto: ['minuto', 'minutos'],
     },
   },
+  mensagem: {
+    paragrafos: [
+      'Antes de tudo, agradecemos a Deus. Foi Ele quem uniu os nossos caminhos, cuidou de cada detalhe e transformou um sonho em realidade.',
+      'Aprendemos juntos que o amor "tudo sofre, tudo crê, tudo espera, tudo suporta" (1 Coríntios 13:7). É esse amor que queremos celebrar com quem caminhou ao nosso lado.',
+      'Você faz parte da nossa história, e a sua presença é o nosso maior presente.',
+    ],
+    // Pendência do casal: não reproduzimos letra de música (direitos autorais). O `pnpm verificar`
+    // barra a publicação enquanto estiver entre colchetes.
+    versoLouvor: '[Um verso do louvor escolhido, em itálico, com o nome da música]',
+    assinatura: 'Com carinho, Isabella & David',
+  },
+  dressCode: 'Esporte fino',
   botoes: {
     confirmar: 'Confirmar presença',
     prazo: 'Confirme até 31 de dezembro de 2026.',
