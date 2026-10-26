@@ -30,6 +30,7 @@ import { config } from '@/config/config';
 import { content } from '@/config/content';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { criarAmbienteDoNavegador } from '@/infrastructure/ambiente/ambiente-do-navegador';
+import { criarCapacidadesDoNavegador } from '@/infrastructure/ambiente/capacidades-do-navegador';
 import { ouvirSaidaEVolta } from '@/infrastructure/ambiente/visibilidade';
 import {
   criarPreferencias,
@@ -156,6 +157,8 @@ const orquestrador = criarOrquestrador({
           relogio,
           obterInformacoes: criarObterInformacoes({ relogio, config, conteudo: content }),
           animar: !estado.reduzido,
+          // "Salvar na agenda" baixa o .ics onde o navegador baixa; senão, abre o Google Agenda (SPEC-17).
+          baixaArquivos: criarCapacidadesDoNavegador(window).baixaArquivos(),
         },
         // As informações rolam abaixo da carta, dentro do `.conteudo` criado por ela (SPEC-06).
         () => raiz.querySelector<HTMLElement>('.conteudo') ?? raiz,

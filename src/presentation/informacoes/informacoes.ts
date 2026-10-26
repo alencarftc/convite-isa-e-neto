@@ -2,6 +2,7 @@ import gsap from 'gsap';
 
 import type { Relogio } from '@/application/ports/relogio';
 import type { InformacoesDoMomento } from '@/application/use-cases/obter-informacoes';
+import { gerarEventoDeAgenda } from '@/domain/agenda/evento-de-agenda';
 import type { ConfigConvite } from '@/domain/config/config-convite';
 import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import { msAteProximoMinuto } from '@/domain/tempo/tempo';
@@ -14,6 +15,11 @@ export interface DependenciasInformacoes {
   readonly relogio: Relogio;
   /** Os cartões surgem ao entrar na tela (SPEC-07); sem isso, já nascem visíveis. */
   readonly animar?: boolean;
+  /**
+   * O navegador baixa arquivos? Se sim, "Salvar na agenda" baixa o `.ics`; se não, abre o Google
+   * Agenda (SPEC-17, RF-17.3). Na dúvida, falso.
+   */
+  readonly baixaArquivos?: boolean;
 }
 
 export interface InformacoesMontadas {
@@ -50,6 +56,31 @@ function criarLink(classe: string, texto: string, href: string): HTMLAnchorEleme
   link.target = '_blank';
   link.rel = 'noopener';
   link.textContent = texto;
+  return link;
+}
+
+/**
+ * "Salvar na agenda" (SPEC-17): um link secundário. Em navegador que baixa arquivos, baixa o `.ics`
+ * (computador e Android); nos demais, abre o Google Agenda com o mesmo evento. O evento sai de
+ * `config` e `content`, sem texto novo além do rótulo do botão.
+ */
+function criarBotaoDaAgenda(
+  conteudo: ConteudoConvite,
+  config: ConfigConvite,
+  baixaArquivos: boolean,
+): HTMLAnchorElement {
+  const agenda = gerarEventoDeAgenda(config, conteudo);
+  if (!baixaArquivos) {
+    return criarLink('botao botao--secundario', conteudo.botoes.agenda, agenda.linkDoGoogle);
+  }
+  const link = criarLink(
+    'botao botao--secundario',
+    conteudo.botoes.agenda,
+    `data:text/calendar;charset=utf-8,${encodeURIComponent(agenda.ics)}`,
+  );
+  link.download = agenda.nomeDoArquivo;
+  link.removeAttribute('target'); // baixar não abre aba
+  link.removeAttribute('rel');
   return link;
 }
 
@@ -102,7 +133,15 @@ function revelarAoEntrarNaTela(cartoes: readonly HTMLElement[], config: ConfigCo
  * convidado volta ao aplicativo (RF-07.3).
  */
 export function montarInformacoes(dependencias: DependenciasInformacoes): InformacoesMontadas {
-  const { raiz, conteudo, config, obterInformacoes, relogio, animar = false } = dependencias;
+  const {
+    raiz,
+    conteudo,
+    config,
+    obterInformacoes,
+    relogio,
+    animar = false,
+    baixaArquivos = false,
+  } = dependencias;
 
   const secao = document.createElement('section');
   secao.className = 'informacoes';
@@ -149,7 +188,8 @@ export function montarInformacoes(dependencias: DependenciasInformacoes): Inform
     conteudo.botoes.comoChegar,
     config.links.mapa,
   );
-  cartaoAcoes.append(botaoConfirmar, avisoPrazo, avisoEncerrado, botaoComoChegar);
+  const botaoAgenda = criarBotaoDaAgenda(conteudo, config, baixaArquivos);
+  cartaoAcoes.append(botaoConfirmar, avisoPrazo, avisoEncerrado, botaoComoChegar, botaoAgenda);
 
   const cartoes = [cartaoContagem, cartaoAgradecimento, cartaoMensagem, cartaoTraje, cartaoAcoes];
   secao.append(...cartoes);
@@ -167,7 +207,11 @@ export function montarInformacoes(dependencias: DependenciasInformacoes): Inform
     avisoPrazo.hidden = informacoes.confirmacao !== 'aberta';
     avisoEncerrado.hidden = informacoes.confirmacao !== 'encerrada';
     botaoComoChegar.hidden = !informacoes.comoChegarVisivel;
-    cartaoAcoes.hidden = informacoes.confirmacao === 'oculta' && !informacoes.comoChegarVisivel;
+    botaoAgenda.hidden = !informacoes.agendaVisivel;
+    cartaoAcoes.hidden =
+      informacoes.confirmacao === 'oculta' &&
+      !informacoes.comoChegarVisivel &&
+      !informacoes.agendaVisivel;
   }
 
   let temporizador: ReturnType<typeof setTimeout> | undefined;

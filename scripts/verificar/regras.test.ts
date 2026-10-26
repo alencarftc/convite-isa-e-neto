@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { config } from '../../src/config/config';
 import { content } from '../../src/config/content';
+import { URL_BASE_DO_GOOGLE_AGENDA } from '../../src/domain/agenda/evento-de-agenda';
 import {
   encontrarTextoPendente,
   encontrarUrlsExternas,
@@ -144,6 +145,7 @@ describe('encontrarUrlsExternas', () => {
       config.links.formulario,
       config.links.mapa,
       config.publicacao.url,
+      URL_BASE_DO_GOOGLE_AGENDA,
     ]);
 
     expect(problemas).toEqual([]);
@@ -316,6 +318,19 @@ describe('verificarTudo', () => {
 
     // Resta a arte provisória e o texto pendente (a descrição das fotos, entre colchetes).
     expect(regras).toEqual(new Set(['arte-provisoria', 'texto-pendente']));
+  });
+
+  it('o endereço do Google Agenda é permitido, e outro serviço de agenda não (SPEC-17, RF-17.3)', () => {
+    const comArquivo = (texto: string) =>
+      verificarTudo({
+        ...entradas,
+        arquivosDoCodigo: [{ caminho: 'src/x.ts', texto }],
+      }).filter((p) => p.regra === 'servico-externo');
+
+    expect(
+      comArquivo("const u = 'https://calendar.google.com/calendar/render?action=TEMPLATE';"),
+    ).toEqual([]);
+    expect(comArquivo("const u = 'https://calendly.com/alguem';")).toHaveLength(1);
   });
 
   it('junta os problemas de todas as regras', () => {
