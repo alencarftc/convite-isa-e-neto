@@ -87,3 +87,21 @@ de `content.baloes`. Os cartões surgem ao entrar na tela, exceto com animação
 - Só para quem não viu os balões (recomendado) **ou para todos**, no fim da carta? A segunda opção garante que ninguém
   perca uma foto por ter acelerado a história, ao custo de repetir o conteúdo.
 - Pode haver um título visível ("A nossa história")? Hoje não existe texto aprovado para isso.
+
+## Implementação (26/10/2026)
+
+Implementada na branch `feat/spec-13-historia-para-todos-os-caminhos`. Respostas adotadas para as questões em
+aberto e desvios do desenho acima:
+
+- **Só para quem não viu os balões**, sem título visível (as duas recomendações da spec).
+- **`figure` e `figcaption` em vez de `h3` só para leitor de tela (RF-13.7):** não existe texto aprovado para um
+  título, e inventar um só para o leitor de tela seria texto novo. A região continua nomeada (`aria-label` com
+  `content.rotulos.historia`) e cada cartão é lido como "descrição da foto, depois a frase" (CT-13.7).
+- **Sem animação ao rolar:** os cartões nascem visíveis, como os das informações no `skip()`. Todos os caminhos que
+  mostram a história estática passam pelo `skip()` da cena final, então "animação reduzida" e "pular" ficam
+  iguais, e o JavaScript crítico cresce só 0,2 kB gzip (RNF-13.1).
+- **Componente compartilhado:** `foto-em-circulo.ts` (e a classe `.foto-em-circulo`, com o tom quente, a borda
+  esfumada e o gradiente) serve aos balões e aos cartões; `.balao__foto` ficou só com a posição.
+- **`<noscript>` e plano B:** o bloco de texto simples (`scripts/vite/texto-simples.ts`) ganhou as cinco `<img>`
+  (`loading="lazy"`, mesmo recorte `object-position`) e frases, entre a carta e o traje.
+- **Ordem no `.conteudo`:** carta, história estática, informações (teste em `composicao.test.ts`).

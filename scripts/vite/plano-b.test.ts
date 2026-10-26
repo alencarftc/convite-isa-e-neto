@@ -63,6 +63,7 @@ describe('texto do plano B (SPEC-15, RF-15.7)', () => {
       ...textosDe(content.carta),
       content.dressCode,
       ...textosDe(content.mensagem),
+      ...content.baloes.map((balao) => balao.frase),
     ]) {
       expect(texto, `texto ausente: ${trecho}`).toContain(escapar(trecho));
       expect(noscript).toContain(escapar(trecho));

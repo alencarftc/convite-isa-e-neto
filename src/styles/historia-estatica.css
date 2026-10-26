@@ -1,0 +1,30 @@
+/* "A nossa história" sem animação, abaixo da carta (SPEC-13). Os cartões são os de `informacoes.css`. */
+.historia-estatica {
+  position: relative;
+  z-index: var(--z-informacoes);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-5);
+  align-items: center;
+  padding: var(--espaco-5) 0 0;
+}
+
+.historia-estatica__cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  align-items: center;
+  margin: 0;
+}
+
+/* Tamanho fixo: a altura fica reservada e o cartão não pula quando a foto chega (SPEC-13, "Casos de borda"). */
+.historia-estatica__foto {
+  flex: none;
+  width: min(52vw, 200px);
+  min-width: 160px;
+}
+
+.historia-estatica__frase {
+  font-size: var(--texto-corpo);
+  line-height: 1.4;
+}

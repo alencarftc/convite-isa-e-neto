@@ -24,6 +24,12 @@ class ImagemInstantanea {
 
 const fase = () => document.body.getAttribute('data-fase');
 
+/** Filhos do .conteudo, na ordem: a carta, a história estática (só para quem não viu os balões) e as informações. */
+const blocosDoConteudo = () =>
+  [...(document.querySelector('#app .conteudo')?.children ?? [])].map((filho) => filho.className);
+
+const COM_HISTORIA_ESTATICA = ['carta', 'historia-estatica', 'informacoes'];
+
 /**
  * Cada `import('@/main')` registra ouvintes em window e document que sobrevivem ao teste (o main
  * não tem como ser desmontado de fora). Guardamos para remover no fim, senão um convite de um teste
@@ -132,6 +138,12 @@ describe('src/main.ts', () => {
     expect(document.body.style.overflow).toBe('');
   });
 
+  it('no caminho completo, a história não é repetida abaixo da carta (CT-13.3)', async () => {
+    await ateAsInformacoes();
+
+    expect(blocosDoConteudo()).toEqual(['carta', 'informacoes']);
+  });
+
   describe('caminhos alternativos (SPEC-09)', () => {
     const textoDaCarta = () => document.querySelector('#app .conteudo .carta')?.textContent ?? '';
 
@@ -154,6 +166,7 @@ describe('src/main.ts', () => {
       });
       expect(textoDaCarta()).toContain(content.carta.assinatura);
       expect(document.querySelector('#app .informacoes')).not.toBeNull();
+      expect(blocosDoConteudo()).toEqual(COM_HISTORIA_ESTATICA);
       expect(document.querySelector<HTMLElement>('.entrada')?.hidden).toBe(true);
       expect(document.body.style.overflow).toBe('');
     });
@@ -171,6 +184,7 @@ describe('src/main.ts', () => {
         expect(fase()).toBe('informacoes');
       });
       expect(textoDaCarta()).toContain(content.carta.assinatura);
+      expect(blocosDoConteudo()).toEqual(COM_HISTORIA_ESTATICA);
       localStorage.removeItem('convite:visitado');
     });
 
@@ -203,6 +217,10 @@ describe('src/main.ts', () => {
       expect(document.querySelector<HTMLElement>('.historia')?.hidden ?? true).toBe(true);
       expect(document.querySelector<HTMLElement>('.envelope')?.hidden).toBe(true);
       expect(document.querySelector('.bau__corpo')).not.toBeNull(); // montado, mas nunca tocado
+      expect(blocosDoConteudo()).toEqual(COM_HISTORIA_ESTATICA);
+      expect(document.querySelectorAll('.historia-estatica__cartao')).toHaveLength(
+        content.baloes.length,
+      );
     });
 
     it('com erro numa cena, mostra a carta e as informações e leva o foco ao título (CA-09.5.2, CT-09.7)', async () => {
@@ -218,6 +236,7 @@ describe('src/main.ts', () => {
       expect(erro).toHaveBeenCalled();
       expect(textoDaCarta()).toContain(content.carta.assinatura);
       expect(document.querySelector('#app .informacoes')).not.toBeNull();
+      expect(blocosDoConteudo()).toEqual(COM_HISTORIA_ESTATICA);
       expect(document.querySelector('#app .conteudo')?.hasAttribute('inert')).toBe(false);
       expect(document.body.style.overflow).toBe('');
       expect(document.activeElement?.id).toBe('carta-titulo');
