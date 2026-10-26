@@ -105,7 +105,8 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
 
 ## Estado atual
 
-Feito: ferramentas e CI; fatia vertical da SPEC-07 (contagem e estados por data, botões); barramento
-de eventos e fases (SPEC-01). Próximo: orquestrador e contrato `Cena` (US-01.4) → SPEC-02 → SPEC-03…
+Feito: ferramentas e CI; SPEC-01 completa (barramento, fases, estado, orquestrador, contrato `Cena`,
+modo de segurança); fatia vertical da SPEC-07 (contagem e estados por data, botões). Próximo: SPEC-08
+(áudio) → SPEC-02 → SPEC-03…
 Pendências de conteúdo: fotos dos balões, imagens geradas, músicas licenciadas, verso do louvor, URL
 publicada (lista em `docs/documentacao.md`).
