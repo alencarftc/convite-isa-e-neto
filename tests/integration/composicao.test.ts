@@ -1,6 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type * as ModuloDeConfig from '@/config/config';
+
 import { montarIndexHtml } from './suporte/index-html';
+
+// A revelação do bosque dura 3 s de verdade; aqui só importa que ela termina e leva ao final.
+vi.mock('@/config/config', async (importarOriginal) => {
+  const original = await importarOriginal<typeof ModuloDeConfig>();
+  return {
+    config: { ...original.config, duracoes: { ...original.config.duracoes, nevoa: 0.05 } },
+  };
+});
 
 /** Imagem que decodifica na hora: o convite não espera por rede nos testes. */
 class ImagemInstantanea {

@@ -1,63 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { criarBarramento } from '@/application/barramento-eventos';
-import { criarEstado, type EstadoConvite } from '@/application/estado-convite';
-import type { Ambiente, Orientacao } from '@/application/ports/ambiente';
-import type { CarregadorDeImagens } from '@/application/ports/carregador-de-imagens';
-import type { Temporizador } from '@/application/ports/temporizador';
-import { criarCarregamento } from '@/application/use-cases/carregamento';
 import { config } from '@/config/config';
 import { content } from '@/config/content';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { criarCenaEntrada } from '@/presentation/entrada/cena-entrada';
 
+import { criarCarregamentoFalso } from './suporte/carregamento-falso';
+import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
 import { montarIndexHtml, textoDoIndexHtml } from './suporte/index-html';
 
-/** Imagens falsas: ficam pendentes até o teste liberar; `ausentes` lista as urls que nunca existem. */
-function montar(opcoes: { visitado?: boolean; reduzido?: boolean } = {}) {
+function montar(opcoes: OpcoesDoEstadoFalso = {}) {
   montarIndexHtml();
   const raiz = document.querySelector<HTMLElement>('#app');
   if (!raiz) throw new Error('index.html sem #app');
 
-  const pendentes: { url: string; resolver: (ok: boolean) => void }[] = [];
-  const baixadas: string[] = [];
-  const imagens: CarregadorDeImagens = {
-    baixar(url) {
-      baixadas.push(url);
-      return new Promise((resolver) => {
-        pendentes.push({ url, resolver });
-      });
-    },
-  };
-  const esperas: { segundos: number; passar: () => void }[] = [];
-  const temporizador: Temporizador = {
-    esperar: (segundos) => new Promise((resolver) => esperas.push({ segundos, passar: resolver })),
-  };
-
-  let orientacao: Orientacao = 'vertical';
-  const giros = new Set<(o: Orientacao) => void>();
-  const ambiente: Ambiente = {
-    animacaoReduzida: () => opcoes.reduzido ?? false,
-    porToque: () => true,
-    orientacao: () => orientacao,
-    aoMudarOrientacao(escuta) {
-      giros.add(escuta);
-      return () => {
-        giros.delete(escuta);
-      };
-    },
-  };
-  const estado: EstadoConvite = criarEstado({
-    preferencias: {
-      ler: (chave, padrao) => (chave === 'convite:visitado' ? (opcoes.visitado ?? padrao) : padrao),
-      gravar: vi.fn(),
-    },
-    ambiente,
-  });
+  const { estado, girar } = criarEstadoFalso(opcoes);
+  const { carregamento, baixadas, concluirImagens, passarEspera } = criarCarregamentoFalso(config);
   const eventos = criarBarramento<EventosConvite>();
   const aoTocar = vi.fn();
   eventos.on('entrada:tocou', aoTocar);
-  const carregamento = criarCarregamento({ imagens, temporizador, config });
   const cena = criarCenaEntrada({ raiz, conteudo: content, config, estado, eventos, carregamento });
 
   const el = (seletor: string) => {
@@ -71,25 +33,7 @@ function montar(opcoes: { visitado?: boolean; reduzido?: boolean } = {}) {
     return elemento;
   };
 
-  return {
-    cena,
-    estado,
-    aoTocar,
-    baixadas,
-    el,
-    botao,
-    /** Conclui todos os downloads em andamento, com sucesso (ou falha, se `ok` for false). */
-    concluirImagens(ok = true) {
-      for (const pendente of pendentes.splice(0)) pendente.resolver(ok);
-    },
-    passarEspera(segundos: number) {
-      for (const espera of esperas.filter((e) => e.segundos === segundos)) espera.passar();
-    },
-    girar(nova: Orientacao) {
-      orientacao = nova;
-      for (const escuta of giros) escuta(nova);
-    },
-  };
+  return { cena, estado, aoTocar, baixadas, el, botao, concluirImagens, passarEspera, girar };
 }
 
 beforeEach(() => {
@@ -186,7 +130,7 @@ describe('cena de entrada (SPEC-02)', () => {
   });
 
   describe('toque', () => {
-    async function ateOToque(opcoes: Parameters<typeof montar>[0] = {}) {
+    async function ateOToque(opcoes: OpcoesDoEstadoFalso = {}) {
       const montado = montar(opcoes);
       montado.cena.init();
       const execucao = montado.cena.run();
