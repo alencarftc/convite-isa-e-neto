@@ -59,6 +59,7 @@
   gap: var(--espaco-2);
   align-items: center;
   justify-content: flex-end;
+  padding: 0 var(--espaco-5) calc(20vh + env(safe-area-inset-bottom));
   padding: 0 var(--espaco-5) calc(20dvh + env(safe-area-inset-bottom));
   font: inherit;
   color: var(--cor-texto);
@@ -102,6 +103,7 @@
 
 .entrada__aguarde {
   position: absolute;
+  bottom: calc(20vh + env(safe-area-inset-bottom));
   bottom: calc(20dvh + env(safe-area-inset-bottom));
   margin: 0;
   font-size: var(--texto-corpo);

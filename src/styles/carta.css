@@ -140,6 +140,7 @@
   position: fixed;
   inset: auto 0 0;
   z-index: var(--z-primeiro-plano);
+  height: 20vh;
   height: 20dvh;
   pointer-events: none;
   background: var(--cor-chao);
@@ -205,11 +206,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 52vh var(--espaco-3) 0;
   padding: 52dvh var(--espaco-3) 0;
 }
 
 @media (orientation: landscape) {
   .conteudo {
+    padding-top: 55vh;
     padding-top: 55dvh;
   }
 }
