@@ -1,4 +1,6 @@
-export type Orientacao = 'vertical' | 'horizontal';
+import type { Orientacao } from '@/domain/tela/orientacao';
+
+export type { Orientacao };
 
 /** O que o aparelho informa sobre o próprio ambiente (SPEC-01, `state`). */
 export interface Ambiente {

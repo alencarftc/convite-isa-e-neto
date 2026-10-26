@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ARTE PROVISÓRIA: substituir pela imagem gerada (docs/requisitos.md, "Imagens a gerar") · árvores de moldura -->
+<svg xmlns="http://www.w3.org/2000/svg" data-provisorio="true" width="1080" height="1920" viewBox="0 0 1080 1920">
+<rect x="21.6" y="288" width="75.60000000000001" height="1632" fill="#5e3b27"/><rect x="972" y="288" width="75.60000000000001" height="1632" fill="#5e3b27"/>
+<ellipse cx="64.8" cy="230.39999999999998" rx="216" ry="268.8" fill="#4f6b58"/><ellipse cx="194.4" cy="76.8" rx="237.6" ry="192" fill="#6b8a6a"/>
+<ellipse cx="1015.1999999999999" cy="230.39999999999998" rx="216" ry="268.8" fill="#4f6b58"/><ellipse cx="885.5999999999999" cy="76.8" rx="237.6" ry="192" fill="#6b8a6a"/>
+<ellipse cx="540" cy="-38.4" rx="432" ry="134.4" fill="#8fae85"/>
+</svg>

@@ -12,9 +12,39 @@
     <meta property="og:description" content="Uma carta foi escrita para você. Toque para abrir." />
     <!-- og:image, og:image:width/height e og:url: preencher com a URL publicada (SPEC-10, RF-10.1). -->
     <meta name="theme-color" content="#91A8D0" />
+    <!-- Fontes do próprio site, pré-carregadas para os nomes não piscarem (SPEC-02, RF-02.2). -->
+    <link
+      rel="preload"
+      href="/fonts/great-vibes-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/cormorant-garamond-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
   </head>
   <body data-fase="carregando">
-    <div id="app"></div>
+    <div id="app">
+      <!--
+        Primeiro quadro (SPEC-02, RF-02.1): fundo marfim, névoa em CSS e os nomes, sem depender de
+        JavaScript. O texto aqui só vale até o script rodar; depois os rótulos vêm de content.entrada.
+      -->
+      <section class="entrada" aria-labelledby="entrada-nomes">
+        <div class="nevoa" aria-hidden="true"><span></span><span></span></div>
+        <h1 id="entrada-nomes" class="entrada__nomes">Isabella &amp; David</h1>
+        <button class="entrada__tocar" type="button" hidden>
+          <span class="entrada__chamada">Toque para entrar</span>
+          <span class="entrada__volume">Para uma experiência completa, aumente o volume.</span>
+        </button>
+        <button class="entrada__pular" type="button" hidden>Pular para o convite</button>
+        <p class="entrada__aguarde" role="status" hidden>Preparando o bosque…</p>
+      </section>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

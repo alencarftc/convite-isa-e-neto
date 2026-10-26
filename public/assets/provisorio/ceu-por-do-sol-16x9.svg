@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ARTE PROVISÓRIA: substituir pela imagem gerada (docs/requisitos.md, "Imagens a gerar") · céu do pôr do sol -->
+<svg xmlns="http://www.w3.org/2000/svg" data-provisorio="true" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e4c39c"/><stop offset="0.6" stop-color="#f1b98a"/><stop offset="1" stop-color="#e6a578"/></linearGradient>
+<radialGradient id="s" cx="0.85" cy="0.35" r="0.5"><stop offset="0" stop-color="#fff0c4" stop-opacity="0.95"/><stop offset="0.35" stop-color="#ffd59a" stop-opacity="0.5"/><stop offset="1" stop-color="#ffd59a" stop-opacity="0"/></radialGradient></defs>
+<rect width="1920" height="1080" fill="url(#g)"/>
+<rect width="1920" height="1080" fill="url(#s)"/>
+<circle cx="1632" cy="378" r="64.8" fill="#fff6dc"/>
+</svg>

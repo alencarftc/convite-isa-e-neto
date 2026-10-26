@@ -1,9 +1,10 @@
 import type { ConfigConvite } from '../../src/domain/config/config-convite';
+import { urlsDaImagem } from '../../src/domain/imagens/catalogo-de-imagens';
 
 /**
  * Regras do gate de publicação (SPEC-12, "Checagem automática"). São funções
  * puras, para testar sem tocar o disco. O orçamento de peso é conferido pelo
- * `size-limit`; os assets e o <noscript> entram quando existirem.
+ * `size-limit`; o <noscript> entra quando existir (SPEC-09).
  */
 export interface Problema {
   readonly regra: string;
@@ -67,6 +68,55 @@ export function validarLinks(config: ConfigConvite): Problema[] {
     }));
 }
 
-export function verificarTudo(config: ConfigConvite, conteudo: unknown): Problema[] {
-  return [...encontrarTextoPendente(conteudo), ...validarDatas(config), ...validarLinks(config)];
+/** Arte provisória (SVG gerado por `pnpm arte:provisoria`) não pode ir para o ar (docs/decisions/0006). */
+export function validarArteDefinitiva(config: ConfigConvite): Problema[] {
+  return Object.entries(config.imagens).flatMap(([chave, arte]) =>
+    urlsDaImagem(arte)
+      .filter((url) => url.includes('/provisorio/'))
+      .map((url) => ({
+        regra: 'arte-provisoria',
+        mensagem: `config.imagens.${chave} ainda aponta para a arte provisória: "${url}"`,
+      })),
+  );
+}
+
+/** Todo arquivo citado precisa existir em `public/` (imagens do manifesto e os MP3). */
+export function validarArquivos(
+  config: ConfigConvite,
+  arquivosDeAudio: readonly string[],
+  existe: (caminho: string) => boolean,
+): Problema[] {
+  const imagens = Object.entries(config.imagens).flatMap(([chave, arte]) =>
+    urlsDaImagem(arte).map((url) => ({ origem: `config.imagens.${chave}`, url })),
+  );
+  const audios = arquivosDeAudio.map((url) => ({ origem: 'áudio', url }));
+  return [...imagens, ...audios]
+    .filter(({ url }) => !existe(url))
+    .map(({ origem, url }) => ({
+      regra: 'arquivo-ausente',
+      mensagem: `${origem}: "public/${url}" não existe`,
+    }));
+}
+
+export interface EntradasDoGate {
+  readonly config: ConfigConvite;
+  readonly conteudo: unknown;
+  readonly arquivosDeAudio: readonly string[];
+  /** `true` se o arquivo existe em `public/`. */
+  readonly existe: (caminho: string) => boolean;
+}
+
+export function verificarTudo({
+  config,
+  conteudo,
+  arquivosDeAudio,
+  existe,
+}: EntradasDoGate): Problema[] {
+  return [
+    ...encontrarTextoPendente(conteudo),
+    ...validarDatas(config),
+    ...validarLinks(config),
+    ...validarArteDefinitiva(config),
+    ...validarArquivos(config, arquivosDeAudio, existe),
+  ];
 }

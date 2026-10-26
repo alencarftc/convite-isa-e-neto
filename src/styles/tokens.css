@@ -9,8 +9,9 @@
 
   --sombra-cartao: 0 4px 20px rgb(50 66 93 / 12%);
 
-  --fonte-cursiva: 'Great Vibes', cursive;
-  --fonte-texto: 'Cormorant Garamond', georgia, serif;
+  --fonte-cursiva: 'Great Vibes';
+  --fonte-cursiva-reserva: 'Cursiva Reserva', cursive;
+  --fonte-texto: 'Cormorant Garamond', 'Cormorant Reserva', georgia, serif;
   --texto-corpo: clamp(18px, 4.6vw, 20px);
   --texto-nomes: clamp(40px, 11vw, 56px);
   --texto-rotulo: 13px; /* maiúsculas com letter-spacing: 0.12em */
@@ -31,6 +32,6 @@
   --z-baloes: 50;
   --z-carta: 60;
   --z-informacoes: 70;
-  --z-interface: 80;
   --z-nevoa: 90;
+  --z-interface: 100; /* acima da névoa: o botão de som fica à vista desde a entrada (SPEC-08, RF-08.5) */
 }

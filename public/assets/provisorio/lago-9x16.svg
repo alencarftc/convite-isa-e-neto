@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ARTE PROVISÓRIA: substituir pela imagem gerada (docs/requisitos.md, "Imagens a gerar") · lago e mata ao fundo -->
+<svg xmlns="http://www.w3.org/2000/svg" data-provisorio="true" width="1080" height="576" viewBox="0 0 1080 576">
+<defs><linearGradient id="agua" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b6c7e3"/><stop offset="1" stop-color="#91a8d0"/></linearGradient></defs>
+<g fill="#4f6b58"><ellipse cx="108" cy="264.96000000000004" rx="151.20000000000002" ry="172.79999999999998"/><ellipse cx="345.6" cy="264.96000000000004" rx="129.6" ry="115.2"/><ellipse cx="594" cy="264.96000000000004" rx="172.8" ry="149.76"/><ellipse cx="842.4" cy="264.96000000000004" rx="140.4" ry="126.72"/><ellipse cx="1026" cy="264.96000000000004" rx="129.6" ry="161.28000000000003"/></g>
+<rect x="0" y="264.96000000000004" width="1080" height="311.03999999999996" fill="url(#agua)"/>
+<g stroke="#ffffff" stroke-opacity="0.6" stroke-width="4.6080000000000005" stroke-linecap="round"><path d="M216 374.40000000000003 h129.6"/><path d="M540 449.28000000000003 h194.4"/><path d="M756 345.59999999999997 h108"/></g>
+<text x="540" y="556" text-anchor="middle" font-family="Georgia, serif" font-size="20" fill="#32425d" fill-opacity="0.55">PROVISÓRIO · lago e mata</text>
+</svg>

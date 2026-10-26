@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import { config } from '../../src/config/config';
 import { content } from '../../src/config/content';
-import { encontrarTextoPendente, validarDatas, validarLinks, verificarTudo } from './regras';
+import {
+  encontrarTextoPendente,
+  validarArquivos,
+  validarArteDefinitiva,
+  validarDatas,
+  validarLinks,
+  verificarTudo,
+} from './regras';
 
 describe('encontrarTextoPendente', () => {
   it('aponta o caminho de cada texto entre colchetes', () => {
@@ -60,13 +67,85 @@ describe('validarLinks', () => {
   });
 });
 
+describe('validarArteDefinitiva', () => {
+  it('acusa cada imagem que ainda aponta para a arte provisória', () => {
+    const problemas = validarArteDefinitiva(config);
+
+    expect(problemas.length).toBeGreaterThan(0);
+    expect(problemas.every((p) => p.regra === 'arte-provisoria')).toBe(true);
+    expect(problemas.map((p) => p.mensagem)).toContainEqual(
+      expect.stringContaining('config.imagens.bauFechado'),
+    );
+  });
+
+  it('não acusa nada quando a arte é a definitiva', () => {
+    const definitiva = {
+      ...config,
+      imagens: Object.fromEntries(
+        Object.keys(config.imagens).map((chave) => [chave, `assets/scene/${chave}.webp`]),
+      ),
+    } as unknown as typeof config;
+
+    expect(validarArteDefinitiva(definitiva)).toEqual([]);
+  });
+});
+
+describe('validarArquivos', () => {
+  it('passa quando todos os arquivos citados existem', () => {
+    expect(validarArquivos(config, ['audio/a.mp3'], () => true)).toEqual([]);
+  });
+
+  it('acusa imagem e áudio inexistentes, com o caminho em public/', () => {
+    const problemas = validarArquivos(
+      config,
+      ['audio/ambiente.mp3'],
+      (caminho) => caminho !== 'audio/ambiente.mp3' && !caminho.includes('chave'),
+    );
+
+    expect(problemas.map((p) => p.mensagem)).toEqual([
+      'config.imagens.chave: "public/assets/provisorio/chave.svg" não existe',
+      'áudio: "public/audio/ambiente.mp3" não existe',
+    ]);
+    expect(problemas.every((p) => p.regra === 'arquivo-ausente')).toBe(true);
+  });
+
+  it('a arte por orientação confere os dois arquivos', () => {
+    const visitados: string[] = [];
+
+    validarArquivos(config, [], (caminho) => {
+      visitados.push(caminho);
+      return true;
+    });
+
+    expect(visitados).toContain('assets/provisorio/ceu-9x16.svg');
+    expect(visitados).toContain('assets/provisorio/ceu-16x9.svg');
+  });
+});
+
 describe('verificarTudo', () => {
-  it('o conteúdo e a configuração atuais passam no gate', () => {
-    expect(verificarTudo(config, content)).toEqual([]);
+  const entradas = {
+    config,
+    conteudo: content,
+    arquivosDeAudio: ['audio/ambiente.mp3'],
+    existe: () => true,
+  };
+
+  it('o conteúdo e as datas atuais passam nas regras de texto, data e link', () => {
+    const regras = new Set(verificarTudo(entradas).map((p) => p.regra));
+
+    expect(regras).toEqual(new Set(['arte-provisoria']));
   });
 
   it('junta os problemas de todas as regras', () => {
-    const problemas = verificarTudo({ ...config, casamento: 'ontem' }, { mensagem: '[pendente]' });
-    expect(problemas.map((p) => p.regra).sort()).toEqual(['datas', 'texto-pendente']);
+    const problemas = verificarTudo({
+      ...entradas,
+      config: { ...config, casamento: 'ontem' },
+      conteudo: { mensagem: '[pendente]' },
+      existe: () => false,
+    });
+
+    expect(new Set(problemas.map((p) => p.regra))).toEqual(
+      new Set(['datas', 'texto-pendente', 'arte-provisoria', 'arquivo-ausente']),
+    );
   });
 });

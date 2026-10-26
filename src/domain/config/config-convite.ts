@@ -1,3 +1,5 @@
+import type { ArteDaImagem, ChaveDeImagem } from '../imagens/catalogo-de-imagens';
+
 /** Formato de `src/config/config.ts` (SPEC-01, "Conteúdo e configuração"). Tempos em segundos. */
 export interface ConfigConvite {
   /** ISO 8601 com fuso explícito. */
@@ -19,7 +21,23 @@ export interface ConfigConvite {
     readonly reforcoDica: number;
     readonly limiteCritico: number;
     readonly limiteSeguranca: number;
+    /** Espera antes de tentar baixar de novo uma imagem que falhou (SPEC-02). */
+    readonly novaTentativaDeImagem: number;
+    /** Nomes do casal aparecem (SPEC-02, "Animações da entrada"). */
+    readonly entradaNomes: number;
+    /** Atraso dos nomes depois do primeiro quadro. */
+    readonly entradaNomesAtraso: number;
+    /** "Toque para entrar" aparece. */
+    readonly entradaChamada: number;
+    /** Os textos da entrada somem no toque. */
+    readonly entradaSaida: number;
+    /** Cada camada da névoa em repouso vai e volta nesse tempo. */
+    readonly nevoaEmRepouso: number;
+    /** Depois do toque, tempo de espera antes de mostrar "Preparando o bosque…". */
+    readonly avisoDeEspera: number;
   };
+  /** Arquivo de cada imagem do convite (SPEC-02, SPEC-03); caminhos relativos à página. */
+  readonly imagens: Readonly<Record<ChaveDeImagem, ArteDaImagem>>;
   readonly curvas: {
     readonly suave: string;
     readonly saida: string;

@@ -28,7 +28,7 @@ Simular a data (só em desenvolvimento): `http://localhost:5173/?data=2027-01-22
 | `pnpm test` · `test:unit` · `test:integration` · `test:arch` · `test:coverage` | testes (Vitest)                                                     |
 | `pnpm lint` · `lint:css` · `typecheck` · `format:check` · `arch` · `size`      | gates individuais                                                   |
 | `pnpm lint:fix` · `pnpm format`                                                | corrigem lint e formatação                                          |
-| `pnpm verificar`                                                               | gate de publicação (texto pendente, datas, links)                   |
+| `pnpm verificar`                                                               | gate de publicação (texto, datas, links, arte provisória, arquivos) |
 | `pnpm changeset` · `pnpm version-packages`                                     | changesets e versão                                                 |
 
 ## Como o código está organizado

@@ -120,6 +120,8 @@ export function criarOrquestrador(dependencias: DependenciasDoOrquestrador): Orq
     }
 
     estado.definirFase('informacoes');
+    // A entrada (névoa) nunca pode ficar por cima do estado final, mesmo que nenhuma etapa a tenha limpado.
+    if (plano.entrada) tentar(() => plano.entrada?.skip());
     await plano.final.run();
     finalMostrado = true;
   }
