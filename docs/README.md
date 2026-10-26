@@ -55,7 +55,8 @@ nas tabelas das SPEC-01 e do roteiro (requisitos).
 - **Feito:** fundação de ferramentas e CI; fatia vertical de referência — SPEC-07 (estados por data,
   contagem, botões) atravessando `domain` → `application` → `infrastructure` → `presentation`;
   **SPEC-01 completa** (barramento, fases, estado, orquestrador, contrato `Cena`, modo de segurança);
+  **SPEC-08 (código)**: porta de áudio, Howler, botão de som, pausa em segundo plano — faltam os MP3;
   `verificar` com 3 regras.
-- **Próximo:** SPEC-08 (áudio) → SPEC-02 (entrada e carregamento) → SPEC-03 em diante.
+- **Próximo:** SPEC-02 (entrada e carregamento) → SPEC-03 em diante.
 - **Pendências de conteúdo** (bloqueiam `pnpm verificar` e o envio): fotos dos balões, imagens geradas,
-  músicas licenciadas, verso do louvor, URL publicada. Lista completa no fim de [documentacao.md](./documentacao.md).
+  músicas licenciadas e os 6 MP3 em `public/audio/`, verso do louvor, URL publicada. Lista completa no fim de [documentacao.md](./documentacao.md).
