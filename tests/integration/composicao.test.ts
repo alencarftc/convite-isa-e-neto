@@ -20,6 +20,14 @@ describe('src/main.ts', () => {
     expect(contagem?.textContent).toBe('Faltam 68 dias, 7 horas e 0 minutos para o nosso sim');
   });
 
+  it('mostra o botão de som desde o início, com o som ligado (SPEC-08, CA-08.4.1)', async () => {
+    await import('@/main');
+
+    const botao = document.querySelector('#app .botao-som');
+    expect(botao?.getAttribute('aria-pressed')).toBe('true');
+    expect(botao?.getAttribute('aria-label')).toBe('Som');
+  });
+
   it('percorre o orquestrador até o final e reflete a fase no <body> (CA-01.4.1)', async () => {
     await import('@/main');
 
