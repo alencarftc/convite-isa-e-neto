@@ -2,12 +2,13 @@ import { fileURLToPath } from 'node:url';
 
 import { defineConfig } from 'vite';
 
+import { pluginMetadados } from './scripts/vite/metadados';
 import { pluginNoscript } from './scripts/vite/noscript';
 import { config } from './src/config/config';
 import { content } from './src/config/content';
 
 export default defineConfig({
-  plugins: [pluginNoscript(content, config)],
+  plugins: [pluginMetadados(content, config), pluginNoscript(content, config)],
   // Caminhos relativos: o build funciona em qualquer subpasta do GitHub Pages (RF-01.2).
   base: './',
   resolve: {

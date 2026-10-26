@@ -35,6 +35,7 @@ const conteudo: ConteudoConvite = {
     selo: 'Selo',
     rolar: 'Role',
   },
+  previa: { titulo: 't', descricao: 'd' },
   carta: {
     versiculo: 'v',
     referencia: 'r',

@@ -17,6 +17,7 @@ abrir PR: é exatamente o que o CI roda.
 | `pnpm build`            | `vite build` (base relativa para o GitHub Pages)                                                                     | CI                         |
 | `pnpm size`             | Orçamento da SPEC-12: JS ≤ 120 kB gzip, HTML ≤ 30 kB                                                                 | CI                         |
 | `pnpm verificar`        | Gate de **publicação**: sem texto pendente `[…]`, datas `-03:00`, links https, sem arte provisória, arquivos existem | antes de publicar          |
+| `publicar.yml` (CI)     | A cada envio para `main`: `verificar` + `check` + publicação no GitHub Pages (SPEC-10)                               | automático                 |
 | `pnpm fontes`           | Copia os WOFF2 dos pacotes `@fontsource` para `public/fonts/` (ADR-0006)                                             | ao trocar versão da fonte  |
 | `pnpm arte:provisoria`  | Regera os SVGs provisórios em `public/assets/provisorio/` (ADR-0006)                                                 | ao mudar o enquadramento   |
 | `pnpm changeset:status` | O PR traz changeset                                                                                                  | CI (só em PR)              |

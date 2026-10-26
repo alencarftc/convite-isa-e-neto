@@ -6,6 +6,16 @@ export interface ConfigConvite {
   readonly casamento: string;
   /** ISO 8601 com fuso explícito. */
   readonly prazoConfirmacao: string;
+  /** Publicação e prévia do link (SPEC-10). Caminhos relativos a `public/`. */
+  readonly publicacao: {
+    /** Endereço final, com `https://` e barra no fim; define `og:url` e `og:image` (RF-10.1). */
+    readonly url: string;
+    /** JPEG de 1200 × 630 px, até 300 KB (RF-10.2). */
+    readonly imagemDaPrevia: string;
+    /** Ícones de 32 e 180 px com o selo e as iniciais (RF-10.3). */
+    readonly icone32: string;
+    readonly iconeApple: string;
+  };
   readonly links: {
     readonly formulario: string;
     readonly mapa: string;
