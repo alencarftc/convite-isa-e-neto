@@ -1,3 +1,4 @@
+import gsap from 'gsap';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { criarBarramento } from '@/application/barramento-eventos';
@@ -111,6 +112,67 @@ describe('cena de entrada (SPEC-02)', () => {
       montar();
 
       expect(document.querySelector('.entrada__pular')).toBeNull();
+    });
+  });
+
+  describe('selo na entrada (SPEC-16)', () => {
+    it('o HTML reserva o lugar do selo, decorativo, acima dos nomes, sem texto próprio (RF-16.5)', () => {
+      montarIndexHtml();
+
+      const selo = document.querySelector('.entrada__selo');
+      expect(selo?.getAttribute('aria-hidden')).toBe('true');
+      expect(selo?.textContent).toBe('');
+      expect(selo?.nextElementSibling?.className).toBe('entrada__nomes');
+    });
+
+    it('init monta a imagem de config.imagens.selo e as iniciais de content.envelope (RF-16.5)', () => {
+      const { cena, el } = montar();
+
+      cena.init();
+
+      expect(el('.entrada__selo-imagem').getAttribute('src')).toBe(config.imagens.selo);
+      expect(el('.entrada__iniciais').textContent).toBe(content.envelope.iniciais);
+      expect(el('.entrada__selo-imagem').getAttribute('alt')).toBe('');
+    });
+
+    it('o selo aparece quando a imagem chega, sem esperar nem atrasar "Toque para entrar" (CT-16.4)', async () => {
+      const { cena, el } = montar();
+      cena.init();
+      expect(Number(el('.entrada__selo').style.opacity || 0)).toBe(0);
+
+      el('.entrada__selo-imagem').dispatchEvent(new Event('load'));
+
+      await vi.waitFor(() => {
+        expect(Number(el('.entrada__selo').style.opacity)).toBe(1);
+      });
+    });
+
+    it('pulsa devagar em repouso e fica parado com animação reduzida (CT-16.3)', () => {
+      const normal = montar();
+      normal.cena.init();
+      const tweens = gsap.getTweensOf(normal.el('.entrada__selo'));
+      expect(tweens.some((tween) => tween.repeat() === -1)).toBe(true);
+      normal.cena.destroy();
+
+      const reduzida = montar({ reduzido: true });
+      reduzida.cena.init();
+      expect(
+        gsap.getTweensOf(reduzida.el('.entrada__selo')).some((tween) => tween.repeat() === -1),
+      ).toBe(false);
+    });
+
+    it('a área de toque da entrada continua sendo a tela inteira: o selo não captura o toque (RF-16.5, RF-16.6)', async () => {
+      const { cena, concluirImagens, botao, aoTocar } = montar();
+      cena.init();
+      void cena.run();
+      concluirImagens();
+      await vi.waitFor(() => {
+        expect(botao('.entrada__tocar').hidden).toBe(false);
+      });
+
+      botao('.entrada__tocar').click();
+
+      expect(aoTocar).toHaveBeenCalledExactlyOnceWith({ escolha: 'entrar' });
     });
   });
 

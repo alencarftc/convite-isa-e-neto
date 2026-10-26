@@ -7,6 +7,7 @@ import type { Carregamento } from '@/application/use-cases/carregamento';
 import type { ConfigConvite } from '@/domain/config/config-convite';
 import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import type { EscolhaDeEntrada, EventosConvite } from '@/domain/eventos/eventos-convite';
+import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
 export interface DependenciasDaEntrada {
   readonly raiz: HTMLElement;
@@ -46,6 +47,29 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
   let pararDeOuvirGiro: (() => void) | undefined;
   let ouvintes: AbortController | undefined;
 
+  /** Selo I&D acima dos nomes, o mesmo do envelope (SPEC-16): decorativo, a tela inteira continua sendo o toque. */
+  function montarSelo(entrada: HTMLElement): void {
+    const imagem = document.createElement('img');
+    imagem.className = 'entrada__selo-imagem';
+    imagem.alt = '';
+    imagem.draggable = false;
+    const selo = obter(entrada, '.entrada__selo');
+    // A imagem do selo não é crítica (SPEC-02 tem seis): o selo aparece quando ela chega, sem
+    // atrasar o "Toque para entrar" e sem mexer no lugar dos nomes, que o HTML já reservou.
+    imagem.addEventListener(
+      'load',
+      () => {
+        gsap.to(selo, { opacity: 1, duration: duracoes.entradaChamada, ease: curvas.saida });
+      },
+      { once: true },
+    );
+    imagem.src = urlDaImagem(config.imagens.selo, estado.orientacao);
+    const iniciais = document.createElement('span');
+    iniciais.className = 'entrada__iniciais';
+    iniciais.textContent = conteudo.envelope.iniciais;
+    selo.replaceChildren(imagem, iniciais);
+  }
+
   function iniciar(): HTMLElement {
     const entrada = raiz.querySelector<HTMLElement>('.entrada');
     if (!entrada) throw new Error('index.html sem a seção ".entrada" (SPEC-02, RF-02.1)');
@@ -54,6 +78,7 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
     obter(entrada, '.entrada__chamada').textContent = conteudo.entrada.tocar;
     obter(entrada, '.entrada__volume').textContent = conteudo.entrada.volume;
     obter(entrada, '.entrada__aguarde').textContent = conteudo.entrada.aguarde;
+    montarSelo(entrada);
     return entrada;
   }
 
@@ -74,6 +99,13 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
       // Névoa: duas camadas em sentidos opostos, a opacidade respirando entre 0,85 e 1. Com
       // animação reduzida ela fica parada.
       if (estado.reduzido) return;
+      gsap.to('.entrada__selo', {
+        scale: config.entrada.seloEscala,
+        duration: config.entrada.seloPeriodo / 2,
+        ease: curvas.suave,
+        repeat: -1,
+        yoyo: true,
+      });
       const camadas = gsap.utils.toArray<HTMLElement>('.nevoa > span');
       camadas.forEach((camada, indice) => {
         const sentido = indice % 2 === 0 ? 1 : -1;
@@ -109,6 +141,7 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
    */
   function esperarToque(entrada: HTMLElement): Promise<EscolhaDeEntrada> {
     const tocar = obterBotao(entrada, '.entrada__tocar');
+    const selo = obter(entrada, '.entrada__selo');
 
     tocar.hidden = false;
     gsap.fromTo(
@@ -128,7 +161,7 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
           if (tocar.disabled) return;
           tocar.disabled = true;
           eventos.emit('entrada:tocou', { escolha: 'entrar' });
-          gsap.to([obter(entrada, '.entrada__nomes'), tocar], {
+          gsap.to([obter(entrada, '.entrada__nomes'), tocar, selo], {
             opacity: 0,
             duration: duracoes.entradaSaida,
             ease: curvas.saida,
