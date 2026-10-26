@@ -23,6 +23,7 @@ export default mergeConfig(
             name: 'integration',
             environment: 'happy-dom',
             include: ['tests/integration/**/*.test.ts'],
+            setupFiles: ['tests/integration/suporte/preparar.ts'],
           },
         },
         {

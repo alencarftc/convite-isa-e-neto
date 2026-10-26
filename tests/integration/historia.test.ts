@@ -155,10 +155,13 @@ describe('história em balões (SPEC-05)', () => {
     it('a região aria-live recebe cada frase uma vez, só em texto (RF-05.8, CT-05.6)', async () => {
       const { cena, el } = montar();
       const anunciadas: string[] = [];
-      new MutationObserver(() => anunciadas.push(el('.historia [aria-live]').textContent)).observe(
-        el('.historia [aria-live]'),
-        { childList: true },
-      );
+      // Uma entrada por mutação, não por chamada: com a máquina ocupada dois balões podem cair no mesmo
+      // quadro e o navegador entrega os dois registros juntos, numa chamada só.
+      new MutationObserver((registros) => {
+        for (const registro of registros) {
+          for (const no of registro.addedNodes) anunciadas.push(no.textContent ?? '');
+        }
+      }).observe(el('.historia [aria-live]'), { childList: true });
 
       await cena.run();
 

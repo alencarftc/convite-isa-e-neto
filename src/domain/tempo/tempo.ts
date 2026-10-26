@@ -3,7 +3,7 @@ export const MS_POR_HORA = 60 * MS_POR_MINUTO;
 export const MS_POR_DIA = 24 * MS_POR_HORA;
 
 /** Brasília (UTC−3) não tem horário de verão desde 2019: o deslocamento é fixo. */
-const DESLOCAMENTO_BRASILIA_MS = -3 * MS_POR_HORA;
+export const DESLOCAMENTO_BRASILIA_MS = -3 * MS_POR_HORA;
 
 const COM_FUSO_EXPLICITO = /(?:Z|[+-]\d{2}:\d{2})$/;
 
