@@ -243,6 +243,94 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(registro.filter((r) => r.startsWith('abrindo'))).toEqual(['abrindo:toque']);
     });
 
+    describe('deslizar o selo (SPEC-16)', () => {
+      /** Pousa o dedo no selo (no happy-dom ele está em 0, 0) e o arrasta `dy` pixels para baixo. */
+      const deslizar = (alvo: HTMLElement, dy: number) => {
+        const ponteiro = (tipo: string, y: number) =>
+          alvo.dispatchEvent(
+            new PointerEvent(tipo, { pointerId: 1, clientX: 0, clientY: y, isPrimary: true }),
+          );
+        ponteiro('pointerdown', 0);
+        ponteiro('pointermove', dy);
+        ponteiro('pointerup', dy);
+      };
+      const esperarOSelo = async (botao: () => HTMLButtonElement) => {
+        await vi.waitFor(() => {
+          expect(botao().disabled).toBe(false);
+        });
+      };
+
+      it('arrastar o selo além do limiar abre o envelope, com origem "gesto" (CT-16.1)', async () => {
+        const { carta, convite, registro, botao } = montar();
+        const etapa = carta.run();
+        await esperarOSelo(botao);
+
+        deslizar(botao(), config.carta.gesto.limiar + 20);
+        await etapa;
+        await convite.run();
+
+        expect(registro.filter((r) => r.startsWith('abrindo'))).toEqual(['abrindo:gesto']);
+      });
+
+      it('arrastar menos que o limiar não abre, e o click que sobra do arrasto também não (CT-16.1)', async () => {
+        const { carta, registro, botao } = montar();
+        void carta.run();
+        await esperarOSelo(botao);
+
+        deslizar(botao(), config.carta.gesto.limiar - 20);
+        botao().click(); // o navegador dispara um click depois de soltar o mouse
+
+        expect(registro.filter((r) => r.startsWith('abrindo'))).toEqual([]);
+        expect(botao().disabled).toBe(false);
+      });
+
+      it('depois de um arrasto curto, um toque de verdade ainda abre (CT-16.2)', async () => {
+        const { carta, convite, registro, botao } = montar();
+        const etapa = carta.run();
+        await esperarOSelo(botao);
+        deslizar(botao(), config.carta.gesto.limiar - 20);
+        botao().click();
+
+        botao().dispatchEvent(
+          new PointerEvent('pointerdown', {
+            pointerId: 2,
+            clientX: 400,
+            clientY: 400,
+            isPrimary: true,
+          }),
+        );
+        botao().click();
+        await etapa;
+        await convite.run();
+
+        expect(registro.filter((r) => r.startsWith('abrindo'))).toEqual(['abrindo:toque']);
+      });
+
+      it('toque, espera e arrasto levam à mesma abertura: só a primeira origem vale (CT-16.2)', async () => {
+        const { carta, convite, registro, botao } = montar();
+        const etapa = carta.run();
+        await esperarOSelo(botao);
+
+        botao().click();
+        deslizar(botao(), config.carta.gesto.limiar + 20);
+        await etapa;
+        await new Promise((resolver) =>
+          setTimeout(resolver, config.duracoes.esperaSelo * 1000 + 40),
+        );
+        await convite.run();
+
+        expect(registro.filter((r) => r.startsWith('abrindo'))).toEqual(['abrindo:toque']);
+      });
+
+      it('a espera do selo continua abrindo sozinha quando ninguém desliza (CT-16.2)', async () => {
+        const { registro, abrirTudo } = montar();
+
+        await abrirTudo('tempo');
+
+        expect(registro).toEqual(['pousou', 'abrindo:tempo', 'aberto']);
+      });
+    });
+
     it('o toque antes do pouso é ignorado (o botão só habilita ao pousar)', () => {
       const { carta, botao, registro } = montar();
       void carta.run();
