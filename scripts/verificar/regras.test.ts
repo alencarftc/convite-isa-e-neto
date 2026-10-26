@@ -69,12 +69,20 @@ describe('validarLinks', () => {
 
 describe('validarArteDefinitiva', () => {
   it('acusa cada imagem que ainda aponta para a arte provisória', () => {
-    const problemas = validarArteDefinitiva(config);
+    const problemas = validarArteDefinitiva(config, content);
 
     expect(problemas.length).toBeGreaterThan(0);
     expect(problemas.every((p) => p.regra === 'arte-provisoria')).toBe(true);
     expect(problemas.map((p) => p.mensagem)).toContainEqual(
       expect.stringContaining('config.imagens.bauFechado'),
+    );
+  });
+
+  it('acusa também as fotos dos balões que apontam para a arte provisória', () => {
+    const problemas = validarArteDefinitiva(config, content);
+
+    expect(problemas.map((p) => p.mensagem)).toContainEqual(
+      expect.stringContaining('content.baloes[0].foto'),
     );
   });
 
@@ -86,18 +94,23 @@ describe('validarArteDefinitiva', () => {
       ),
     } as unknown as typeof config;
 
-    expect(validarArteDefinitiva(definitiva)).toEqual([]);
+    const semFotosProvisorias = {
+      baloes: content.baloes.map((balao) => ({ ...balao, foto: 'photos/foto.jpg' })),
+    };
+
+    expect(validarArteDefinitiva(definitiva, semFotosProvisorias)).toEqual([]);
   });
 });
 
 describe('validarArquivos', () => {
   it('passa quando todos os arquivos citados existem', () => {
-    expect(validarArquivos(config, ['audio/a.mp3'], () => true)).toEqual([]);
+    expect(validarArquivos(config, content, ['audio/a.mp3'], () => true)).toEqual([]);
   });
 
   it('acusa imagem e áudio inexistentes, com o caminho em public/', () => {
     const problemas = validarArquivos(
       config,
+      content,
       ['audio/ambiente.mp3'],
       (caminho) => caminho !== 'audio/ambiente.mp3' && caminho !== 'assets/provisorio/chave.svg',
     );
@@ -112,13 +125,26 @@ describe('validarArquivos', () => {
   it('a arte por orientação confere os dois arquivos', () => {
     const visitados: string[] = [];
 
-    validarArquivos(config, [], (caminho) => {
+    validarArquivos(config, content, [], (caminho) => {
       visitados.push(caminho);
       return true;
     });
 
     expect(visitados).toContain('assets/provisorio/ceu-9x16.svg');
     expect(visitados).toContain('assets/provisorio/ceu-16x9.svg');
+  });
+
+  it('confere também os arquivos das fotos dos balões', () => {
+    const problemas = validarArquivos(
+      config,
+      content,
+      [],
+      (caminho) => !caminho.includes('foto-3'),
+    );
+
+    expect(problemas.map((p) => p.mensagem)).toEqual([
+      'content.baloes[2].foto: "public/assets/provisorio/foto-3.svg" não existe',
+    ]);
   });
 });
 
@@ -133,14 +159,15 @@ describe('verificarTudo', () => {
   it('o conteúdo e as datas atuais passam nas regras de texto, data e link', () => {
     const regras = new Set(verificarTudo(entradas).map((p) => p.regra));
 
-    expect(regras).toEqual(new Set(['arte-provisoria']));
+    // Resta a arte provisória e o texto pendente (a descrição das fotos, entre colchetes).
+    expect(regras).toEqual(new Set(['arte-provisoria', 'texto-pendente']));
   });
 
   it('junta os problemas de todas as regras', () => {
     const problemas = verificarTudo({
       ...entradas,
       config: { ...config, casamento: 'ontem' },
-      conteudo: { mensagem: '[pendente]' },
+      conteudo: { ...content, rotulos: { ...content.rotulos, informacoes: '[pendente]' } },
       existe: () => false,
     });
 

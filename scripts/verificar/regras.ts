@@ -1,4 +1,5 @@
 import type { ConfigConvite } from '../../src/domain/config/config-convite';
+import type { ConteudoConvite } from '../../src/domain/conteudo/conteudo-convite';
 import { urlsDaImagem } from '../../src/domain/imagens/catalogo-de-imagens';
 
 /**
@@ -69,28 +70,43 @@ export function validarLinks(config: ConfigConvite): Problema[] {
 }
 
 /** Arte provisória (SVG gerado por `pnpm arte:provisoria`) não pode ir para o ar (docs/decisions/0006). */
-export function validarArteDefinitiva(config: ConfigConvite): Problema[] {
-  return Object.entries(config.imagens).flatMap(([chave, arte]) =>
-    urlsDaImagem(arte)
-      .filter((url) => url.includes('/provisorio/'))
-      .map((url) => ({
-        regra: 'arte-provisoria',
-        mensagem: `config.imagens.${chave} ainda aponta para a arte provisória: "${url}"`,
-      })),
-  );
+export function validarArteDefinitiva(
+  config: ConfigConvite,
+  conteudo: Pick<ConteudoConvite, 'baloes'>,
+): Problema[] {
+  const arquivos = [
+    ...Object.entries(config.imagens).flatMap(([chave, arte]) =>
+      urlsDaImagem(arte).map((url) => ({ origem: `config.imagens.${chave}`, url })),
+    ),
+    ...conteudo.baloes.map((balao, indice) => ({
+      origem: `content.baloes[${String(indice)}].foto`,
+      url: balao.foto,
+    })),
+  ];
+  return arquivos
+    .filter(({ url }) => url.includes('/provisorio/'))
+    .map(({ origem, url }) => ({
+      regra: 'arte-provisoria',
+      mensagem: `${origem} ainda aponta para a arte provisória: "${url}"`,
+    }));
 }
 
 /** Todo arquivo citado precisa existir em `public/` (imagens do manifesto e os MP3). */
 export function validarArquivos(
   config: ConfigConvite,
+  conteudo: Pick<ConteudoConvite, 'baloes'>,
   arquivosDeAudio: readonly string[],
   existe: (caminho: string) => boolean,
 ): Problema[] {
   const imagens = Object.entries(config.imagens).flatMap(([chave, arte]) =>
     urlsDaImagem(arte).map((url) => ({ origem: `config.imagens.${chave}`, url })),
   );
+  const fotos = conteudo.baloes.map((balao, indice) => ({
+    origem: `content.baloes[${String(indice)}].foto`,
+    url: balao.foto,
+  }));
   const audios = arquivosDeAudio.map((url) => ({ origem: 'áudio', url }));
-  return [...imagens, ...audios]
+  return [...imagens, ...fotos, ...audios]
     .filter(({ url }) => !existe(url))
     .map(({ origem, url }) => ({
       regra: 'arquivo-ausente',
@@ -100,7 +116,7 @@ export function validarArquivos(
 
 export interface EntradasDoGate {
   readonly config: ConfigConvite;
-  readonly conteudo: unknown;
+  readonly conteudo: ConteudoConvite;
   readonly arquivosDeAudio: readonly string[];
   /** `true` se o arquivo existe em `public/`. */
   readonly existe: (caminho: string) => boolean;
@@ -116,7 +132,7 @@ export function verificarTudo({
     ...encontrarTextoPendente(conteudo),
     ...validarDatas(config),
     ...validarLinks(config),
-    ...validarArteDefinitiva(config),
-    ...validarArquivos(config, arquivosDeAudio, existe),
+    ...validarArteDefinitiva(config, conteudo),
+    ...validarArquivos(config, conteudo, arquivosDeAudio, existe),
   ];
 }
