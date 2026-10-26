@@ -34,7 +34,7 @@ jobs:
         run: pnpm verificar
       - name: Gates de código e build
         run: pnpm check
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
 
