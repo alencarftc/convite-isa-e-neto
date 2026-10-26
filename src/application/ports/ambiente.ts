@@ -8,6 +8,8 @@ export interface Ambiente {
   animacaoReduzida(): boolean;
   /** O aparelho é de toque (`pointer: coarse`); define a dica da chave (SPEC-04). */
   porToque(): boolean;
+  /** Algum dispositivo de toque, mesmo que o principal seja o mouse (`any-pointer: coarse`; SPEC-04). */
+  algumToque(): boolean;
   orientacao(): Orientacao;
   /** Avisa quando o aparelho gira; devolve a função que cancela o aviso. */
   aoMudarOrientacao(escuta: (orientacao: Orientacao) => void): () => void;

@@ -34,12 +34,14 @@ describe('criarAmbienteDoNavegador', () => {
     const { janela } = janelaFalsa([
       '(prefers-reduced-motion: reduce)',
       '(pointer: coarse)',
+      '(any-pointer: coarse)',
       '(orientation: portrait)',
     ]);
     const ambiente = criarAmbienteDoNavegador(janela);
 
     expect(ambiente.animacaoReduzida()).toBe(true);
     expect(ambiente.porToque()).toBe(true);
+    expect(ambiente.algumToque()).toBe(true);
     expect(ambiente.orientacao()).toBe('vertical');
   });
 
@@ -48,6 +50,7 @@ describe('criarAmbienteDoNavegador', () => {
 
     expect(ambiente.animacaoReduzida()).toBe(false);
     expect(ambiente.porToque()).toBe(false);
+    expect(ambiente.algumToque()).toBe(false);
     expect(ambiente.orientacao()).toBe('horizontal');
   });
 

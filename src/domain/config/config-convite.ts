@@ -67,12 +67,79 @@ export interface ConfigConvite {
       readonly suavizacao: number;
     };
   };
+  /**
+   * Baú e chave (SPEC-04). A abertura (`tlBau`) soma `duracoes.bau` = 2 s; os instantes são
+   * contados do toque, como na tabela "Abertura" da spec.
+   */
+  readonly bau: {
+    readonly dicaSome: number;
+    readonly chaveVaiAteAFechadura: number;
+    readonly giroDaChave: number;
+    readonly grausDoGiro: number;
+    /** Curva do giro (`back.out(1.4)`). */
+    readonly curvaDoGiro: string;
+    readonly instanteDoSalto: number;
+    readonly duracaoDoSalto: number;
+    readonly alturaDoSalto: number;
+    readonly escalaDoSalto: number;
+    /** A tampa abre (baú aberto surge sobre o fechado). */
+    readonly instanteDaTampa: number;
+    readonly duracaoDaTampa: number;
+    readonly instanteDaLuz: number;
+    readonly luzSobe: number;
+    readonly luzAssenta: number;
+    readonly opacidadeFinalDaLuz: number;
+    readonly instanteDaChaveSome: number;
+    readonly chaveSome: number;
+    /** A aura dourada atrás do baú aparece quando o cursor passa por cima (computador). */
+    readonly auraAparece: number;
+    /** Chave flutuante no celular. */
+    readonly flutuacao: {
+      readonly amplitude: number;
+      readonly rotacao: number;
+      readonly duracao: number;
+    };
+    readonly brilhoDaChave: {
+      readonly minimo: number;
+      readonly maximo: number;
+      readonly duracao: number;
+    };
+    /** Pulso único da chave quando o convidado toca fora do baú. */
+    readonly pulso: { readonly escala: number; readonly duracao: number };
+    /** Reforço depois de `duracoes.reforcoDica` sem interação (US-04.4). */
+    readonly reforco: {
+      readonly escala: number;
+      readonly pulsos: number;
+      readonly duracao: number;
+      readonly maximo: number;
+    };
+    /** Pétalas que sobem da boca do baú quando a tampa abre (RF-04.9). */
+    readonly petalas: {
+      readonly minimo: number;
+      readonly maximo: number;
+      /** Altura que sobem, em pixels, e quanto se desviam para os lados. */
+      readonly subida: number;
+      readonly deriva: number;
+      readonly duracao: number;
+      /** Largura de cada pétala em relação ao contêiner. */
+      readonly largura: string;
+    };
+    readonly chaveAparece: number;
+  };
   /** Arquivo de cada imagem do convite (SPEC-02, SPEC-03); caminhos relativos à página. */
   readonly imagens: Readonly<Record<ChaveDeImagem, ArteDaImagem>>;
   readonly curvas: {
     readonly suave: string;
     readonly saida: string;
     readonly pouso: string;
+    /** Entrada de movimento (`power2.in`), na volta do salto do baú. */
+    readonly entrada: string;
+    /** Vai e vem suave nas duas pontas (`power2.inOut`). */
+    readonly viaDupla: string;
+    /** Saída leve (`power1.out`): tampa e chave do baú. */
+    readonly leve: string;
+    /** Saída de seno (`sine.out`): a luz que assenta. */
+    readonly senoSaida: string;
   };
   readonly volumes: {
     readonly ambiente: number;

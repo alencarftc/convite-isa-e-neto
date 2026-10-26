@@ -9,6 +9,8 @@ export interface ConteudoConvite {
   readonly rotulos: {
     /** Rótulo acessível da seção de informações. */
     readonly informacoes: string;
+    /** Nome acessível do botão que cobre o baú e a chave (SPEC-04, RF-04.4). */
+    readonly abrirBau: string;
   };
   readonly entrada: {
     readonly nomes: string;
@@ -22,6 +24,8 @@ export interface ConteudoConvite {
     readonly somLigado: string;
     readonly somDesligado: string;
     readonly pular: string;
+    readonly chaveComputador: string;
+    readonly chaveCelular: string;
   };
   readonly contagem: {
     /** Modelo com `{dias}`, `{horas}` e `{minutos}`. */

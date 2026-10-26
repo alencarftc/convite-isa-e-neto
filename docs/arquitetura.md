@@ -74,6 +74,8 @@ src/
 │   └── armazenamento/           # preferências em localStorage, à prova de falha
 ├── presentation/                # tudo que desenha: cenas, componentes, GSAP
 │   ├── audio/                   # botão de som (SPEC-08)
+│   ├── bau/                     # baú, chave, dica e abertura (SPEC-04)
+│   ├── petalas/                 # função de pétalas, compartilhada com a SPEC-06
 │   ├── bosque/                  # cena do bosque: camadas, revelação e profundidade (SPEC-03)
 │   ├── entrada/                 # névoa, nomes e "Toque para entrar" (SPEC-02)
 │   └── informacoes/             # cartões de contagem e botões (SPEC-07)
@@ -96,7 +98,8 @@ docs/                            # documentação e contexto (ver docs/README.md
 | SPEC-01 `state`                                       | `application`                                                                                   | feito: `estado-convite.ts` + portas `Preferencias` e `Ambiente`                                                        |
 | SPEC-02 `preload`                                     | portas `CarregadorDeImagens` e `Temporizador` em `application`, adaptadores em `infrastructure` | feito: `use-cases/carregamento.ts`; `img.decode()` no adaptador (ADR-0006)                                             |
 | SPEC-03 bosque                                        | `presentation/bosque`                                                                           | feito: `cena-bosque.ts` (camadas, revelação) e `profundidade.ts` (mouse/deriva); a matemática em `domain/profundidade` |
-| SPEC-02/04/05/06 cenas e GSAP                         | `presentation/scenes/`                                                                          | cada cena recebe `ctx = { root, content, config, state, events, audio }`                                               |
+| SPEC-04 baú e chave                                   | `presentation/bau`                                                                              | feito: `cena-bau.ts` (cursor ou chave flutuante, dica, reforço, `tlBau`) e `petalas/soltar-petalas.ts`                 |
+| SPEC-02/05/06 cenas e GSAP                            | `presentation/scenes/`                                                                          | cada cena recebe `ctx = { root, content, config, state, events, audio }`                                               |
 | SPEC-04 cursor de chave                               | `presentation`                                                                                  | detecção de `pointer` via porta ou `matchMedia` no adaptador                                                           |
 | SPEC-07 contagem e estados                            | `domain` + `application` + `presentation`                                                       | feito (fatia vertical de referência)                                                                                   |
 | SPEC-08 áudio                                         | porta `AudioPort` em `application`, Howler em `infrastructure/audio`                            | feito: `conectarAudio` liga os eventos à porta; botão de som em `presentation/audio` (ADR-0005)                        |

@@ -7,6 +7,8 @@ export interface OpcoesDoEstadoFalso {
   readonly visitado?: boolean;
   readonly reduzido?: boolean;
   readonly toque?: boolean;
+  /** Padrão: o mesmo que `toque`. Verdadeiro com `toque` falso = notebook com tela de toque. */
+  readonly algumToque?: boolean;
   readonly orientacao?: Orientacao;
 }
 
@@ -20,6 +22,7 @@ export function criarEstadoFalso(opcoes: OpcoesDoEstadoFalso = {}): {
   const ambiente: Ambiente = {
     animacaoReduzida: () => opcoes.reduzido ?? false,
     porToque: () => opcoes.toque ?? true,
+    algumToque: () => opcoes.algumToque ?? opcoes.toque ?? true,
     orientacao: () => orientacao,
     aoMudarOrientacao(escuta) {
       giros.add(escuta);

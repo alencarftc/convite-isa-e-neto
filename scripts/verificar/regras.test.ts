@@ -99,7 +99,7 @@ describe('validarArquivos', () => {
     const problemas = validarArquivos(
       config,
       ['audio/ambiente.mp3'],
-      (caminho) => caminho !== 'audio/ambiente.mp3' && !caminho.includes('chave'),
+      (caminho) => caminho !== 'audio/ambiente.mp3' && caminho !== 'assets/provisorio/chave.svg',
     );
 
     expect(problemas.map((p) => p.mensagem)).toEqual([

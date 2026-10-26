@@ -29,6 +29,7 @@ function montar(armazenamento = armazenamentoEmMemoria()) {
     ambiente: {
       animacaoReduzida: () => false,
       porToque: () => true,
+      algumToque: () => true,
       orientacao: () => 'vertical',
       aoMudarOrientacao: () => () => undefined,
     },

@@ -4,12 +4,11 @@ import type * as ModuloDeConfig from '@/config/config';
 
 import { montarIndexHtml } from './suporte/index-html';
 
-// A revelação do bosque dura 3 s de verdade; aqui só importa que ela termina e leva ao final.
+// As animações duram segundos de verdade; aqui só importa que terminam e levam ao final.
 vi.mock('@/config/config', async (importarOriginal) => {
   const original = await importarOriginal<typeof ModuloDeConfig>();
-  return {
-    config: { ...original.config, duracoes: { ...original.config.duracoes, nevoa: 0.05 } },
-  };
+  const { configRapida } = await import('./suporte/config-rapida');
+  return { config: configRapida(original.config) };
 });
 
 /** Imagem que decodifica na hora: o convite não espera por rede nos testes. */
@@ -47,6 +46,24 @@ async function abrirEntrando(): Promise<void> {
   document.querySelector<HTMLButtonElement>('.entrada__tocar')?.click();
 }
 
+/** Espera o bosque ficar pronto e abre o baú com um toque. */
+async function abrirOBau(): Promise<void> {
+  await vi.waitFor(() => {
+    expect(document.querySelector<HTMLButtonElement>('.bau__botao')?.disabled).toBe(false);
+  });
+  expect(fase()).toBe('aguardando-bau');
+  document.querySelector<HTMLButtonElement>('.bau__botao')?.click();
+}
+
+/** Percorre a entrada e o baú, até as informações. */
+async function ateAsInformacoes(): Promise<void> {
+  await abrirEntrando();
+  await abrirOBau();
+  await vi.waitFor(() => {
+    expect(fase()).toBe('informacoes');
+  });
+}
+
 /** Fumaça da raiz de composição: o main.ts liga config, orquestrador, adaptadores e apresentação. */
 describe('src/main.ts', () => {
   beforeEach(() => {
@@ -77,12 +94,9 @@ describe('src/main.ts', () => {
     expect(document.querySelector('.cartao--contagem')).toBeNull();
   });
 
-  it('depois do toque, percorre o orquestrador até as informações com a data simulada (CA-01.4.1)', async () => {
-    await abrirEntrando();
+  it('depois do toque e do baú, percorre o orquestrador até as informações (CA-01.4.1)', async () => {
+    await ateAsInformacoes();
 
-    await vi.waitFor(() => {
-      expect(fase()).toBe('informacoes');
-    });
     const contagem = document.querySelector('#app .cartao--contagem');
     expect(contagem?.textContent).toBe('Faltam 68 dias, 7 horas e 0 minutos para o nosso sim');
     expect(document.querySelector<HTMLElement>('.entrada')?.hidden).toBe(true);
@@ -93,6 +107,7 @@ describe('src/main.ts', () => {
     window.history.replaceState({}, '', '/?data=2026-11-15T10:00&erro=informacoes');
 
     await abrirEntrando();
+    await abrirOBau();
 
     await vi.waitFor(() => {
       expect(erro).toHaveBeenCalled();
@@ -122,10 +137,7 @@ describe('src/main.ts', () => {
 
   it('um erro não tratado do próprio site depois do final só é registrado', async () => {
     const erro = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    await abrirEntrando();
-    await vi.waitFor(() => {
-      expect(fase()).toBe('informacoes');
-    });
+    await ateAsInformacoes();
 
     window.dispatchEvent(
       Object.assign(new Event('error'), {

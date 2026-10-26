@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ARTE PROVISÓRIA: substituir pela imagem gerada (docs/requisitos.md, "Imagens a gerar") · cursor de chave -->
+<svg xmlns="http://www.w3.org/2000/svg" data-provisorio="true" width="48" height="48" viewBox="0 0 48 48">
+<g transform="rotate(-45 24 24)"><circle cx="9" cy="24" r="7" fill="none" stroke="#b18e4a" stroke-width="4"/><rect x="14" y="22" width="30" height="4" rx="1.5" fill="#b18e4a"/><rect x="34" y="26" width="4" height="7" fill="#b18e4a"/><rect x="40" y="26" width="4" height="5" fill="#b18e4a"/></g>
+</svg>

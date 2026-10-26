@@ -163,6 +163,28 @@ function chave(): string {
   );
 }
 
+const TAMANHO_CURSOR: Tamanho = { largura: 48, altura: 48 };
+
+/** Cursor de chave (48 px, ponto ativo na ponta); derivado da imagem 10 na versão final. */
+function cursorChave(): string {
+  return svg(
+    TAMANHO_CURSOR,
+    `<g transform="rotate(-45 24 24)"><circle cx="9" cy="24" r="7" fill="none" stroke="${COR.dourado}" stroke-width="4"/><rect x="14" y="22" width="30" height="4" rx="1.5" fill="${COR.dourado}"/><rect x="34" y="26" width="4" height="7" fill="${COR.dourado}"/><rect x="40" y="26" width="4" height="5" fill="${COR.dourado}"/></g>`,
+    'cursor de chave',
+  );
+}
+
+const TAMANHO_PETALA: Tamanho = { largura: 96, altura: 128 };
+
+/** Pétala azul; as três variações mudam a curvatura (SPEC-06 reaproveita). */
+function petala(curva: number, tom: string): string {
+  return svg(
+    TAMANHO_PETALA,
+    `<path d="M48 4 C ${88 - curva} 36, ${88 - curva} 96, 48 124 C ${8 + curva} 96, ${8 + curva} 36, 48 4 z" fill="${tom}" fill-opacity="0.9"/><path d="M48 14 V112" stroke="#ffffff" stroke-opacity="0.45" stroke-width="2"/>`,
+    'pétala azul',
+  );
+}
+
 /** Altura da faixa em relação à tela, por orientação (SPEC-03, tabela "Camadas"). */
 const FAIXA_LAGO = { vertical: 0.3, horizontal: 0.4 } as const;
 const FAIXA_FRENTE = { vertical: 0.34, horizontal: 0.3 } as const;
@@ -186,6 +208,10 @@ const arquivos: Record<string, string> = {
   'bau-fechado.svg': bauFechado(),
   'bau-aberto.svg': bauAberto(),
   'chave.svg': chave(),
+  'cursor-chave.svg': cursorChave(),
+  'petala-a.svg': petala(0, '#8fa9d3'),
+  'petala-b.svg': petala(12, '#7f9bc9'),
+  'petala-c.svg': petala(-10, '#a3b8dc'),
 };
 
 const destino = join(import.meta.dirname, '..', 'public', 'assets', 'provisorio');

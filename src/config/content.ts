@@ -7,6 +7,7 @@ import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 export const content: ConteudoConvite = {
   rotulos: {
     informacoes: 'Informações do casamento',
+    abrirBau: 'Abrir o baú',
   },
   entrada: {
     nomes: 'Isabella & David',
@@ -19,6 +20,8 @@ export const content: ConteudoConvite = {
     somLigado: 'Som ligado',
     somDesligado: 'Som desligado',
     pular: 'Pular para o convite',
+    chaveComputador: 'Use a chave para abrir',
+    chaveCelular: 'Toque na chave',
   },
   contagem: {
     antes: 'Faltam {dias}, {horas} e {minutos} para o nosso sim',

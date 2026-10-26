@@ -12,9 +12,16 @@ const config = {
 } as ConfigConvite;
 
 const conteudo: ConteudoConvite = {
-  rotulos: { informacoes: 'Informações' },
+  rotulos: { informacoes: 'Informações', abrirBau: 'Abrir' },
   entrada: { nomes: 'N', tocar: 'T', volume: 'V', aguarde: 'A' },
-  dicas: { som: 'Som', somLigado: 'Som ligado', somDesligado: 'Som desligado', pular: 'Pular' },
+  dicas: {
+    som: 'Som',
+    somLigado: 'Som ligado',
+    somDesligado: 'Som desligado',
+    pular: 'Pular',
+    chaveComputador: 'Chave',
+    chaveCelular: 'Toque',
+  },
   contagem: {
     antes: 'Faltam {dias}, {horas} e {minutos}',
     noDia: 'É hoje!',
