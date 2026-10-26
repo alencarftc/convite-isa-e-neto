@@ -1,9 +1,9 @@
 /**
  * Gate de publicação (SPEC-12): `pnpm verificar`. Falha enquanto houver texto
  * pendente, data sem fuso, link sem https, endereço publicado incompleto, serviço externo,
- * arte provisória ou arquivo ausente. Roda antes de publicar, não a cada commit.
+ * arte provisória, arquivo ausente ou acima do orçamento de peso. Roda antes de publicar, não a cada commit.
  */
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { config } from '../src/config/config';
@@ -22,12 +22,21 @@ const arquivosDoCodigo = [
     .filter((caminho) => /\.(ts|css)$/.test(caminho) && !caminho.endsWith('.test.ts')),
 ].map((caminho) => ({ caminho, texto: readFileSync(join(raiz, caminho), 'utf8') }));
 
+const fontes = readdirSync(join(publico, 'fonts'))
+  .filter((arquivo) => arquivo.endsWith('.woff2'))
+  .map((arquivo) => `fonts/${arquivo}`);
+
 const problemas = verificarTudo({
   config,
   conteudo: content,
   arquivosDeAudio: ARQUIVOS_DE_AUDIO,
   existe: (caminho) => existsSync(join(publico, caminho)),
   arquivosDoCodigo,
+  tamanhoDe: (caminho) => {
+    const arquivo = join(publico, caminho);
+    return existsSync(arquivo) ? statSync(arquivo).size : undefined;
+  },
+  fontes,
 });
 
 if (problemas.length > 0) {
