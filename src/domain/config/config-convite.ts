@@ -31,6 +31,17 @@ export interface ConfigConvite {
     readonly efeitos: number;
     readonly musica: number;
   };
+  /** Transições de volume do áudio, em segundos (SPEC-08, tabela "Comportamento"). */
+  readonly transicoesDeAudio: {
+    /** Ambiente sobe de 0 ao volume normal no toque de entrada. */
+    readonly entradaDoAmbiente: number;
+    /** Ambiente baixa quando uma música entra. */
+    readonly ambienteSobMusica: number;
+    /** Música entra (de 0 ao volume) ou sai (ao 0). */
+    readonly musica: number;
+    /** Ambiente volta ao volume normal quando a música 2 termina. */
+    readonly retornoDoAmbiente: number;
+  };
   /** Trecho inicial de cada música, em segundos (SPEC-08). */
   readonly musicas: {
     readonly inicio1: number;

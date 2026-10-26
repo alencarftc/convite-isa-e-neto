@@ -10,6 +10,12 @@ export interface ConteudoConvite {
     /** Rótulo acessível da seção de informações. */
     readonly informacoes: string;
   };
+  readonly dicas: {
+    /** Nome acessível do botão de som (o estado vai em `aria-pressed`). */
+    readonly som: string;
+    readonly somLigado: string;
+    readonly somDesligado: string;
+  };
   readonly contagem: {
     /** Modelo com `{dias}`, `{horas}` e `{minutos}`. */
     readonly antes: string;
