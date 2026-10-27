@@ -147,3 +147,40 @@ passaros: {
 - O retângulo da copa e a altura do chão dependem da arte 05 e 06; os valores acima vêm da arte provisória.
 - Folhas na árvore da esquerda também? A arte 05 tem moldura dos dois lados; começar só pela da direita (onde o sol bate
   e o casal fica) e decidir olhando a cena.
+
+## Implementação (27/10/2026)
+
+Implementada na branch `feat/cena-viva-20-folhas-e-passaros`. Respostas adotadas e desvios do desenho acima:
+
+- **A copa foi medida na arte 05:** na vertical a folhagem densa da árvore da direita vai do topo a 40% da altura e de
+  74% da largura para a direita (`x [0,74; 0,98]`, `y [0,04; 0,4]`); na horizontal, `x [0,7; 0,97]`, `y [0,04; 0,4]`. Os
+  valores da spec (55 a 95%, 5 a 30%) soltavam as folhas no céu, longe da árvore. Só a árvore da direita, como a spec
+  propõe; a da esquerda fica para depois do teste.
+- **Três parâmetros novos em `config.vida.folhas`,** para o código não ter número solto: `aparece` (0,5 s, a folha surge
+  por esmaecimento ao se soltar), `inclinacao` (25°, o quanto ela "vira" a cada troca de lado) e `larguraMinima` (10 px, o
+  piso da spec). Em `config.curvas` entrou `linear` (`none`), para a travessia dos pássaros.
+- **Uma folha é uma linha do tempo de quatro animações, no máximo três vivas ao mesmo tempo:** queda e giro (`y` e
+  `rotation`, `sine.inOut`), balanço e inclinação (`x` e `skewX`, de ida e volta, com tantas trocas de lado quanto o
+  sorteio deu), entrada e saída por esmaecimento (uma depois da outra). Cada linha entra no relógio da vida, então pausar é
+  congelar tudo no lugar.
+- **O planejador sorteia na ordem fixa** (frente, origem, chão, duração, balanço, trocas, giro, espelho, largura,
+  variação), o que dá aos testes uma sequência reproduzível. A folha da frente leva `duração ÷ 1,3`. O giro vai de 40% do
+  máximo a 540°, com o sinal sorteado.
+- **Pássaros:** um `<svg>` por bando (do tamanho da tela, `overflow: visible`) com um `<g>` por pássaro e um `<path>` em
+  duas asas curvas, traço arredondado em `--cor-passaro` (`#4a4038`). O `<g>` atravessa a tela (`x`, linear) e ondula (`y`);
+  as asas batem em `scaleY` (de 1 a −0,55, com a origem na base do desenho). Cada pássaro começa com as asas num ponto
+  diferente da batida (a fase vira a escala inicial). Nos bandos que planam, as asas param em 0,6 durante 1,2 s no meio do
+  caminho e voltam a bater.
+- **Os pássaros pequenos parecem distantes:** ficam um pouco mais altos e levam até 15% mais para atravessar (regra do
+  planejador, `LENTIDAO_DOS_DISTANTES`). Todos são tirados do DOM no fim da travessia.
+- **Nunca dois bandos juntos:** se o intervalo sorteado acaba com o bando anterior ainda no ar, o próximo espera ele
+  terminar e nasce em seguida (a travessia mais lenta, 14 s × 1,15, passa do intervalo mínimo de 12 s).
+- **Testes de integração com o relógio manual:** 60 s de vida passam em milissegundos. O happy-dom não tem a geometria de
+  SVG que o GSAP consulta (a matriz da transformação e a caixa do desenho): `tests/integration/suporte/svg-falso.ts` a
+  imita e é instalado no setup de todos os testes de integração; sem ele, o `main.ts` dos testes de composição, que agora
+  tem pássaros, lançava um erro a cada quadro.
+- **Conferido no Chrome (celular, 390 × 844):** folhas pequenas caindo da folhagem da direita e um bando de três pássaros
+  no céu, sem erros no console. As folhas ficam com o piso de 10 px num celular (1,4 a 2,4% de 390 px são 5 a 9 px).
+- **Peso:** o JavaScript crítico passou de 63,12 para 65,08 kB gzip (+1,96 kB; a spec previa até 2,5 kB).
+- **Não conferido:** os quadros por segundo com folhas e pássaros juntos num Android intermediário; o desempenho com a CPU
+  4× mais lenta.
