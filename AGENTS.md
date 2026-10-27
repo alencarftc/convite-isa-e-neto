@@ -108,6 +108,11 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
 
 ## Estado atual
 
+**Branch `feat/cena-viva` (teste, 27/10/2026):** épico 13, "Cena viva", planejado e ainda não implementado. Comece por
+[docs/specs-cena-viva/README.md](docs/specs-cena-viva/README.md) (ordem, branches por spec, definição de pronto e
+orçamento) e pela [ADR-0011](docs/decisions/0011-cena-viva-em-codigo-e-webgl.md). As branches de cada spec saem desta
+e voltam para ela, nunca para a `main`.
+
 Feito: ferramentas e CI; SPEC-01 completa (barramento, fases, estado, orquestrador, contrato `Cena`,
 modo de segurança); fatia vertical da SPEC-07 (contagem e estados por data, botões). SPEC-08 (porta de áudio, Howler,
 botão de som; faltam os MP3). SPEC-02 (entrada e carregamento, com arte
