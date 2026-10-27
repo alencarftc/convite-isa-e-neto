@@ -138,6 +138,45 @@ describe('criarEstado', () => {
     expect(escuta).not.toHaveBeenCalled();
   });
 
+  it('o movimento nasce ligado e lembra a escolha da visita anterior (CT-18.13)', () => {
+    const { ambiente } = ambienteFalso();
+
+    expect(criarEstado({ preferencias: preferenciasFalsas(), ambiente }).movimentoLigado).toBe(
+      true,
+    );
+    expect(
+      criarEstado({ preferencias: preferenciasFalsas({ 'convite:movimento': false }), ambiente })
+        .movimentoLigado,
+    ).toBe(false);
+  });
+
+  it('definirMovimento guarda a escolha, lembra para a próxima visita e avisa (CT-18.13)', () => {
+    const { ambiente } = ambienteFalso();
+    const preferencias = preferenciasFalsas();
+    const estado = criarEstado({ preferencias, ambiente });
+    const escuta = vi.fn();
+    estado.aoMudar(escuta);
+
+    estado.definirMovimento(false);
+
+    expect(estado.movimentoLigado).toBe(false);
+    expect(preferencias.gravar).toHaveBeenCalledWith('convite:movimento', false);
+    expect(escuta).toHaveBeenCalledTimes(1);
+  });
+
+  it('definirMovimento com o valor que já vale não grava nem avisa', () => {
+    const { ambiente } = ambienteFalso();
+    const preferencias = preferenciasFalsas();
+    const estado = criarEstado({ preferencias, ambiente });
+    const escuta = vi.fn();
+    estado.aoMudar(escuta);
+
+    estado.definirMovimento(true);
+
+    expect(preferencias.gravar).not.toHaveBeenCalled();
+    expect(escuta).not.toHaveBeenCalled();
+  });
+
   it('marcarVisitado grava a visita e avisa uma só vez (RF-06.10)', () => {
     const { ambiente } = ambienteFalso();
     const preferencias = preferenciasFalsas();

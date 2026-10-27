@@ -17,6 +17,13 @@ export interface OpcoesDeProfundidade {
   >;
 }
 
+/** A profundidade em andamento: para de vez, ou congela e retoma a deriva ("Pausar animação", SPEC-18). */
+export interface ProfundidadeEmAndamento {
+  parar(): void;
+  pausar(): void;
+  retomar(): void;
+}
+
 function profundidadeDe(camada: HTMLElement): number {
   return Number(camada.getAttribute('data-prof') ?? 0);
 }
@@ -24,26 +31,38 @@ function profundidadeDe(camada: HTMLElement): number {
 /**
  * Profundidade do bosque (SPEC-03, RF-03.3 e RF-03.4): no computador as camadas acompanham o mouse
  * (até 24 × 12 px, vezes a profundidade) e voltam ao centro quando ele sai da janela; no celular,
- * cada camada faz uma deriva lenta e defasada. Só `transform`. Devolve a função que para tudo.
+ * cada camada faz uma deriva lenta e defasada. Só `transform`. Pausar congela a deriva (ela anda sozinha,
+ * como a cena viva); o mouse não precisa de pausa, porque só se move quando o convidado o move.
  */
-export function iniciarProfundidade(opcoes: OpcoesDeProfundidade): () => void {
+export function iniciarProfundidade(opcoes: OpcoesDeProfundidade): ProfundidadeEmAndamento {
   const { camadas, toque, parametros, curva, janela } = opcoes;
 
   if (toque) {
+    const derivas: gsap.core.Tween[] = [];
     const contexto = gsap.context(() => {
       camadas.forEach((camada, indice) => {
-        gsap.to(camada, {
-          x: parametros.deriva * profundidadeDe(camada),
-          duration: parametros.periodoDaDeriva,
-          ease: curva,
-          yoyo: true,
-          repeat: -1,
-          delay: indice * parametros.defasagemDaDeriva,
-        });
+        derivas.push(
+          gsap.to(camada, {
+            x: parametros.deriva * profundidadeDe(camada),
+            duration: parametros.periodoDaDeriva,
+            ease: curva,
+            yoyo: true,
+            repeat: -1,
+            delay: indice * parametros.defasagemDaDeriva,
+          }),
+        );
       });
     });
-    return () => {
-      contexto.revert();
+    return {
+      parar() {
+        contexto.revert();
+      },
+      pausar() {
+        for (const deriva of derivas) deriva.pause();
+      },
+      retomar() {
+        for (const deriva of derivas) deriva.resume();
+      },
     };
   }
 
@@ -70,9 +89,18 @@ export function iniciarProfundidade(opcoes: OpcoesDeProfundidade): () => void {
 
   janela.addEventListener('pointermove', aoMover);
   janela.addEventListener('pointerout', aoSair);
-  return () => {
-    janela.removeEventListener('pointermove', aoMover);
-    janela.removeEventListener('pointerout', aoSair);
-    gsap.killTweensOf(camadas);
+  return {
+    parar() {
+      janela.removeEventListener('pointermove', aoMover);
+      janela.removeEventListener('pointerout', aoSair);
+      gsap.killTweensOf(camadas);
+    },
+    // O mouse só move as camadas quando o convidado o move: não há movimento próprio para pausar.
+    pausar() {
+      /* nada a congelar */
+    },
+    retomar() {
+      /* nada a retomar */
+    },
   };
 }

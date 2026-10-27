@@ -200,3 +200,49 @@ As cores de cada elemento entram pelas specs seguintes.
 - O texto do botão de pausa (US-13.6) precisa de aprovação; enquanto isso, fica entre colchetes.
 - `--z-vida-fundo` faz as folhas de trás passarem **atrás** do baú; se ficar estranho com a arte final, subir para
   logo acima do baú.
+
+## Implementação (27/10/2026)
+
+Implementada na branch `feat/cena-viva-18-fundacao`, sobre a `feat/cena-viva` já com a arte final e os ajustes da
+[ADR-0012](../decisions/0012-ajustes-de-experiencia-apos-testes-no-celular.md). Respostas adotadas e desvios do
+desenho acima:
+
+- **A pausa do convidado mora no `EstadoConvite`, não em `preferencias` dentro da cena viva.** `estado.movimentoLigado`
+  (preferência `convite:movimento`, `true` = ligado) e `estado.definirMovimento()` seguem o mesmo molde do som. Assim a
+  cena viva e a deriva das camadas leem **a mesma** escolha, sem uma segunda cópia do estado nem evento novo, e
+  `criarCenaViva` não recebe `Preferencias`. O botão chama `definirMovimento` direto.
+- **A deriva das camadas também pausa.** `iniciarProfundidade` passou a devolver `{ parar, pausar, retomar }`; a cena do
+  bosque segue `estado.movimentoLigado` (e já nasce congelada se a pausa vier gravada). No computador o paralaxe do mouse
+  não pausa: ele só se move quando o convidado move o mouse.
+- **A cobertura mede a carta (`.conteudo .carta`), não `.conteudo`.** Aqui `.conteudo` tem 58% da altura de `padding` em
+  cima, então o topo dele sobe com a primeira rolagem; quem esconde a cena é o papel. **E só conta se a carta cobre a
+  largura** (`vida.larguraParaCobrir`, 0,8): no computador a carta é uma coluna de 560 px e o lago continua à vista dos
+  dois lados, e pausar ali deixaria a água e as folhas congeladas à vista. A medida vale nas fases `convite` e
+  `informacoes` (a rolagem é liberada ainda dentro de `convite`) e usa o `gsap.ticker`, uma leitura de layout por quadro.
+- **`--z-vida-chao` é 42, não 45:** o 45 já é do inventário da chave (`--z-inventario`). O esquilo e as folhas da frente
+  ficam acima da grama (40) e abaixo da chave guardada.
+- **O botão não usa `aria-pressed`.** O nome acessível já muda ("Pausar animação" ↔ "Retomar animação"); com os dois, o
+  leitor de tela diria o estado duas vezes. Ícone de pausa/retomar, 44 × 44 px, logo depois do som no Tab. Os textos
+  (`dicas.pausarAnimacao`, `dicas.retomarAnimacao`) estão **entre colchetes** até a aprovação do casal: o `verificar`
+  barra a publicação enquanto estiverem assim, e o rótulo aparece com colchetes na dica ao passar o mouse.
+- **Sem botão com animação reduzida:** nada se move, não há o que pausar. Com a pausa gravada, o botão aparece (é por
+  ele que se religa) e a vida só começa ao retomar.
+- **O relógio da vida** (`criarRelogioDaVida`) é uma `gsap.timeline({ autoRemoveChildren: true })` por elemento, com
+  `depois(atraso, ação)` e `iniciar(animação, atraso)` posicionados em `linha.time() + atraso`: pausar o elemento é
+  pausar a linha, e ela volta a andar sozinha quando recebe um filho depois de esvaziar (conferido nos testes).
+- **Medida de quadros e rolagem recebem o ticker por parâmetro** (`TickerDaVida`; `main.ts` passa o `gsap.ticker`), para os
+  testes dispararem quadros de 16 ou 40 ms sem depender de relógio. A aba em segundo plano zera a medida
+  (`visibilitychange`), como a spec pede; se o aparelho já nasce `leve`, não há medida.
+- **O tempo dos testes é manual:** o `vi.useFakeTimers()` não alcança o GSAP (ele guarda o relógio do navegador ao ser
+  carregado). `tests/integration/suporte/relogio-gsap.ts` tira o `updateRoot` do ticker e avança a linha do tempo global
+  no passo que o teste manda; as specs 19 a 22 usam o mesmo auxiliar. O teste de altura do balão na horizontal
+  (`historia.test.ts`) lia a altura com o relógio real e falhava com a máquina ocupada; passou para o relógio manual.
+- **Capacidades:** `suportaWebGL()` pede `webgl` (não `webgl2`) com `failIfMajorPerformanceCaveat: true`, descarta o
+  contexto da sonda e guarda a resposta; `aparelhoModesto()` é `deviceMemory <= 2` ou `hardwareConcurrency <= 4`.
+- **Arte provisória:** `scripts/arte-provisoria-vida.ts` desenha folhas (3), esquilo (2 poses) e o casal sentado, em SVG
+  na paleta do projeto; `pnpm arte:provisoria` os gera em `public/assets/provisorio/`. O casal sentado provisório
+  substitui, nesta branch, a imagem 17 (`config.imagens.casal`); a 17 em WebP continua em `public/assets/couple/`, sem uso.
+  O `verificar` acusa as seis (`arte-provisoria`) até as imagens 19, 20 e 21 chegarem.
+- **Tamanho (CT-18.12):** o JavaScript crítico passou de 57,67 kB para 58,91 kB gzip (+1,24 kB) só com o esqueleto.
+- **Não conferido:** quadros por segundo reais num Android intermediário e o trabalho por quadro com a CPU 4× mais lenta
+  (RNF-18.2) só têm sentido com os elementos de vida; ficam para o fim do épico, em aparelho real.

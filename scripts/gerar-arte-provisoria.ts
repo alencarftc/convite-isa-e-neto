@@ -1,18 +1,23 @@
 /**
- * Gera as FOTOS PROVISÓRIAS dos balões: retratos pintados em aquarela simples, na paleta do projeto,
- * que ocupam o lugar das fotos reais do casal (SPEC-05) até elas chegarem. A arte do bosque, do baú, da
- * carta etc. já é a gerada (`pnpm arte`, ADR-0011); só as fotos continuam pendentes.
+ * Gera a ARTE PROVISÓRIA: as fotos dos balões (retratos pintados em aquarela simples, na paleta do projeto,
+ * no lugar das fotos reais do casal, SPEC-05) e, na branch da cena viva, as folhas, o esquilo e o casal
+ * sentado (SPEC-18, RF-18.8). A arte do bosque, do baú, da carta etc. já é a gerada (`pnpm arte`,
+ * ADR-0011); o que está aqui continua pendente.
  *
  * Os arquivos vão para `public/assets/provisorio/` e carregam o marcador `ARTE PROVISÓRIA` (comentário e
  * `data-provisorio`), sem texto visível: no balão elas devem parecer retratos, não avisos. O gate
- * `pnpm verificar` falha enquanto `content.baloes[].foto` apontar para eles ou o `alt` estiver entre
- * colchetes. Rodar: `pnpm arte:provisoria` (os SVGs gerados são versionados).
+ * `pnpm verificar` falha enquanto `config.imagens` ou `content.baloes[].foto` apontarem para eles ou o
+ * `alt` estiver entre colchetes. Rodar: `pnpm arte:provisoria` (os SVGs gerados são versionados).
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { casalSentado, type DesenhoProvisorio, esquilo, folha } from './arte-provisoria-vida';
+
 const MARCADOR =
   'ARTE PROVISÓRIA: substituir pela foto real do casal (docs/requisitos.md, "Fotos dos balões")';
+const MARCADOR_DA_VIDA =
+  'ARTE PROVISÓRIA: substituir pela imagem definitiva (docs/specs-cena-viva/README.md, "Imagens novas")';
 
 const TAMANHO_FOTO = 400;
 
@@ -63,11 +68,17 @@ const PALETAS: readonly Paleta[] = [
   },
 ];
 
-function svg(corpo: string, nome: string): string {
+function svg(
+  corpo: string,
+  nome: string,
+  largura: number = TAMANHO_FOTO,
+  altura: number = TAMANHO_FOTO,
+  marcador: string = MARCADOR,
+): string {
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    `<!-- ${MARCADOR} · ${nome} -->`,
-    `<svg xmlns="http://www.w3.org/2000/svg" data-provisorio="true" width="${TAMANHO_FOTO}" height="${TAMANHO_FOTO}" viewBox="0 0 ${TAMANHO_FOTO} ${TAMANHO_FOTO}">`,
+    `<!-- ${marcador} · ${nome} -->`,
+    `<svg xmlns="http://www.w3.org/2000/svg" data-provisorio="true" width="${String(largura)}" height="${String(altura)}" viewBox="0 0 ${String(largura)} ${String(altura)}">`,
     corpo,
     '</svg>',
     '',
@@ -112,4 +123,18 @@ for (const numero of [1, 2, 3, 4, 5]) {
   const nome = `foto-${String(numero)}.svg`;
   writeFileSync(join(destino, nome), foto(numero), 'utf8');
   console.log(`foto provisória ${nome}`);
+}
+
+/** Cena viva (épico 13): folhas 20a–c, esquilo 21a–b e o casal sentado no lugar da imagem 17/19. */
+const desenhosDaVida: readonly (readonly [string, DesenhoProvisorio])[] = [
+  ['folha-a.svg', folha('a')],
+  ['folha-b.svg', folha('b')],
+  ['folha-c.svg', folha('c')],
+  ['esquilo-encolhido.svg', esquilo('encolhido')],
+  ['esquilo-esticado.svg', esquilo('esticado')],
+  ['casal.svg', casalSentado()],
+];
+for (const [nome, { corpo, largura, altura }] of desenhosDaVida) {
+  writeFileSync(join(destino, nome), svg(corpo, nome, largura, altura, MARCADOR_DA_VIDA), 'utf8');
+  console.log(`arte provisória ${nome}`);
 }

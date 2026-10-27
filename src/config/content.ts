@@ -32,6 +32,9 @@ export const content: ConteudoConvite = {
     chaveCelular: 'Toque no baú para usar a chave',
     selo: 'Toque no selo',
     rolar: 'Role para ler',
+    // Texto novo da cena viva (SPEC-18, US-13.6), ainda sem a aprovação do casal: entre colchetes, o `pnpm verificar` barra a publicação.
+    pausarAnimacao: '[Pausar animação]',
+    retomarAnimacao: '[Retomar animação]',
   },
   previa: {
     titulo: 'Isabella & David — Convite de casamento',

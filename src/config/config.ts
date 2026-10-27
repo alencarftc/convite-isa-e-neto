@@ -180,6 +180,13 @@ export const config: ConfigConvite = {
     reforco: { escala: 1.15, pulsos: 3, duracao: 0.9, maximo: 3 },
     petalas: { minimo: 4, maximo: 6, subida: 220, deriva: 70, duracao: 1.8, largura: '12%' },
   },
+  vida: {
+    pausaAbaixoDe: 0.15,
+    larguraParaCobrir: 0.8,
+    desempenho: { janelaDeMedicao: 2, quadroLento: 0.025, fracaoDeQuadrosLentos: 0.5 },
+    leve: { quadrosDaAgua: 30, resolucaoDaAgua: 1, maximoDeFolhas: 4 },
+    completo: { resolucaoDaAgua: 1.5, maximoDeFolhas: 8 },
+  },
   // Arte gerada (docs/decisions/0011), preparada por `pnpm arte` a partir de `arte/originais/`.
   // Lago e primeiro plano valem nas duas orientações (o `cover` do CSS escolhe o recorte); o céu e a
   // moldura de árvores têm um arquivo por orientação.
@@ -211,7 +218,13 @@ export const config: ConfigConvite = {
     envelopeAberto: 'assets/objects/13-envelope-aberto.webp',
     selo: 'assets/objects/15-selo.webp',
     papelCarta: 'assets/objects/14-papel-carta.webp',
-    casal: 'assets/couple/17-casal-costas.webp',
+    // Cena viva (épico 13): arte provisória até chegarem as imagens 19 (casal sentado), 20a–c e 21a–b.
+    folhaA: 'assets/provisorio/folha-a.svg',
+    folhaB: 'assets/provisorio/folha-b.svg',
+    folhaC: 'assets/provisorio/folha-c.svg',
+    esquiloEncolhido: 'assets/provisorio/esquilo-encolhido.svg',
+    esquiloEsticado: 'assets/provisorio/esquilo-esticado.svg',
+    casal: 'assets/provisorio/casal.svg',
   },
   curvas: {
     mola: 'elastic.out(1, 0.5)',

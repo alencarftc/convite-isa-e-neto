@@ -368,6 +368,35 @@ export interface ConfigConvite {
       readonly largura: string;
     };
   };
+  /**
+   * Cena viva (épico 13, SPEC-18): pequenos movimentos de ambiente sobre as camadas pintadas. Tempos em
+   * segundos; cada intervalo `[mínimo, máximo]` é sorteado a cada vez. As specs 19 a 22 acrescentam o bloco
+   * de cada elemento (água, folhas, pássaros, esquilo, casal).
+   */
+  readonly vida: {
+    /** Abaixo desta fração da altura da tela, a cena visível acima da carta é pouca e a vida pausa. */
+    readonly pausaAbaixoDe: number;
+    /** A carta só esconde a cena se cobre esta fração da largura da janela (nas telas largas o lago aparece dos lados). */
+    readonly larguraParaCobrir: number;
+    /** Medição de quadros logo depois que a vida começa: com muitos quadros lentos, o nível desce para leve. */
+    readonly desempenho: {
+      readonly janelaDeMedicao: number;
+      /** Um quadro mais demorado que isto, em segundos, é lento. */
+      readonly quadroLento: number;
+      readonly fracaoDeQuadrosLentos: number;
+    };
+    readonly leve: {
+      /** A água é redesenhada a esta taxa (quadros por segundo). */
+      readonly quadrosDaAgua: number;
+      /** Teto da densidade do canvas da água, em múltiplos da densidade da tela. */
+      readonly resolucaoDaAgua: number;
+      readonly maximoDeFolhas: number;
+    };
+    readonly completo: {
+      readonly resolucaoDaAgua: number;
+      readonly maximoDeFolhas: number;
+    };
+  };
   /** Arquivo de cada imagem do convite (SPEC-02, SPEC-03); caminhos relativos à página. */
   readonly imagens: Readonly<Record<ChaveDeImagem, ArteDaImagem>>;
   readonly curvas: {

@@ -21,6 +21,7 @@ export const CHAVES_CRITICAS = [
  */
 export const FILA_SECUNDARIA = [
   ['bauAberto', 'petalaA', 'petalaB', 'petalaC', 'balaoA', 'balaoB', 'balaoC'], // 09, 16 e 11 · baú e história
+  ['folhaA', 'folhaB', 'folhaC', 'esquiloEncolhido', 'esquiloEsticado'], // 20a–c e 21a–b · cena viva (épico 13)
   ['ceuPorDoSol'], // 03 · história
   ['envelopeFechado', 'envelopeAberto', 'selo', 'papelCarta'], // 12, 13, 15, 14 · carta
   ['casal'], // 17 · convite

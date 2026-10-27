@@ -12,10 +12,13 @@ import './styles/entrada.css';
 import './styles/historia.css';
 import './styles/historia-estatica.css';
 import './styles/selo.css';
+import './styles/vida.css';
 import './styles/informacoes.css';
 import './styles/botao-som.css';
 import './styles/botao-pular.css';
+import './styles/botao-movimento.css';
 
+import gsap from 'gsap';
 import { Howl, Howler } from 'howler';
 
 import { criarBarramento } from '@/application/barramento-eventos';
@@ -54,6 +57,7 @@ import { criarCenaEntrada } from '@/presentation/entrada/cena-entrada';
 import { refletirFaseNoCorpo } from '@/presentation/fase-no-corpo';
 import { criarCenaHistoria } from '@/presentation/historia/cena-historia';
 import { criarCenaInformacoes } from '@/presentation/informacoes/cena-informacoes';
+import { criarCenaViva } from '@/presentation/vida/cena-viva';
 
 const raiz = document.querySelector<HTMLElement>('#app');
 if (!raiz) throw new Error('Elemento #app não encontrado no index.html');
@@ -118,6 +122,23 @@ const carregamento = criarCarregamento({
 
 const cartaEConvite = criarCartaEConvite({ raiz, conteudo: content, config, estado, eventos });
 
+const capacidades = criarCapacidadesDoNavegador(window);
+// Cena viva (épico 13, SPEC-18): movimentos de ambiente sobre as camadas. Não é uma etapa: ouve o barramento,
+// como o áudio. Cada spec seguinte (19 a 22) acrescenta o seu elemento à lista.
+const cenaViva = criarCenaViva({
+  raiz,
+  config,
+  dicas: content.dicas,
+  estado,
+  eventos,
+  capacidades,
+  elementos: [],
+  ticker: gsap.ticker,
+  avisar: (erro) => {
+    console.warn('[convite] cena viva: elemento parado', erro);
+  },
+});
+
 // Cada spec de cena (SPEC-03 a SPEC-06) acrescenta a sua aqui, na ordem do caminho.
 const etapas: readonly EtapaDoConvite[] = [
   {
@@ -157,7 +178,7 @@ const orquestrador = criarOrquestrador({
           obterInformacoes: criarObterInformacoes({ relogio, config, conteudo: content }),
           animar: !estado.reduzido,
           // "Salvar na agenda" baixa o .ics onde o navegador baixa; senão, abre o Google Agenda (SPEC-17).
-          baixaArquivos: criarCapacidadesDoNavegador(window).baixaArquivos(),
+          baixaArquivos: capacidades.baixaArquivos(),
         },
         // As informações rolam abaixo da carta, dentro do `.conteudo` criado por ela (SPEC-06).
         () => raiz.querySelector<HTMLElement>('.conteudo') ?? raiz,
@@ -215,6 +236,7 @@ import.meta.hot?.dispose(() => {
   removerAtalho();
   removerBotaoPular();
   pararDeOuvirSaidaEVolta();
+  cenaViva.destruir();
   removerBotaoSom();
   audioDoConvite.destruir();
   orquestrador.destruir();

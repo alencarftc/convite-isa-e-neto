@@ -4,6 +4,8 @@ export interface ChavesDePreferencia {
   readonly 'convite:som': boolean;
   /** O convidado já abriu o convite neste aparelho? (SPEC-09) */
   readonly 'convite:visitado': boolean;
+  /** O movimento da cena viva está ligado? `false` depois de "Pausar animação" (SPEC-18, US-13.6). */
+  readonly 'convite:movimento': boolean;
 }
 
 /**

@@ -55,10 +55,15 @@
 
   --z-papel: -1; /* as pontas do papel, atrás do texto dentro da própria carta */
   --z-ceu: 0;
+  --z-vida-ceu: var(
+    --z-ceu
+  ); /* pássaros: no céu, logo depois da imagem dele na ordem do DOM (SPEC-18) */
   --z-lago: 10;
   --z-arvores: 20;
+  --z-vida-fundo: 25; /* folhas que caem atrás do baú (cena viva, SPEC-18) */
   --z-bau: 30;
   --z-primeiro-plano: 40;
+  --z-vida-chao: 42; /* esquilo e folhas da frente: sobre a grama, abaixo da chave guardada */
   --z-inventario: 45; /* a chave guardada, no pé da tela: acima da cena inteira, abaixo dos balões */
   --z-baloes: 50;
   --z-carta: 60;
