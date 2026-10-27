@@ -125,14 +125,23 @@ describe('cena de entrada (SPEC-02)', () => {
       expect(selo?.nextElementSibling?.className).toBe('entrada__nomes');
     });
 
-    it('init monta a imagem de config.imagens.selo e as iniciais de content.envelope (RF-16.5)', () => {
-      const { cena, el } = montar();
+    it('init monta o selo em duas metades com a imagem de config.imagens.selo, decorativas e sem texto (RF-16.5)', () => {
+      const { cena } = montar();
 
       cena.init();
 
-      expect(el('.entrada__selo-imagem').getAttribute('src')).toBe(config.imagens.selo);
-      expect(el('.entrada__iniciais').textContent).toBe(content.envelope.iniciais);
-      expect(el('.entrada__selo-imagem').getAttribute('alt')).toBe('');
+      const imagens = [
+        ...document.querySelectorAll<HTMLImageElement>(
+          '.entrada__selo .selo__metade .selo__imagem',
+        ),
+      ];
+      expect(imagens).toHaveLength(2);
+      for (const imagem of imagens) {
+        expect(imagem.getAttribute('src')).toBe(config.imagens.selo);
+        expect(imagem.getAttribute('alt')).toBe('');
+      }
+      expect(document.querySelector('.entrada__iniciais')).toBeNull(); // as siglas vêm na arte
+      expect(document.querySelector('.entrada__selo')?.textContent).toBe('');
     });
 
     it('o selo aparece quando a imagem chega, sem esperar nem atrasar "Toque para entrar" (CT-16.4)', async () => {
@@ -140,7 +149,7 @@ describe('cena de entrada (SPEC-02)', () => {
       cena.init();
       expect(Number(el('.entrada__selo').style.opacity || 0)).toBe(0);
 
-      el('.entrada__selo-imagem').dispatchEvent(new Event('load'));
+      el('.entrada__selo .selo__imagem').dispatchEvent(new Event('load'));
 
       await vi.waitFor(() => {
         expect(Number(el('.entrada__selo').style.opacity)).toBe(1);
@@ -210,6 +219,56 @@ describe('cena de entrada (SPEC-02)', () => {
       expect(tocar.disabled).toBe(true);
     });
 
+    it('ao tocar, o selo estala em duas metades, um clarão acende e os nomes se desfazem (ADR-0012)', async () => {
+      const { botao, el, execucao, concluirImagens } = await ateOToque();
+      let brilhoMaximo = 0;
+      const olhar = setInterval(() => {
+        brilhoMaximo = Math.max(
+          brilhoMaximo,
+          Number(gsap.getProperty(el('.selo__brilho'), 'opacity')),
+        );
+      }, 5);
+
+      botao('.entrada__tocar').click();
+      concluirImagens();
+      await execucao;
+      await vi.waitFor(
+        () => {
+          expect(Number(gsap.getProperty(el('.selo__metade--esquerda'), 'opacity'))).toBe(0);
+          expect(Number(gsap.getProperty(el('.selo__metade--direita'), 'opacity'))).toBe(0);
+          expect(Number(gsap.getProperty(el('.entrada__nomes'), 'opacity'))).toBe(0);
+        },
+        { timeout: 4000 },
+      );
+      clearInterval(olhar);
+
+      expect(brilhoMaximo).toBeGreaterThan(0.3);
+      expect(Number(gsap.getProperty(el('.entrada__nomes'), 'y'))).toBeLessThan(0); // os nomes subiram
+    });
+
+    it('a névoa só pode abrir quando o selo estala: o run espera config.entrada.saida.nevoaEm', async () => {
+      const { botao, execucao, concluirImagens } = await ateOToque();
+      const inicio = performance.now();
+
+      botao('.entrada__tocar').click();
+      concluirImagens();
+      await execucao;
+
+      expect(performance.now() - inicio).toBeGreaterThanOrEqual(
+        config.entrada.saida.nevoaEm * 1000 - 30,
+      );
+    });
+
+    it('com animação reduzida, o toque só esmaece: o selo não estala nem o clarão acende', async () => {
+      const { botao, el, execucao } = await ateOToque({ reduzido: true });
+
+      botao('.entrada__tocar').click();
+      await execucao;
+
+      expect(gsap.getTweensOf(el('.selo__brilho'))).toHaveLength(0);
+      expect(gsap.getTweensOf(el('.selo__metade--esquerda'))).toHaveLength(0);
+    });
+
     it('com animação reduzida, o toque não espera o bosque', async () => {
       const { botao, execucao } = await ateOToque({ reduzido: true });
 
@@ -220,13 +279,13 @@ describe('cena de entrada (SPEC-02)', () => {
 
     it('depois do toque, começa o carregamento secundário (RF-02.7)', async () => {
       const { botao, baixadas, concluirImagens } = await ateOToque();
-      expect(baixadas).not.toContain('assets/provisorio/bau-aberto.svg');
+      expect(baixadas).not.toContain('assets/objects/09-bau-aberto.webp');
 
       botao('.entrada__tocar').click();
       concluirImagens();
 
       await vi.waitFor(() => {
-        expect(baixadas).toContain('assets/provisorio/bau-aberto.svg');
+        expect(baixadas).toContain('assets/objects/09-bau-aberto.webp');
       });
     });
   });
@@ -292,7 +351,7 @@ describe('cena de entrada (SPEC-02)', () => {
 
     girar('horizontal');
 
-    expect(baixadas.some((url) => url.includes('ceu-16x9'))).toBe(true);
+    expect(baixadas.some((url) => url.includes('ceu-baunilha-16x9'))).toBe(true);
   });
 
   it('skip esconde a entrada; destroy devolve o primeiro quadro (HMR)', () => {

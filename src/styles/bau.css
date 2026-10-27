@@ -1,23 +1,24 @@
 /*
- * Baú e chave (SPEC-04). O baú fica centralizado, com a base a 16% da altura na vertical e 12% na
- * horizontal; a largura acompanha a tela. A posição da fechadura é uma variável relativa ao baú
- * (`--fechadura-x/y`), a ajustar com a imagem final. Só `transform` e `opacity` se animam.
+ * Baú e chave (SPEC-04, ADR-0012). O baú fica centralizado, com a base a 16% da altura na vertical e 25%
+ * na horizontal; a largura acompanha a tela. A posição da fechadura é uma variável relativa ao baú
+ * (`--fechadura-x/y`), medida na imagem 08 (o buraco da fechadura). A chave espera no inventário, no pé
+ * da tela, e voa até a fechadura quando é usada. Só `transform` e `opacity` se animam.
  */
 .bau {
-  --fechadura-x: 50%;
-  --fechadura-y: 41%; /* ajustar com a imagem 08 gerada (a spec sugere 58%) */
+  --fechadura-x: 64%;
+  --fechadura-y: 60%;
 
   position: absolute;
   inset: auto 0 16%;
   z-index: var(--z-bau);
-  width: clamp(150px, 42vw, 280px);
+  width: clamp(150px, 46vw, 290px);
   margin-inline: auto;
 }
 
 @media (orientation: landscape) {
   .bau {
-    bottom: 12%;
-    width: clamp(160px, 18vw, 300px);
+    bottom: 25%;
+    width: clamp(170px, 17vw, 280px);
   }
 }
 
@@ -33,9 +34,19 @@
   user-select: none;
 }
 
+/* O contorno do baú ganha uma sombra projetada para a esquerda e para baixo (o sol está à direita, ao fundo). */
+.bau__fechado,
+.bau__aberto {
+  filter: drop-shadow(-5px 6px 5px var(--cor-sombra-35));
+}
+
 .bau__aberto,
 .bau__luz,
-.bau__aura {
+.bau__contorno,
+.bau__aura,
+.bau__onda,
+.bau__sombra,
+.bau__brilhantes {
   position: absolute;
   pointer-events: none;
 }
@@ -46,10 +57,125 @@
   height: 100%;
 }
 
-/* Aura dourada atrás do baú: gradiente radial animado só por opacidade (RNF-04.1). */
+/*
+ * Sombra no chão: o sol está à direita e ao fundo, então ela cai para a esquerda, sobre o chão dourado ao lado
+ * do baú (a grama do primeiro plano esconde o que fica embaixo dele). A base do baú, escurecida na própria
+ * imagem (`pnpm arte`), completa o contato.
+ */
+.bau__sombra {
+  inset: auto 8% -4% -40%;
+  height: 20%;
+  background: radial-gradient(
+    closest-side,
+    var(--cor-sombra-70),
+    var(--cor-sombra-35) 58%,
+    transparent
+  );
+}
+
+/*
+ * Aura atrás do baú: ouro vivo e saturado, que se destaca do azul do lago e do verde (o dourado
+ * apagado sumia sobre o bege), cercado por uma penumbra leve. Respira o tempo todo; o realce, mais
+ * forte e mais perto, acende quando o mouse passa por cima. Só opacidade e escala se animam (RNF-04.1).
+ */
 .bau__aura {
-  inset: -35%;
-  background: radial-gradient(closest-side, var(--cor-dourado-55), transparent);
+  inset: -46% -38%;
+  background: radial-gradient(
+    closest-side,
+    var(--cor-aura-90),
+    var(--cor-aura-55) 40%,
+    var(--cor-aura-25) 66%,
+    var(--cor-aura-12) 84%,
+    transparent
+  );
+}
+
+/*
+ * O brilho de contorno: uma cópia do baú atrás dele, cujo `drop-shadow` dourado desenha um halo na forma exata
+ * do baú, forte contra o lago e o verde. A cópia fica coberta pelo baú; só o brilho aparece.
+ */
+.bau__contorno {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 5px var(--cor-aura)) drop-shadow(0 0 16px var(--cor-aura))
+    drop-shadow(0 0 34px var(--cor-aura-90));
+}
+
+/* Uma penumbra em volta da aura: a luz clara, sobre um fundo um pouco mais escuro, ganha contraste. */
+.bau__aura::before {
+  position: absolute;
+  inset: -34%;
+  content: '';
+  background: radial-gradient(closest-side, transparent 58%, var(--cor-sombra-35) 82%, transparent);
+}
+
+.bau__aura--realce {
+  inset: -30% -22%;
+  background: radial-gradient(closest-side, var(--cor-aura), var(--cor-aura-55) 48%, transparent);
+}
+
+/* Anel de luz que sai do baú a cada pulso. */
+.bau__onda {
+  inset: -8% -4%;
+  border: 3px solid var(--cor-aura);
+  border-radius: 50%;
+  box-shadow: 0 0 18px var(--cor-aura-55);
+}
+
+/* Pontos de luz que cintilam ao redor do baú. */
+.bau__brilhantes {
+  inset: -24% -14% -2%;
+}
+
+.bau__brilhante {
+  --tamanho: 14px;
+
+  position: absolute;
+  width: var(--tamanho);
+  height: var(--tamanho);
+  background: var(--cor-brilho);
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+}
+
+.bau__brilhante:nth-child(1) {
+  top: 34%;
+  left: 6%;
+}
+
+.bau__brilhante:nth-child(2) {
+  --tamanho: 18px;
+
+  top: 20%;
+  left: 86%;
+}
+
+.bau__brilhante:nth-child(3) {
+  --tamanho: 11px;
+
+  top: 8%;
+  left: 24%;
+}
+
+.bau__brilhante:nth-child(4) {
+  --tamanho: 16px;
+
+  top: 4%;
+  left: 66%;
+}
+
+.bau__brilhante:nth-child(5) {
+  --tamanho: 12px;
+
+  top: 62%;
+  left: 94%;
+}
+
+.bau__brilhante:nth-child(6) {
+  --tamanho: 13px;
+
+  top: 66%;
+  left: 2%;
 }
 
 /* Luz de dentro do baú, que sobe da boca quando a tampa abre. */
@@ -63,12 +189,53 @@
   );
 }
 
-/* A chave flutuante fica à direita da fechadura, com 22% da largura do baú. */
+/*
+ * Inventário: a chave guardada, no pé da tela, na raiz (acima da cena inteira) para poder voar até o
+ * baú sem ser cortada por camada alguma. Na horizontal, passa para o canto, longe do baú.
+ */
+.inventario {
+  --moldura: 68px;
+  --chave: 54px;
+
+  position: fixed;
+  bottom: calc(var(--espaco-5) + env(safe-area-inset-bottom));
+  left: 50%;
+  z-index: var(--z-inventario);
+  width: var(--moldura);
+  height: var(--moldura);
+  margin-left: calc(var(--moldura) / -2);
+  pointer-events: none;
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  .inventario {
+    right: var(--espaco-5);
+    left: auto;
+    margin-left: 0;
+  }
+}
+
+.inventario__moldura {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  cursor: pointer;
+  background: radial-gradient(closest-side, var(--cor-marfim), var(--cor-marfim-88));
+  border: 2px solid var(--cor-dourado);
+  border-radius: 18px;
+  box-shadow:
+    var(--sombra-cartao),
+    inset 0 0 0 4px var(--cor-marfim-85),
+    inset 0 0 14px var(--cor-dourado-30);
+}
+
+/* A chave guardada: a caixa da imagem, centrada na moldura (margens, não `translate`: o GSAP usa o transform). */
 .bau__chave {
   position: absolute;
-  top: calc(var(--fechadura-y) - 12%);
-  left: calc(var(--fechadura-x) + 6%);
-  width: 22%;
+  top: 50%;
+  left: 50%;
+  width: var(--chave);
+  margin: calc(var(--chave) / -2) 0 0 calc(var(--chave) / -2);
   pointer-events: none;
 }
 
@@ -77,6 +244,7 @@
   display: block;
   width: 100%;
   height: auto;
+  filter: drop-shadow(0 3px 3px var(--cor-sombra-55));
 }
 
 .bau__brilho {
@@ -86,14 +254,14 @@
   opacity: 0;
 }
 
-/* Botão que cobre o baú e a chave: 12 px de folga e no mínimo 48 × 48 px (RF-04.4). */
+/* Botão que cobre o baú: 12 px de folga e no mínimo 48 × 48 px (RF-04.4). */
 .bau__botao {
   position: absolute;
   inset: -12px;
   min-width: 48px;
   min-height: 48px;
   padding: 0;
-  cursor: inherit;
+  cursor: pointer;
   background: none;
   border: 0;
   border-radius: 16px;
@@ -104,9 +272,10 @@
   pointer-events: none;
 }
 
+/* Acima do baú: abaixo dele, o primeiro plano (grama e rosas) a cobriria. */
 .bau__dica {
   position: absolute;
-  top: calc(100% + var(--espaco-4));
+  bottom: calc(100% + var(--espaco-4));
   right: 0;
   left: 0;
   width: fit-content;
@@ -129,9 +298,4 @@
   position: absolute;
   height: auto;
   pointer-events: none;
-}
-
-/* No computador, o cursor sobre a cena vira a chave enquanto se espera o toque (RF-04.2). */
-body[data-fase='aguardando-bau'] {
-  cursor: var(--cursor-chave, auto);
 }

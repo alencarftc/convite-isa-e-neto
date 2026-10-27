@@ -83,7 +83,8 @@ afterEach(() => {
 });
 
 describe('montarCarta (SPEC-06, "Layout da carta")', () => {
-  const artigo = () => montarCarta(content.carta, 'papel.svg');
+  const papel = { url: 'papel.svg', proporcao: 1.5, corte: { de: 0.4, ate: 0.6 }, margem: 0.1 };
+  const artigo = () => montarCarta(content.carta, papel);
 
   it('tem os quatorze blocos, na ordem aprovada, com o texto de content.carta (CT-06.5)', () => {
     const blocos = [...artigo().querySelectorAll('.carta__bloco')];
@@ -137,8 +138,14 @@ describe('montarCarta (SPEC-06, "Layout da carta")', () => {
     }
   });
 
-  it('usa a imagem do papel como fundo', () => {
-    expect(artigo().style.backgroundImage).toContain('papel.svg');
+  it('entrega o papel à CSS por variáveis: a arte, a proporção e a faixa do meio que se estica (ADR-0012)', () => {
+    const a = artigo();
+
+    expect(a.style.getPropertyValue('--papel')).toContain('papel.svg');
+    expect(a.style.getPropertyValue('--papel-proporcao')).toBe('1.5');
+    expect(a.style.getPropertyValue('--papel-corte-de')).toBe('0.4');
+    expect(a.style.getPropertyValue('--papel-corte-ate')).toBe('0.6');
+    expect(a.style.getPropertyValue('--papel-margem')).toBe('0.1');
   });
 });
 
@@ -177,8 +184,10 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(document.querySelector('.casal__imagem')?.getAttribute('src')).toBe(
         config.imagens.casal,
       );
-      expect(document.querySelector<HTMLElement>('.carta')?.style.backgroundImage).toContain(
-        config.imagens.papelCarta,
+      const carta = document.querySelector<HTMLElement>('.carta');
+      expect(carta?.style.getPropertyValue('--papel')).toContain(config.imagens.papelCarta);
+      expect(carta?.style.getPropertyValue('--papel-proporcao')).toBe(
+        String(config.carta.papel.proporcao),
       );
     });
 
@@ -209,11 +218,12 @@ describe('envelope e carta (SPEC-06)', () => {
   });
 
   describe('estrutura (init)', () => {
-    it('monta o envelope com "para", o selo em duas metades com as iniciais em texto e o botão (RF-06.1 a 06.3)', () => {
+    it('monta o envelope sem texto escrito, o selo em duas metades (as siglas vêm na arte) e o botão (RF-06.1 a 06.3)', () => {
       const { el, botao } = montar();
 
-      expect(el('.envelope__para').textContent).toBe('Para você e sua família');
-      expect(el('.selo__iniciais').textContent).toBe('I&D');
+      expect(document.querySelector('.envelope__para')).toBeNull();
+      expect(el('.envelope').textContent.trim()).toBe('');
+      expect(document.querySelector('.selo__iniciais')).toBeNull();
       expect(document.querySelectorAll('.selo__metade')).toHaveLength(2);
       expect(botao().getAttribute('aria-label')).toBe('Abrir o envelope');
       expect(botao().disabled).toBe(true);
@@ -227,14 +237,42 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(document.body.style.overflow).toBe('hidden');
     });
 
-    it('"Role para ler" fica dentro do conteúdo, depois da carta, e é só um aviso visual (SPEC-14, RF-14.4)', () => {
+    it('"Role para ler" fica dentro da carta, na margem de cima do papel, e é só um aviso visual (SPEC-14, RF-14.4)', () => {
       const { el, raiz } = montar();
 
-      const dica = el('.conteudo > .convite__rolar');
-      expect(dica.previousElementSibling?.className).toBe('carta');
+      const dica = el('.conteudo > .carta > .convite__rolar');
       expect(dica.textContent).toBe(content.dicas.rolar);
       expect(dica.getAttribute('aria-hidden')).toBe('true');
+      expect(dica.querySelector('.convite__seta')).toBeTruthy();
       expect(raiz.querySelector(':scope > .convite__rolar')).toBeNull();
+    });
+
+    it('o chão sob a cena é o primeiro plano espelhado (uma cópia da camada), e não uma cor lisa (ADR-0012)', () => {
+      const { el } = montar();
+
+      const espelho = el('.convite__chao .camada--frente');
+      const original = el('.cena .camada--frente');
+      expect(espelho).not.toBe(original);
+      expect(espelho.querySelector('img')?.getAttribute('src')).toBe(
+        original.querySelector('img')?.getAttribute('src'),
+      );
+      expect(espelho.hasAttribute('data-prof')).toBe(false); // não entra na profundidade do mouse
+      expect(el('.convite__chao').getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('o chão sobe junto com a cena: o mesmo deslocamento no fim da abertura e no estado final', async () => {
+      const { abrirTudo, el, carta } = montar();
+      Object.assign(window, { innerHeight: 800 });
+
+      await abrirTudo('toque');
+
+      const esperado = -800 * config.convite.cenaSobeFracao;
+      expect(Number(gsap.getProperty(el('.convite__chao'), 'y'))).toBeCloseTo(esperado);
+      expect(Number(gsap.getProperty(el('.cena'), 'y'))).toBeCloseTo(esperado);
+
+      gsap.set(el('.convite__chao'), { y: 0 });
+      carta.skip();
+      expect(Number(gsap.getProperty(el('.convite__chao'), 'y'))).toBeCloseTo(esperado);
     });
 
     it('o casal vai para o espaço da cena do bosque, para subir junto com ela', () => {
@@ -416,7 +454,7 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(registro).toEqual(['pousou', 'abrindo:toque', 'aberto']);
     });
 
-    it('termina com a carta desdobrada, os blocos visíveis, o envelope fora e a cena no alto (CA-06.4.2)', async () => {
+    it('termina com a carta desdobrada, o envelope fora e a cena no alto; a leitura segue sozinha (CA-06.4.2)', async () => {
       const { abrirTudo, opacidade, el } = montar();
       Object.assign(window, { innerHeight: 800 });
 
@@ -424,9 +462,6 @@ describe('envelope e carta (SPEC-06)', () => {
 
       expect(opacidade('.carta')).toBe(1);
       expect(Number(gsap.getProperty(el('.carta'), 'scaleY'))).toBe(1);
-      for (const bloco of document.querySelectorAll<HTMLElement>('.carta__bloco')) {
-        expect(Number(gsap.getProperty(bloco, 'opacity'))).toBe(1);
-      }
       expect(opacidade('.envelope')).toBe(0);
       expect(opacidade('.bau')).toBe(0);
       expect(Number(gsap.getProperty(el('.cena'), 'y'))).toBeCloseTo(
@@ -445,44 +480,145 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(document.activeElement).toBe(el('#carta-titulo'));
     });
 
-    it('"Role para ler" aparece e some sozinha depois de rolarVisivel, sem precisar rolar (SPEC-14, RF-14.4)', async () => {
-      const { abrirTudo, opacidade } = montar();
+    describe('a carta se lê com calma, bloco a bloco (ADR-0012)', () => {
+      /**
+       * O happy-dom não calcula layout: cada bloco ganha uma caixa combinada, `PASSO` pixels abaixo do
+       * anterior, e a "rolagem" é um deslocamento que o teste move.
+       */
+      const PASSO = 150;
+      function combinarCaixas(alturaDaTela: number) {
+        Object.assign(window, { innerHeight: alturaDaTela });
+        const posicao = { rolagem: 0 };
+        vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+          this: Element,
+        ) {
+          const indice = [...document.querySelectorAll('.carta__bloco')].indexOf(this);
+          const topo = indice < 0 ? 0 : indice * PASSO - posicao.rolagem;
+          return {
+            top: topo,
+            bottom: topo + 100,
+            left: 0,
+            right: 0,
+            width: 0,
+            height: 100,
+            x: 0,
+            y: topo,
+          } as DOMRect;
+        });
+        return {
+          rolar(para: number) {
+            posicao.rolagem = para;
+            window.dispatchEvent(new Event('scroll'));
+          },
+        };
+      }
+      const visivel = (bloco: Element) => Number(gsap.getProperty(bloco, 'opacity')) > 0;
+      const blocos = () => [...document.querySelectorAll('.carta__bloco')];
 
-      await abrirTudo('toque');
-      expect(opacidade('.convite__rolar')).toBe(1);
+      it('os blocos aparecem um de cada vez, na ordem, e todos aparecem se cabem na tela', async () => {
+        const { abrirTudo } = montar();
+        combinarCaixas(5000);
+        const ordem: number[] = [];
+        const olhar = setInterval(() => {
+          blocos().forEach((bloco, indice) => {
+            if (visivel(bloco) && !ordem.includes(indice)) ordem.push(indice);
+          });
+        }, 2);
 
-      await vi.waitFor(
-        () => {
+        await abrirTudo('toque');
+        await vi.waitFor(() => {
+          expect(blocos().every((bloco) => Number(gsap.getProperty(bloco, 'opacity')) === 1)).toBe(
+            true,
+          );
+        });
+        clearInterval(olhar);
+
+        expect(ordem).toEqual(blocos().map((_, indice) => indice));
+      });
+
+      it('"Role para ler" não aparece quando a carta toda cabe na tela', async () => {
+        const { abrirTudo, opacidade } = montar();
+        combinarCaixas(5000);
+
+        await abrirTudo('toque');
+        await vi.waitFor(() => {
+          expect(blocos().every((bloco) => Number(gsap.getProperty(bloco, 'opacity')) === 1)).toBe(
+            true,
+          );
+        });
+
+        expect(opacidade('.convite__rolar')).toBe(0);
+      });
+
+      it('o bloco abaixo da dobra espera a rolagem, e "Role para ler" aparece, com a seta em movimento', async () => {
+        const { abrirTudo, opacidade, el } = montar();
+        combinarCaixas(600); // dobra em 600 × (1 − folga): 528 px → só os blocos 0 a 3 cabem
+
+        await abrirTudo('toque');
+
+        await vi.waitFor(() => {
+          expect(visivel(blocos()[3]!)).toBe(true);
+          expect(opacidade('.convite__rolar')).toBe(1);
+        });
+        expect(visivel(blocos()[4]!)).toBe(false);
+        await vi.waitFor(() => {
+          expect(Number(gsap.getProperty(el('.convite__seta'), 'y'))).toBeGreaterThan(0);
+        });
+        await new Promise((resolver) => setTimeout(resolver, 150));
+        expect(visivel(blocos()[4]!)).toBe(false); // ninguém rolou: nada mais aparece
+      });
+
+      it('rolar faz a leitura andar, apaga "Role para ler" e ela nunca volta', async () => {
+        const { abrirTudo, opacidade } = montar();
+        const pagina = combinarCaixas(600);
+        await abrirTudo('toque');
+        await vi.waitFor(() => {
+          expect(opacidade('.convite__rolar')).toBe(1);
+        });
+
+        pagina.rolar(300); // o bloco 4 (600 − 300 = 300) passa a caber
+
+        await vi.waitFor(() => {
+          expect(visivel(blocos()[4]!)).toBe(true);
           expect(opacidade('.convite__rolar')).toBe(0);
-        },
-        { timeout: 2000 },
-      );
-    });
+        });
+        pagina.rolar(0);
+        await new Promise((resolver) => setTimeout(resolver, 100));
+        expect(opacidade('.convite__rolar')).toBe(0);
+      });
 
-    it('"Role para ler" some na primeira rolagem, sem esperar os segundos de rolarVisivel (SPEC-14, RF-14.4)', async () => {
-      const { abrirTudo, el } = montar();
-      await abrirTudo('toque');
-      const para = vi.spyOn(gsap, 'to');
+      it('o bloco que o convidado já deixou acima da tela aparece de uma vez, sem esperar', async () => {
+        const { abrirTudo } = montar();
+        const pagina = combinarCaixas(600);
+        await abrirTudo('toque');
+        await vi.waitFor(() => {
+          expect(visivel(blocos()[3]!)).toBe(true);
+        });
 
-      window.dispatchEvent(new Event('scroll'));
+        pagina.rolar(5000); // rolou além de tudo: o resto fica acima da tela
 
-      const apagouADica = para.mock.calls.some(
-        ([alvo, vars]) => alvo === el('.convite__rolar') && vars.opacity === 0,
-      );
-      expect(apagouADica).toBe(true);
-      para.mockRestore();
-    });
+        await vi.waitFor(() => {
+          expect(blocos().every((bloco) => Number(gsap.getProperty(bloco, 'opacity')) === 1)).toBe(
+            true,
+          );
+        });
+      });
 
-    it('a rolagem só conta uma vez: a segunda não refaz o desvanecimento', async () => {
-      const { abrirTudo } = montar();
-      await abrirTudo('toque');
-      window.dispatchEvent(new Event('scroll'));
-      const para = vi.spyOn(gsap, 'to');
+      it('tocar na tela não acelera nem pula a leitura (ADR-0012)', async () => {
+        const { abrirTudo, el } = montar();
+        combinarCaixas(600);
+        await abrirTudo('toque');
+        await vi.waitFor(() => {
+          expect(visivel(blocos()[3]!)).toBe(true);
+        });
 
-      window.dispatchEvent(new Event('scroll'));
+        el('.conteudo').click();
+        document.body.click();
+        window.dispatchEvent(new Event('pointerdown'));
+        await new Promise((resolver) => setTimeout(resolver, 100));
 
-      expect(para).not.toHaveBeenCalled();
-      para.mockRestore();
+        expect(visivel(blocos()[4]!)).toBe(false);
+      });
     });
 
     it('registra a visita no aparelho só ao terminar de abrir (RF-06.10)', async () => {

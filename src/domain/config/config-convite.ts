@@ -1,3 +1,4 @@
+import type { ParametrosDeLeitura } from '../carta/tempo-de-leitura';
 import type { ArteDaImagem, ChaveDeImagem } from '../imagens/catalogo-de-imagens';
 
 /** Formato de `src/config/config.ts` (SPEC-01, "Conteúdo e configuração"). Tempos em segundos. */
@@ -65,6 +66,33 @@ export interface ConfigConvite {
     /** Tempo de um ciclo completo de pulsar, em segundos. */
     readonly seloPeriodo: number;
     readonly seloEscala: number;
+    /**
+     * O toque no selo (ADR-0012): ele cede, estala em duas metades e solta um clarão, os nomes se
+     * desfazem e a névoa se abre, e o bosque se aproxima. Tempos em segundos, contados do toque.
+     */
+    readonly saida: {
+      readonly aperto: { readonly escala: number; readonly duracao: number };
+      /** As metades do selo (giro em graus; queda e afastamento em pixels). */
+      readonly rompe: {
+        readonly giro: number;
+        readonly queda: number;
+        readonly afastamento: number;
+        readonly duracao: number;
+      };
+      readonly brilho: {
+        readonly escala: number;
+        readonly duracao: number;
+        readonly opacidade: number;
+      };
+      /** Os nomes sobem (px, negativo) e crescem um pouco enquanto somem. */
+      readonly nomes: {
+        readonly escala: number;
+        readonly deslocamento: number;
+        readonly duracao: number;
+      };
+      /** A névoa começa a abrir quando o selo estala. */
+      readonly nevoaEm: number;
+    };
   };
   /** Parâmetros de movimento do bosque (SPEC-03). Os tempos em segundos, as distâncias em pixels. */
   readonly movimento: {
@@ -74,6 +102,8 @@ export interface ConfigConvite {
     readonly escalaInicialDoBosque: number;
     /** A névoa cresce até aqui enquanto se dissipa. */
     readonly escalaFinalDaNevoa: number;
+    /** Cada camada da névoa se afasta do centro, em % da largura, para lados opostos, ao abrir. */
+    readonly deslocamentoDaNevoa: number;
     /** Fração de `duracoes.nevoa` em que a névoa se dissipa (2,4 s de 3 s). */
     readonly fracaoDaNevoa: number;
     /** Quanto cada camada se move (0 a 1); a mais próxima se move mais (SPEC-03, "Camadas"). */
@@ -114,6 +144,17 @@ export interface ConfigConvite {
     readonly dicaEm: number;
     readonly dicaAparece: number;
     readonly pulsoDoSelo: { readonly escala: number; readonly periodo: number };
+    /**
+     * O papel da carta, uma imagem só esticada em três partes (topo, meio, base) para caber em qualquer
+     * altura de texto sem cortar a moldura nem as rosas. A proporção (altura / largura) e a faixa do meio,
+     * em frações da altura, são medidas na arte; o `pnpm arte` imprime a proporção.
+     */
+    readonly papel: {
+      readonly proporcao: number;
+      readonly corte: { readonly de: number; readonly ate: number };
+      /** Largura de cada borda (deckle e moldura dourada), em fração da largura: só elas se esticam; o miolo é liso. */
+      readonly margem: number;
+    };
     /** Gesto de deslizar o selo para abrir o envelope (SPEC-16). Distâncias em pixels. */
     readonly gesto: {
       /** Até onde o selo acompanha o dedo. */
@@ -133,11 +174,18 @@ export interface ConfigConvite {
   readonly convite: {
     readonly dicaSome: number;
     readonly seloCresce: { readonly escala: number; readonly duracao: number };
+    /** Clarão que sai de trás do selo ao se partir: escala final, duração e opacidade. */
+    readonly seloBrilho: {
+      readonly escala: number;
+      readonly duracao: number;
+      readonly opacidade: number;
+    };
     readonly seloParte: {
       readonly duracao: number;
-      /** Giro de cada metade, em graus, e queda, em pixels. */
+      /** Giro de cada metade, em graus; queda e afastamento, em pixels. */
       readonly giro: number;
       readonly queda: number;
+      readonly afastamento: number;
     };
     readonly abaEm: number;
     readonly aba: number;
@@ -158,10 +206,15 @@ export interface ConfigConvite {
     readonly desdobra: number;
     /** Escala vertical da carta ainda dobrada. */
     readonly escalaDobrada: number;
+    /** A carta está aberta: a rolagem é liberada e os blocos começam a aparecer, um a um (ADR-0012). */
     readonly blocosEm: number;
-    readonly blocosIntervalo: number;
+    /** Cada bloco aparece nesse tempo, subindo `blocosDeslocamento` pixels. */
     readonly blocosAparecem: number;
     readonly blocosDeslocamento: number;
+    /** O próximo bloco só aparece depois do tempo de leitura do anterior (cresce com o texto). */
+    readonly leitura: ParametrosDeLeitura;
+    /** Parte da altura da tela, na base, que um bloco precisa respeitar para aparecer: abaixo dela ele espera a rolagem. */
+    readonly folgaDaDobra: number;
     readonly petalasEm: number;
     readonly petalas: {
       readonly minimo: number;
@@ -174,10 +227,16 @@ export interface ConfigConvite {
       readonly rotacao: number;
       readonly largura: string;
     };
-    readonly rolarEm: number;
-    readonly rolarAparece: number;
-    /** Tempo que "Role para ler" fica à vista, se o convidado não rolar antes (SPEC-14). */
-    readonly rolarVisivel: number;
+    /**
+     * "Role para ler" aparece quando a carta para esperando a rolagem e fica, animado (a seta desce e sobe),
+     * até a primeira rolagem (SPEC-14, ADR-0012).
+     */
+    readonly rolar: {
+      readonly aparece: number;
+      readonly periodo: number;
+      /** Quanto a seta desce, em pixels. */
+      readonly deslocamento: number;
+    };
   };
   /**
    * História em balões (SPEC-05). Cada balão dura `duracoes.balao` = 3 s e os instantes são contados
@@ -190,34 +249,42 @@ export interface ConfigConvite {
     /** A frase surge abaixo do balão. */
     readonly fraseEm: number;
     readonly fraseAparece: number;
+    /** A frase some antes de o balão partir; este é o tempo do esmaecimento. */
+    readonly fraseSome: number;
     /** Leitura: o balão sobe mais um pouco, balançando; a frase fica parada e legível. */
     readonly leituraEm: number;
     readonly leitura: number;
+    /** O corpo do balão (nuvem e foto) oscila de -balanco a +balanco graus; a frase não gira. */
     readonly balanco: number;
     readonly subidaFinalEm: number;
     readonly subidaFinal: number;
     /** Altura de leitura, como fração da tela contada de baixo para cima (62%). */
     readonly alturaDaSaida: number;
+    /** Na horizontal a tela é baixa e o baú sobe menos: o balão para mais alto, para a legenda não cair sobre ele. */
+    readonly alturaDaSaidaNaHorizontal: number;
     /** Quanto o balão sobe durante a leitura, em fração da altura da tela (8%). */
     readonly subidaDaLeitura: number;
     /** Espaço mínimo entre o balão e o alto da tela, em pixels (telas baixas). */
     readonly margemSuperior: number;
     /** Desvio horizontal de cada balão, em fração da largura, a partir do centro. */
     readonly desvios: readonly number[];
-    /** Velocidade de `tlHistoria` depois de um toque, até o próximo balão. */
-    readonly aceleracao: number;
-    /** A dica "Toque para avançar" aparece e some nesses instantes da história. */
-    readonly dica: { readonly aparece: number; readonly some: number };
   };
   /**
    * Baú e chave (SPEC-04). A abertura (`tlBau`) soma `duracoes.bau` = 2 s; os instantes são
-   * contados do toque, como na tabela "Abertura" da spec.
+   * contados do toque, como na tabela "Abertura" da spec. A chave espera no inventário, no pé da tela,
+   * e é usada no toque no baú (ADR-0012).
    */
   readonly bau: {
     readonly dicaSome: number;
-    readonly chaveVaiAteAFechadura: number;
+    /** A chave sai do inventário e voa até ficar diante da fechadura. */
+    readonly chaveVoa: number;
+    /** A chave entra na fechadura, deslizando na horizontal. */
+    readonly chaveEncaixa: number;
     readonly giroDaChave: number;
+    /** Quanto a chave gira em torno do próprio eixo (rotationX), em graus. */
     readonly grausDoGiro: number;
+    /** Distância da perspectiva do giro, em pixels: menor, mais forte. */
+    readonly perspectivaDoGiro: number;
     /** Curva do giro (`back.out(1.4)`). */
     readonly curvaDoGiro: string;
     readonly instanteDoSalto: number;
@@ -233,21 +300,55 @@ export interface ConfigConvite {
     readonly opacidadeFinalDaLuz: number;
     readonly instanteDaChaveSome: number;
     readonly chaveSome: number;
-    /** A aura dourada atrás do baú aparece quando o cursor passa por cima (computador). */
+    /** A aura dourada atrás do baú acende e apaga (e aparece mais forte ao passar o mouse). */
     readonly auraAparece: number;
-    /** Chave flutuante no celular. */
-    readonly flutuacao: {
-      readonly amplitude: number;
-      readonly rotacao: number;
-      readonly duracao: number;
+    /** A aura respira o tempo todo enquanto o baú espera. */
+    readonly aura: {
+      readonly minimo: number;
+      readonly maximo: number;
+      readonly escala: number;
+      readonly periodo: number;
     };
+    /** Pontos de luz que cintilam ao redor do baú: quantos, tempo de cada um e atraso entre eles. */
+    readonly brilhantes: {
+      readonly quantidade: number;
+      readonly periodo: number;
+      readonly intervalo: number;
+    };
+    /** O inventário sobe até a tela quando o baú passa a aceitar o toque, e some depois de usada a chave. */
+    readonly inventarioAparece: number;
+    readonly inventarioSome: number;
+    /**
+     * A chave. As medidas vêm da arte e são impressas pelo `pnpm arte`: com a arte girada em
+     * `giroDaArte` graus (a chave na horizontal, ponta à esquerda), o comprimento e a ponta são frações
+     * da caixa da imagem (a ponta pode ficar fora dela: x negativo).
+     */
+    readonly chave: {
+      readonly giroDaArte: number;
+      readonly comprimento: number;
+      readonly ponta: { readonly x: number; readonly y: number };
+      /** Inclinação da chave guardada no inventário, em graus. */
+      readonly inclinacaoNoInventario: number;
+      /** Comprimento da chave junto à fechadura, em fração da largura do baú. */
+      readonly comprimentoNoBau: number;
+      /** Onde a ponta para antes de entrar: recuo (fração do comprimento) e altura acima da fechadura. */
+      readonly aproximacao: { readonly recuo: number; readonly elevacao: number };
+    };
+    /** A chave balança de leve no inventário e brilha. */
+    readonly balancoNoInventario: { readonly rotacao: number; readonly duracao: number };
     readonly brilhoDaChave: {
       readonly minimo: number;
       readonly maximo: number;
       readonly duracao: number;
     };
-    /** Pulso único da chave quando o convidado toca fora do baú. */
+    /** Pulso da chave quando o convidado toca fora do baú; junto vai a onda abaixo. */
     readonly pulso: { readonly escala: number; readonly duracao: number };
+    /** Anel de luz que sai do baú a cada pulso: escala de partida e de chegada, e opacidade inicial. */
+    readonly onda: {
+      readonly inicio: number;
+      readonly fim: number;
+      readonly opacidade: number;
+    };
     /** Reforço depois de `duracoes.reforcoDica` sem interação (US-04.4). */
     readonly reforco: {
       readonly escala: number;
@@ -266,7 +367,6 @@ export interface ConfigConvite {
       /** Largura de cada pétala em relação ao contêiner. */
       readonly largura: string;
     };
-    readonly chaveAparece: number;
   };
   /** Arquivo de cada imagem do convite (SPEC-02, SPEC-03); caminhos relativos à página. */
   readonly imagens: Readonly<Record<ChaveDeImagem, ArteDaImagem>>;

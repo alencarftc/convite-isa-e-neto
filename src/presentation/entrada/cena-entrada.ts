@@ -9,6 +9,9 @@ import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import type { EscolhaDeEntrada, EventosConvite } from '@/domain/eventos/eventos-convite';
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
+import { criar } from '../dom';
+import { type MetadesDoSelo, montarMetadesDoSelo, romperSelo } from '../selo/selo-rompivel';
+
 export interface DependenciasDaEntrada {
   readonly raiz: HTMLElement;
   readonly conteudo: ConteudoConvite;
@@ -46,28 +49,31 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
   let animacoes: gsap.Context | undefined;
   let pararDeOuvirGiro: (() => void) | undefined;
   let ouvintes: AbortController | undefined;
+  let metadesDoSelo: MetadesDoSelo | undefined;
+  let linhaDaSaida: gsap.core.Timeline | undefined;
+  /** Resolve quando o selo estala e a névoa pode começar a abrir; sem o toque, já está resolvida. */
+  let aoRomper: Promise<void> = Promise.resolve();
 
-  /** Selo I&D acima dos nomes, o mesmo do envelope (SPEC-16): decorativo, a tela inteira continua sendo o toque. */
+  /**
+   * Selo I&D acima dos nomes, o mesmo do envelope (SPEC-16): decorativo, a tela inteira continua sendo o
+   * toque. As siglas vêm em relevo na arte do selo, que aqui já vem em duas metades, prontas para o toque.
+   */
   function montarSelo(entrada: HTMLElement): void {
-    const imagem = document.createElement('img');
-    imagem.className = 'entrada__selo-imagem';
-    imagem.alt = '';
-    imagem.draggable = false;
     const selo = obter(entrada, '.entrada__selo');
+    const brilho = criar('span', 'selo__brilho');
+    brilho.setAttribute('aria-hidden', 'true');
+    const metades = montarMetadesDoSelo(urlDaImagem(config.imagens.selo, estado.orientacao));
     // A imagem do selo não é crítica (SPEC-02 tem seis): o selo aparece quando ela chega, sem
     // atrasar o "Toque para entrar" e sem mexer no lugar dos nomes, que o HTML já reservou.
-    imagem.addEventListener(
-      'load',
-      () => {
-        gsap.to(selo, { opacity: 1, duration: duracoes.entradaChamada, ease: curvas.saida });
-      },
-      { once: true },
-    );
-    imagem.src = urlDaImagem(config.imagens.selo, estado.orientacao);
-    const iniciais = document.createElement('span');
-    iniciais.className = 'entrada__iniciais';
-    iniciais.textContent = conteudo.envelope.iniciais;
-    selo.replaceChildren(imagem, iniciais);
+    const revelar = () => {
+      gsap.to(selo, { opacity: 1, duration: duracoes.entradaChamada, ease: curvas.saida });
+    };
+    const [primeira] = metades.imagens;
+    if (primeira.complete && primeira.naturalWidth > 0) revelar();
+    else primeira.addEventListener('load', revelar, { once: true });
+    selo.replaceChildren(brilho, metades.esquerda, metades.direita);
+    gsap.set(brilho, { opacity: 0 });
+    metadesDoSelo = metades;
   }
 
   function iniciar(): HTMLElement {
@@ -135,13 +141,96 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
     }, entrada);
   }
 
+  /** Animação reduzida: sem selo que estala nem nomes que sobem, só o esmaecimento (SPEC-09). */
+  function esmaecerTudo(entrada: HTMLElement): Promise<void> {
+    gsap.to(
+      [
+        obter(entrada, '.entrada__nomes'),
+        obterBotao(entrada, '.entrada__tocar'),
+        obter(entrada, '.entrada__selo'),
+      ],
+      { opacity: 0, duration: duracoes.entradaSaida, ease: curvas.saida },
+    );
+    return Promise.resolve();
+  }
+
+  /**
+   * O toque no selo (ADR-0012): ele cede sob o dedo, estala em duas metades que giram e caem, um clarão
+   * de luz sai de trás dele, os nomes sobem e se desfazem, e a névoa começa a abrir no instante em que o
+   * selo estala (`saida.nevoaEm`): a promessa devolvida resolve aí, e a linha continua sozinha.
+   */
+  function romperOSelo(entrada: HTMLElement): Promise<void> {
+    const { saida } = config.entrada;
+    const selo = obter(entrada, '.entrada__selo');
+    const brilho = obter(entrada, '.selo__brilho');
+    const nomes = obter(entrada, '.entrada__nomes');
+    const tocar = obterBotao(entrada, '.entrada__tocar');
+    // Só a pulsação para: o esmaecimento de entrada do selo, se ainda estiver rodando, segue.
+    gsap.killTweensOf(selo, 'scale');
+    const metades = metadesDoSelo;
+    return new Promise<void>((resolver) => {
+      const linha = gsap
+        .timeline()
+        .to(
+          selo,
+          { scale: saida.aperto.escala, duration: saida.aperto.duracao, ease: curvas.saida },
+          0,
+        )
+        .to(tocar, { opacity: 0, duration: duracoes.entradaSaida, ease: curvas.saida }, 0)
+        .to(
+          selo,
+          { scale: config.entrada.seloEscala, duration: saida.rompe.duracao, ease: curvas.saida },
+          saida.aperto.duracao,
+        )
+        .fromTo(
+          brilho,
+          { opacity: 0, scale: 0.3 },
+          {
+            opacity: saida.brilho.opacidade,
+            scale: saida.brilho.escala * 0.6,
+            duration: saida.brilho.duracao * 0.35,
+            ease: curvas.saida,
+          },
+          saida.aperto.duracao,
+        )
+        .to(
+          brilho,
+          {
+            opacity: 0,
+            scale: saida.brilho.escala,
+            duration: saida.brilho.duracao * 0.65,
+            ease: curvas.senoSaida,
+          },
+          saida.aperto.duracao + saida.brilho.duracao * 0.35,
+        )
+        .to(
+          nomes,
+          {
+            opacity: 0,
+            scale: saida.nomes.escala,
+            y: saida.nomes.deslocamento,
+            duration: saida.nomes.duracao,
+            ease: curvas.saida,
+          },
+          saida.aperto.duracao,
+        )
+        .call(resolver, [], saida.nevoaEm);
+      if (metades) {
+        linha.add(
+          romperSelo(metades, { ...saida.rompe, curva: curvas.entrada }),
+          saida.aperto.duracao,
+        );
+      }
+      linhaDaSaida = linha;
+    });
+  }
+
   /**
    * Mostra "Toque para entrar" e espera o toque. "Pular para o convite" não é daqui: é um botão fixo
    * que vale em toda a abertura, a partir da segunda visita (SPEC-14).
    */
   function esperarToque(entrada: HTMLElement): Promise<EscolhaDeEntrada> {
     const tocar = obterBotao(entrada, '.entrada__tocar');
-    const selo = obter(entrada, '.entrada__selo');
 
     tocar.hidden = false;
     gsap.fromTo(
@@ -161,11 +250,7 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
           if (tocar.disabled) return;
           tocar.disabled = true;
           eventos.emit('entrada:tocou', { escolha: 'entrar' });
-          gsap.to([obter(entrada, '.entrada__nomes'), tocar, selo], {
-            opacity: 0,
-            duration: duracoes.entradaSaida,
-            ease: curvas.saida,
-          });
+          aoRomper = estado.reduzido ? esmaecerTudo(entrada) : romperOSelo(entrada);
           resolver('entrar');
         },
         { signal },
@@ -214,15 +299,17 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
       const escolha = await esperarToque(entrada);
       // Animação reduzida vai direto ao final: o bosque nem chega a ser mostrado.
       if (estado.reduzido) return escolha;
-      await esperarBosque(entrada);
+      await Promise.all([esperarBosque(entrada), aoRomper]);
       return escolha;
     },
 
     skip() {
+      linhaDaSaida?.kill();
       (secao ?? raiz.querySelector<HTMLElement>('.entrada'))?.setAttribute('hidden', '');
     },
 
     destroy() {
+      linhaDaSaida?.kill();
       pararDeOuvirGiro?.();
       animacoes?.revert();
       ouvintes?.abort();

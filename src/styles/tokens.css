@@ -2,11 +2,11 @@
 :root {
   --cor-marfim: #f6f3e0; /* fundo da carta e da página */
   --cor-bege: #dbceb0; /* envelope, cartões */
+  --cor-papel: #f6ead7; /* o miolo do papel da carta (imagem 14), medido na arte: preenche o meio da carta sem estirar a textura */
   --cor-serenidade: #91a8d0; /* só decoração: 2,2:1 sobre marfim */
   --cor-dourado: #b18e4a; /* só decoração: 2,8:1 sobre marfim */
-  --cor-texto: #32425d; /* 9,1:1 sobre marfim; 6,5:1 sobre bege */
-  --cor-texto-suave: #4e5f7e; /* 5,8:1 só sobre marfim (4,1:1 sobre bege: não usar) */
-  --cor-chao: #4f6b58; /* base do primeiro plano que fica à mostra quando a cena sobe (SPEC-06); ajustar com a arte final */
+  --cor-texto: #3a2e22; /* tinta marrom-escura: 11,9:1 sobre marfim; 8,4:1 sobre bege */
+  --cor-texto-suave: #5e4b3a; /* 7,4:1 sobre marfim; 5,3:1 sobre bege */
   --cor-luz: #e5aa6e; /* luz quente do pôr do sol sobre o bosque (SPEC-03) */
 
   /* Cores com transparência, pré-calculadas (hex de 8 dígitos): `color-mix()` não existe em aparelhos mais antigos (SPEC-15). */
@@ -23,10 +23,20 @@
   --cor-marfim-88: #f6f3e0e0;
   --cor-marfim-90: #f6f3e0e6;
   --cor-serenidade-28: #91a8d047;
-  --cor-texto-55: #32425d8c;
+  --cor-texto-55: #3a2e228c;
+  --cor-sombra: #1f2616; /* sombra do chão e do baú: verde-musgo escuro */
+  --cor-sombra-35: #1f261659;
+  --cor-sombra-55: #1f26168c;
+  --cor-sombra-70: #1f2616b3;
+  --cor-aura: #ffd96b; /* aura do baú: ouro vivo e saturado, que contrasta com o azul do lago e o verde */
+  --cor-aura-90: #ffd96be6;
+  --cor-aura-55: #ffd96b8c;
+  --cor-aura-25: #ffd96b40;
+  --cor-aura-12: #ffd96b1f;
+  --cor-brilho: #fff8dc; /* pontos de luz que cintilam */
   --cor-luz-claro: #e8b57f; /* luz 85% sobre marfim */
 
-  --sombra-cartao: 0 4px 20px rgb(50 66 93 / 12%);
+  --sombra-cartao: 0 4px 20px rgb(58 46 34 / 16%);
 
   --fonte-cursiva: 'Great Vibes';
   --fonte-cursiva-reserva: 'Cursiva Reserva', cursive;
@@ -43,11 +53,13 @@
   --espaco-6: 32px;
   --espaco-7: 48px;
 
+  --z-papel: -1; /* as pontas do papel, atrás do texto dentro da própria carta */
   --z-ceu: 0;
   --z-lago: 10;
   --z-arvores: 20;
   --z-bau: 30;
   --z-primeiro-plano: 40;
+  --z-inventario: 45; /* a chave guardada, no pé da tela: acima da cena inteira, abaixo dos balões */
   --z-baloes: 50;
   --z-carta: 60;
   --z-informacoes: 70;

@@ -149,7 +149,9 @@ describe('src/main.ts', () => {
       ).toEqual([]);
     }
     expect(document.querySelectorAll('img[data-src]').length).toBeGreaterThan(10);
-    expect(document.querySelectorAll('.selo__imagem[src]')).toHaveLength(0);
+    // O selo da entrada (duas metades) é pedido; o do envelope só depois, quando a etapa começa.
+    expect(document.querySelectorAll('.entrada__selo .selo__imagem[src]')).toHaveLength(2);
+    expect(document.querySelectorAll('.envelope .selo__imagem[src]')).toHaveLength(0);
   });
 
   it('depois do toque e do baú, percorre o orquestrador até as informações (CA-01.4.1)', async () => {
@@ -243,8 +245,7 @@ describe('src/main.ts', () => {
       expect(document.querySelector<HTMLElement>('button.atalho')?.hidden).toBe(true);
     });
 
-    it('a segunda visita mostra "Pular para o convite" e ele leva ao final (CA-09.2.1, CA-09.2.2)', async () => {
-      localStorage.setItem('convite:visitado', 'true');
+    it('"Pular para o convite" aparece já na entrada, na primeira visita, e leva ao final (CA-09.2.1, CA-09.2.2; ADR-0012)', async () => {
       await import('@/main');
       await vi.waitFor(() => {
         expect(document.querySelector<HTMLButtonElement>('.entrada__tocar')?.hidden).toBe(false);
@@ -258,11 +259,9 @@ describe('src/main.ts', () => {
       });
       expect(textoDaCarta()).toContain(content.carta.assinatura);
       expect(blocosDoConteudo()).toEqual(COM_HISTORIA_ESTATICA);
-      localStorage.removeItem('convite:visitado');
     });
 
-    it('segunda visita: "Pular" continua à mão no baú e leva à carta com a história estática (CT-14.1)', async () => {
-      localStorage.setItem('convite:visitado', 'true');
+    it('"Pular" continua à mão no baú e leva à carta com a história estática (CT-14.1)', async () => {
       await abrirEntrando();
       await vi.waitFor(() => {
         expect(document.querySelector<HTMLButtonElement>('.bau__botao')?.disabled).toBe(false);
@@ -280,7 +279,6 @@ describe('src/main.ts', () => {
     });
 
     it('a ordem do Tab é o atalho, "Pular", o som e só depois a etapa atual (CT-14.5, RF-14.3)', async () => {
-      localStorage.setItem('convite:visitado', 'true');
       await import('@/main');
 
       // Só entram na ordem do Tab os botões habilitados e à vista: o do baú, que fica antes no DOM,
@@ -304,13 +302,13 @@ describe('src/main.ts', () => {
       expect(depoisDoSom[0]).toBe('entrada__tocar');
     });
 
-    it('na primeira visita, "Pular para o convite" não aparece', async () => {
+    it('na primeira visita, "Pular para o convite" também aparece: quem não quer a abertura vai direto (ADR-0012)', async () => {
       await import('@/main');
       await vi.waitFor(() => {
         expect(document.querySelector<HTMLButtonElement>('.entrada__tocar')?.hidden).toBe(false);
       });
 
-      expect(document.querySelector('.botao-pular')?.hasAttribute('hidden')).toBe(true);
+      expect(document.querySelector('.botao-pular')?.hasAttribute('hidden')).toBe(false);
     });
 
     it('com animação reduzida, o toque leva direto à carta aberta, sem balões nem envelope (CA-09.1.1, CA-09.1.2)', async () => {

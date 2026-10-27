@@ -18,10 +18,10 @@ function cor(nome: string): string {
 
 /** Combinações de texto e fundo realmente usadas pelo convite (SPEC-09, "Contraste de texto"). */
 const COMBINACOES = [
-  ['texto principal sobre marfim (carta, cartões, dicas)', 'cor-texto', 'cor-marfim', 7],
+  ['texto principal sobre marfim (carta, cartões, dicas)', 'cor-texto', 'cor-marfim', 10],
   ['texto principal sobre bege (envelope)', 'cor-texto', 'cor-bege', 4.5],
   ['texto suave sobre marfim (rótulos, dica de volume)', 'cor-texto-suave', 'cor-marfim', 4.5],
-  ['botão principal: marfim sobre azul-noite', 'cor-marfim', 'cor-texto', 7],
+  ['botão principal: marfim sobre tinta escura', 'cor-marfim', 'cor-texto', 10],
 ] as const;
 
 describe('tokens.css (SPEC-09, SPEC-01)', () => {
@@ -29,8 +29,18 @@ describe('tokens.css (SPEC-09, SPEC-01)', () => {
     expect(razaoDeContraste(cor(texto), cor(fundo))).toBeGreaterThanOrEqual(minimo);
   });
 
-  it('o texto suave perde para o texto principal e só vale sobre marfim (4,1:1 sobre bege: não usar)', () => {
-    expect(razaoDeContraste(cor('cor-texto-suave'), cor('cor-bege'))).toBeLessThan(4.5);
+  it('o texto suave é um tom mais claro que o principal, mas ainda passa de 4,5:1 sobre marfim e bege', () => {
+    expect(razaoDeContraste(cor('cor-texto-suave'), cor('cor-marfim'))).toBeLessThan(
+      razaoDeContraste(cor('cor-texto'), cor('cor-marfim')),
+    );
+    expect(razaoDeContraste(cor('cor-texto-suave'), cor('cor-bege'))).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('o texto é tinta marrom-escura, não azul: a carta e as dicas não ficam frias sobre o bege (ADR-0012)', () => {
+    const [vermelho, , azul] = [1, 3, 5].map((i) =>
+      Number.parseInt(cor('cor-texto').slice(i, i + 2), 16),
+    );
+    expect(vermelho).toBeGreaterThan(azul ?? 0);
   });
 
   it('dourado e serenidade são decoração: abaixo de 3:1 sobre marfim, nunca em texto de leitura', () => {

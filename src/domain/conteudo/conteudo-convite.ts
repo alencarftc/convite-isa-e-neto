@@ -45,8 +45,6 @@ export interface ConteudoConvite {
     readonly abrirBau: string;
     /** Nome acessível da região que reúne os balões. */
     readonly historia: string;
-    /** Nome acessível do botão transparente que acelera a história. */
-    readonly avancarHistoria: string;
     /** Nome acessível do botão que cobre o envelope (SPEC-06, RF-06.3). */
     readonly abrirEnvelope: string;
     /** Títulos dos cartões das informações (SPEC-07); a spec deixa em aberto se ficam visíveis. */
@@ -54,9 +52,10 @@ export interface ConteudoConvite {
     readonly traje: string;
   };
   readonly envelope: {
-    /** Escrito no envelope, acima do selo. */
-    readonly para: string;
-    /** Iniciais no selo; são texto, não imagem (RF-06.2). */
+    /**
+     * Iniciais do selo. Vêm em relevo na própria imagem do selo (arte gerada, ADR-0012), então não
+     * existem como texto na página: o selo é decorativo e o botão do envelope tem nome acessível.
+     */
     readonly iniciais: string;
   };
   readonly entrada: {
@@ -73,9 +72,9 @@ export interface ConteudoConvite {
     readonly pular: string;
     /** Atalho para leitor de tela e teclado: visível só com foco (SPEC-09, RF-09.4). */
     readonly atalho: string;
+    /** Dica do baú, com a chave guardada no inventário (SPEC-04; ADR-0012). */
     readonly chaveComputador: string;
     readonly chaveCelular: string;
-    readonly avancar: string;
     readonly selo: string;
     readonly rolar: string;
   };

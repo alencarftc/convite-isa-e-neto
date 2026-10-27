@@ -11,6 +11,7 @@ import './styles/carta.css';
 import './styles/entrada.css';
 import './styles/historia.css';
 import './styles/historia-estatica.css';
+import './styles/selo.css';
 import './styles/informacoes.css';
 import './styles/botao-som.css';
 import './styles/botao-pular.css';

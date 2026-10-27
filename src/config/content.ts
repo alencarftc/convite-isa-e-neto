@@ -9,7 +9,6 @@ export const content: ConteudoConvite = {
     informacoes: 'Informações do casamento',
     abrirBau: 'Abrir o baú',
     historia: 'História do casal',
-    avancarHistoria: 'Avançar a história',
     abrirEnvelope: 'Abrir o envelope',
     mensagem: 'Mensagem do casal',
     traje: 'Traje',
@@ -21,7 +20,6 @@ export const content: ConteudoConvite = {
     aguarde: 'Preparando o bosque…',
   },
   envelope: {
-    para: 'Para você e sua família',
     iniciais: 'I&D',
   },
   dicas: {
@@ -30,9 +28,8 @@ export const content: ConteudoConvite = {
     somDesligado: 'Som desligado',
     pular: 'Pular para o convite',
     atalho: 'Ir direto ao convite',
-    chaveComputador: 'Use a chave para abrir',
-    chaveCelular: 'Toque na chave',
-    avancar: 'Toque para avançar',
+    chaveComputador: 'Clique no baú para usar a chave',
+    chaveCelular: 'Toque no baú para usar a chave',
     selo: 'Toque no selo',
     rolar: 'Role para ler',
   },

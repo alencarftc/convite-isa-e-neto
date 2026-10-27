@@ -1,7 +1,7 @@
 /*
  * História em balões (SPEC-05). Cada balão é posicionado pela animação (transform); aqui ficam
  * tamanho, foto em círculo e etiqueta da frase. As posições da foto dentro da nuvem são variáveis por
- * variação (`--foto-x/y`), a ajustar com a arte final. O tratamento da foto é fixo, sem animar filtro.
+ * variação (`--foto-x/y`), medidas no centro do corpo da nuvem de cada arte (a fita fica abaixo). O tratamento da foto é fixo, sem animar filtro.
  */
 .historia {
   position: fixed;
@@ -9,17 +9,6 @@
   z-index: var(--z-baloes);
   overflow: hidden;
   pointer-events: none;
-}
-
-/* Botão transparente que cobre a cena e acelera a história (RF-05.6). */
-.historia__avancar {
-  position: absolute;
-  inset: 0;
-  padding: 0;
-  cursor: pointer;
-  background: none;
-  border: 0;
-  pointer-events: auto;
 }
 
 .balao {
@@ -33,23 +22,28 @@
 
 @media (orientation: landscape) {
   .balao {
-    width: clamp(180px, 20vw, 280px);
+    width: clamp(170px, 16vw, 230px);
   }
 }
 
 .balao--a {
-  --foto-x: 22%;
-  --foto-y: 21%;
+  --foto-x: 27%;
+  --foto-y: 8.4%;
 }
 
 .balao--b {
-  --foto-x: 22%;
-  --foto-y: 19%;
+  --foto-x: 27%;
+  --foto-y: 5.7%;
 }
 
 .balao--c {
-  --foto-x: 22%;
-  --foto-y: 22%;
+  --foto-x: 27%;
+  --foto-y: 9.3%;
+}
+
+/* A nuvem e a foto balançam juntas; a frase, de fora, fica parada. */
+.balao__corpo {
+  position: relative;
 }
 
 .balao__nuvem {
@@ -90,38 +84,31 @@
   position: absolute;
   top: var(--foto-y);
   left: var(--foto-x);
-  width: 56%;
+  width: 46%;
 }
 
-/* Etiqueta marfim com a frase, logo abaixo do balão. */
+/*
+ * Legenda do balão: um cartão marfim logo abaixo da nuvem, parado e na horizontal. O `--desvio-x` (px,
+ * escrito pela cena) cancela o desvio do balão para a legenda ficar sempre no centro da tela, e a
+ * largura nunca passa de 84% dela: a frase não é cortada na borda.
+ */
 .balao__frase {
   position: absolute;
   top: calc(100% + var(--espaco-2));
-  right: 0;
-  left: 0;
+  left: 50%;
   width: max-content;
-  max-width: min(80vw, 22em);
-  padding: var(--espaco-2) var(--espaco-4);
-  margin: 0 auto;
-  font-size: var(--texto-corpo);
-  line-height: 1.3;
+  max-width: min(84vw, 20em);
+  padding: var(--espaco-3) var(--espaco-5);
+  margin: 0;
+  font-size: calc(var(--texto-corpo) * 1.1);
+  font-style: italic;
+  line-height: 1.35;
   color: var(--cor-texto);
   text-align: center;
-  background: var(--cor-marfim-88);
-  border-radius: 14px;
-}
-
-.historia__dica {
-  position: absolute;
-  right: 0;
-  bottom: calc(var(--espaco-6) + env(safe-area-inset-bottom));
-  left: 0;
-  width: fit-content;
-  padding: var(--espaco-2) var(--espaco-4);
-  margin: 0 auto;
-  font-size: var(--texto-corpo);
-  font-style: italic;
-  color: var(--cor-texto);
-  background: var(--cor-marfim-88);
-  border-radius: 999px;
+  text-wrap: balance;
+  background: var(--cor-marfim-90);
+  border: 1px solid var(--cor-dourado-55);
+  border-radius: 18px;
+  box-shadow: var(--sombra-cartao);
+  transform: translateX(calc(-50% + var(--desvio-x, 0px)));
 }

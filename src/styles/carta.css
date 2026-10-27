@@ -33,29 +33,20 @@
   background: radial-gradient(closest-side, var(--cor-texto-55), transparent);
 }
 
-/* A carta dobrada fica atrás das imagens do envelope e sobe pela abertura. */
+/* A carta dobrada fica atrás das imagens do envelope e sobe pela abertura, com o mesmo papel da carta. */
 .envelope__dobrada {
   position: absolute;
   right: 7%;
   bottom: 10%;
   left: 7%;
   height: 78%;
-  background: var(--cor-marfim);
-  border: 1px solid var(--cor-bege);
-  border-radius: 6px;
-}
-
-.envelope__para {
-  position: absolute;
-  top: 24%;
-  right: 0;
-  left: 0;
-  margin: 0;
-  font-family: var(--fonte-cursiva), var(--fonte-cursiva-reserva);
-  font-size: calc(var(--envelope-largura) * 0.085);
-  line-height: 1.2;
-  color: var(--cor-texto);
-  text-align: center;
+  background-color: var(--cor-papel);
+  background-image: var(--papel, none);
+  background-position: top;
+  background-size: cover;
+  border: 1px solid var(--cor-dourado-55);
+  border-radius: 3px;
+  box-shadow: var(--sombra-cartao);
 }
 
 /*
@@ -69,39 +60,6 @@
   left: 38%;
   width: 24%;
   aspect-ratio: 1;
-}
-
-.selo__metade {
-  position: absolute;
-  inset: 0;
-}
-
-.selo__metade--esquerda {
-  clip-path: inset(0 50% 0 0);
-  transform-origin: 100% 50%;
-}
-
-.selo__metade--direita {
-  clip-path: inset(0 0 0 50%);
-  transform-origin: 0 50%;
-}
-
-.selo__imagem {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/* Iniciais em Great Vibes dourada, com cerca de 40% da largura do selo (RF-06.2). */
-.selo__iniciais {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  font-family: var(--fonte-cursiva), var(--fonte-cursiva-reserva);
-  font-size: calc(var(--envelope-largura) * 0.075);
-  line-height: 1;
-  color: var(--cor-dourado);
 }
 
 /* Botão que cobre o envelope inteiro; a área do selo passa de 64 × 64 px (RF-06.3). */
@@ -143,66 +101,81 @@
   display: none;
 }
 
-/* A base da cena que fica à mostra depois que ela sobe 18% (a cor segue a arte do primeiro plano). */
+/*
+ * A base que a cena deixa à mostra quando sobe: o primeiro plano (grama e rosas) espelhado, que continua a
+ * partir da borda de baixo dele (`transform-origin` na borda, `scaleY(-1)`), sobe junto com a cena e some atrás da
+ * carta. Uma cor lisa deixava uma faixa chapada ao lado da carta nas telas largas.
+ */
 .convite__chao {
   position: fixed;
-  inset: auto 0 0;
+  inset: 0;
   z-index: var(--z-primeiro-plano);
-  height: 20vh;
-  height: 20dvh;
+  height: 100vh;
+  height: 100dvh;
   pointer-events: none;
-  background: var(--cor-chao);
 }
 
-/* Dica logo acima do topo da carta, dentro do .conteudo: rola junto e nunca cobre texto (SPEC-14, RF-14.4).
-   O 'top' repete o recuo do .conteudo (52 ou 55 da altura da tela), porque ele não pode ser uma variável com dvh. */
-.convite__rolar {
+.convite__chao .camada--frente {
+  transform: scaleY(-1);
+  transform-origin: 50% calc(100% - 1px); /* 1 px de sobreposição: sem fio de luz na emenda */
+}
+
+/*
+ * "Role para ler": dentro da carta, na margem de cima do papel, onde não há texto, e rola junto com ela:
+ * nunca cobre o texto (SPEC-14, RF-14.4). Aparece quando a leitura para esperando a rolagem; a seta sobe e
+ * desce até a primeira rolagem (ADR-0012).
+ */
+.carta > .convite__rolar {
   position: absolute;
-  top: 52vh;
-  top: 52dvh;
+  top: calc(var(--carta-largura) * 0.075);
   right: 0;
   left: 0;
   width: fit-content;
   padding: var(--espaco-2) var(--espaco-4);
   margin: 0 auto;
   font-size: var(--texto-rotulo);
+  font-weight: 600;
   color: var(--cor-texto-suave);
   text-align: center;
-  background: var(--cor-marfim-90);
-  border-radius: 999px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   pointer-events: none;
-  transform: translateY(calc(-100% - var(--espaco-3)));
 }
 
 .convite__seta {
   display: block;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   margin: 0 auto;
   fill: none;
   stroke: currentcolor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 2;
+  stroke-width: 2.5;
 }
 
-/* O casal, de costas, na margem do lago, sob a árvore da direita (RF-06.8); variáveis ajustáveis. */
+/*
+ * O casal, de costas, em pé na grama da margem do lago (RF-06.8), com a metade de baixo das pernas sobre o
+ * primeiro plano. `--casal-base` é a distância dos pés à base da cena (a margem fica a cerca de 30%) e
+ * `--casal-altura` o tamanho; centrado, com as margens automáticas.
+ */
 .casal__imagem {
-  --casal-x: 62%;
-  --casal-base: 30%;
+  --casal-altura: 25%;
+  --casal-base: 26%;
 
   position: absolute;
+  right: 0;
   bottom: var(--casal-base);
-  left: var(--casal-x);
+  left: 0;
   width: auto;
-  height: 16%;
+  height: var(--casal-altura);
+  margin-inline: auto;
 }
 
 @media (orientation: landscape) {
   .casal__imagem {
-    --casal-base: 22%;
+    --casal-altura: 30%;
+    --casal-base: 20%;
   }
 }
 
@@ -210,49 +183,90 @@
   position: absolute;
 }
 
-/* A carta, na primeira tela final, começa a 52% da altura (55% na horizontal). */
+/* A carta começa a 58% da altura da tela: acima dela, a cena e o casal. */
 .conteudo {
   position: relative;
   z-index: var(--z-carta);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 52vh var(--espaco-3) 0;
-  padding: 52dvh var(--espaco-3) 0;
+  padding: 58vh var(--espaco-3) var(--espaco-7);
+  padding: 58dvh var(--espaco-3) var(--espaco-7);
 }
 
 @media (orientation: landscape) {
   .conteudo {
-    padding-top: 55vh;
-    padding-top: 55dvh;
-  }
-
-  .convite__rolar {
-    top: 55vh;
-    top: 55dvh;
+    padding-top: 62vh;
+    padding-top: 62dvh;
   }
 }
 
+/*
+ * O papel (imagem 14, com a borda irregular transparente) em três partes, para caber em qualquer altura de
+ * texto sem cortar a moldura nem as rosas: o topo e a base são as pontas da arte, na proporção dela
+ * (`::before` e `::after`, com o tamanho vindo da largura). No meio, só as bordas (deckle e filete dourado,
+ * `--papel-margem` de cada lado) vêm de uma faixa fina da arte esticada na vertical, o que as deixa retas; o
+ * miolo é o creme liso do papel (`--cor-papel`), que o topo e a base atingem num degradê: esticar a textura
+ * do miolo deixava listras verticais. As medidas vêm das variáveis que a cena escreve a partir de
+ * `config.carta.papel`. O padding deixa livres as rosas do alto (à direita) e da base (à esquerda). O marfim só
+ * aparece, dentro da moldura, se a imagem faltar.
+ */
 .carta {
+  --carta-largura: min(92vw, 560px);
+  --papel-faixa: calc(var(--papel-corte-ate) - var(--papel-corte-de));
+  --papel-miolo: calc(100% * (1 - 2 * var(--papel-margem)));
+
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--espaco-4);
   align-items: center;
-  width: min(92vw, 560px);
-  padding: var(--espaco-6) var(--espaco-5);
+  width: var(--carta-largura);
+  padding: calc(var(--carta-largura) * 0.28) calc(var(--carta-largura) * 0.105)
+    calc(var(--carta-largura) * 0.46);
   color: var(--cor-texto);
   text-align: center;
-  background-color: var(--cor-marfim);
-  background-size: cover;
-  border-radius: 6px;
-  box-shadow: var(--sombra-cartao);
+  background:
+    linear-gradient(var(--cor-papel), var(--cor-papel)) center / var(--papel-miolo) 100% no-repeat,
+    var(--papel) 0 calc(100% * var(--papel-corte-de) / (1 - var(--papel-faixa))) / 100%
+      calc(100% / var(--papel-faixa)) no-repeat,
+    var(--cor-marfim);
+  background-clip: border-box, border-box, content-box;
+  filter: drop-shadow(0 6px 14px var(--cor-sombra-35));
+  isolation: isolate;
   transform-origin: 50% 0;
 }
 
-@media (min-width: 768px) {
-  .carta {
-    padding: var(--espaco-7);
-  }
+.carta::before,
+.carta::after {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: var(--z-papel);
+  height: 0;
+  pointer-events: none;
+  content: '';
+  background-repeat: no-repeat;
+}
+
+.carta::before {
+  top: 0;
+  padding-bottom: calc(var(--papel-proporcao) * var(--papel-corte-de) * 100%);
+  background-image: linear-gradient(to bottom, transparent 60%, var(--cor-papel)), var(--papel);
+  background-position: center, top;
+  background-size:
+    var(--papel-miolo) 100%,
+    100% auto;
+}
+
+.carta::after {
+  bottom: 0;
+  padding-bottom: calc(var(--papel-proporcao) * (1 - var(--papel-corte-ate)) * 100%);
+  background-image: linear-gradient(to top, transparent 60%, var(--cor-papel)), var(--papel);
+  background-position: center, bottom;
+  background-size:
+    var(--papel-miolo) 100%,
+    100% auto;
 }
 
 .carta p,
@@ -346,8 +360,7 @@
 body[data-fase='seguranca'] .entrada,
 body[data-fase='seguranca'] .envelope,
 body[data-fase='seguranca'] .historia,
-body[data-fase='seguranca'] .convite__chao,
-body[data-fase='seguranca'] .convite__rolar {
+body[data-fase='seguranca'] .convite__chao {
   display: none;
 }
 

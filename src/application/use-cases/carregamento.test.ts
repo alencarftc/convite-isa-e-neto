@@ -20,7 +20,6 @@ const config = {
     petalaA: 'petala-a',
     petalaB: 'petala-b',
     petalaC: 'petala-c',
-    cursorChave: 'cursor-chave',
     balaoA: 'balao-a',
     balaoB: 'balao-b',
     balaoC: 'balao-c',
@@ -218,13 +217,12 @@ describe('criarCarregamento', () => {
 
       carregamento.secundario('horizontal');
       await Promise.resolve();
-      // Primeiro grupo: baú aberto, pétalas, cursor da chave e balões; o céu do pôr do sol espera.
+      // Primeiro grupo: baú aberto, pétalas e balões; o céu do pôr do sol espera.
       expect(chamadas).toEqual([
         'bau-aberto',
         'petala-a',
         'petala-b',
         'petala-c',
-        'cursor-chave',
         'balao-a',
         'balao-b',
         'balao-c',
@@ -255,7 +253,6 @@ describe('criarCarregamento', () => {
         'petala-a',
         'petala-b',
         'petala-c',
-        'cursor-chave',
         'balao-a',
         'balao-b',
         'balao-c',

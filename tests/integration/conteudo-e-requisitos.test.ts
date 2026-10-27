@@ -24,6 +24,7 @@ const FORA_DOS_REQUISITOS = [
   /^rotulos\./, // nomes acessíveis dos controles: SPEC-04, SPEC-05, SPEC-06, SPEC-07 e SPEC-09
   /^entrada\.aguarde$/, // SPEC-02
   /^dicas\.(atalho|rolar)$/, // SPEC-09 e SPEC-06
+  /^dicas\.chave(Computador|Celular)$/, // ADR-0012: a chave agora espera no inventário e é usada no baú; o espelho ainda traz o texto antigo
   /^baloes\[\d+\]\.(foto|alt|foco)$/, // arquivos e descrições das fotos: dependem do casal
   /^botoes\.agenda$/, // texto novo da SPEC-17, ainda sem a aprovação do casal
 ];

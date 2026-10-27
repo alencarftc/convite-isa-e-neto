@@ -3,18 +3,24 @@
  * `opacity` se animam. As camadas têm 24 px de sobra em cada lado para o deslocamento nunca mostrar
  * borda. Posições e proporções são o ponto de partida da spec e devem ser ajustadas com a arte final.
  */
-.cena {
+.cena,
+.convite__chao {
   --sobra: 24px;
+  --frente-altura: 34%;
+}
+
+.cena {
   --lago-altura: 30%;
   --lago-base: 30%;
-  --frente-altura: 34%;
 
   position: fixed;
   inset: 0;
   z-index: var(--z-ceu);
   height: 100vh;
   height: 100dvh;
-  overflow: hidden;
+
+  /* Corta nos quatro lados, menos embaixo, onde sobra a faixa extra do primeiro plano: o espelho dele (`.convite__chao`) continua dali. */
+  clip-path: inset(0 0 calc(var(--sobra) * -1));
   pointer-events: none;
   background: var(--cor-marfim);
   opacity: 0;
@@ -23,9 +29,7 @@
 
 @media (orientation: landscape) {
   .cena {
-    --lago-altura: 40%;
-    --lago-base: 22%;
-    --frente-altura: 30%;
+    --lago-base: 20%;
   }
 }
 
@@ -72,6 +76,22 @@
 
 .camada--frente img {
   object-position: bottom center;
+}
+
+/*
+ * Na horizontal as camadas de lago e de primeiro plano ganham a proporção da própria arte (04 e 06, com o
+ * céu transparente em cima): cortadas mais baixas, as colinas e a grama terminariam numa linha reta.
+ */
+@media (orientation: landscape) {
+  .camada--lago {
+    height: auto;
+    aspect-ratio: 1536 / 563;
+  }
+
+  .camada--frente {
+    height: auto;
+    aspect-ratio: 1536 / 525;
+  }
 }
 
 /* Espaço da SPEC-06 (casal); o do baú (`.bau`) é estilizado em bau.css (SPEC-04). */

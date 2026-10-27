@@ -33,16 +33,19 @@ function criarCamada(
   quadro.setAttribute('aria-hidden', 'true');
   quadro.setAttribute('data-prof', String(profundidade));
 
-  // O navegador troca a arte sozinho ao girar o aparelho (SPEC-03, RF-03.1).
-  const vertical = document.createElement('source');
-  vertical.media = '(orientation: portrait)';
-  vertical.srcset = urlDaImagem(arte, 'vertical');
   const imagem = document.createElement('img');
   imagem.alt = '';
   imagem.src = urlDaImagem(arte, 'horizontal');
   imagem.setAttribute('fetchpriority', prioridade);
   imagem.draggable = false;
-  quadro.append(vertical, imagem);
+  // O navegador troca a arte sozinho ao girar o aparelho (SPEC-03, RF-03.1); arte única não precisa de troca.
+  if (typeof arte !== 'string') {
+    const vertical = document.createElement('source');
+    vertical.media = '(orientation: portrait)';
+    vertical.srcset = urlDaImagem(arte, 'vertical');
+    quadro.append(vertical);
+  }
+  quadro.append(imagem);
   return quadro;
 }
 
@@ -122,12 +125,15 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
       await new Promise<void>((resolver) => {
         linhaDoTempo = gsap
           .timeline({ onComplete: resolver })
-          // A névoa se dissipa e cresce; `overwrite` desliga a respiração da entrada.
+          // A névoa se abre: cada camada cresce, se afasta do centro para um lado e some; `overwrite`
+          // desliga a respiração da entrada.
           .to(
             nevoa,
             {
               opacity: 0,
               scale: movimento.escalaFinalDaNevoa,
+              xPercent: (indice: number) =>
+                (indice % 2 === 0 ? 1 : -1) * movimento.deslocamentoDaNevoa,
               duration: duracoes.nevoa * movimento.fracaoDaNevoa,
               ease: curvas.suave,
               overwrite: 'auto',

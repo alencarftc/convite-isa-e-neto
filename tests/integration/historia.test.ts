@@ -14,12 +14,7 @@ import { configRapida } from './suporte/config-rapida';
 import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
 import { montarIndexHtml } from './suporte/index-html';
 
-const rapida = configRapida(configReal);
-/** A dica fica visível por mais tempo, para dar para amostrá-la sem depender de milissegundos. */
-const config: ConfigConvite = {
-  ...rapida,
-  historia: { ...rapida.historia, dica: { aparece: 0.01, some: 0.3 } },
-};
+const config: ConfigConvite = configRapida(configReal);
 
 function montar(opcoes: OpcoesDoEstadoFalso = {}) {
   montarIndexHtml();
@@ -48,11 +43,6 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}) {
     if (!elemento) throw new Error(`sem ${seletor}`);
     return elemento;
   };
-  const botao = () => {
-    const elemento = document.querySelector<HTMLButtonElement>('.historia__avancar');
-    if (!elemento) throw new Error('sem botão');
-    return elemento;
-  };
   const opacidade = (seletor: string) => Number(gsap.getProperty(el(seletor), 'opacity'));
   /** A linha do tempo da história é a única do GSAP que tem o rótulo "fim". */
   const linha = () => {
@@ -64,7 +54,7 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}) {
     return encontrada;
   };
 
-  return { cena, estado, eventos, registro, frases, el, botao, opacidade, linha };
+  return { cena, estado, eventos, registro, frases, el, opacidade, linha };
 }
 
 const esperar = (ms: number) => new Promise<void>((resolver) => setTimeout(resolver, ms));
@@ -198,30 +188,20 @@ describe('história em balões (SPEC-05)', () => {
       );
     });
 
-    it('o foco fica no botão de avançar durante a história (SPEC-09, RF-09.6)', () => {
-      const { cena, botao } = montar();
-
-      void cena.run();
-
-      expect(document.activeElement).toBe(botao());
-    });
-
-    it('mostra a região e o botão de avançar durante a história', () => {
-      const { cena, el, botao } = montar();
+    it('mostra a região durante a história e não cria nenhum controle para acelerá-la (ADR-0012)', () => {
+      const { cena, el } = montar();
 
       void cena.run();
 
       expect(el('.historia').hidden).toBe(false);
-      expect(botao().hidden).toBe(false);
-      expect(botao().getAttribute('aria-label')).toBe('Avançar a história');
+      expect(document.querySelector('.historia button')).toBeNull();
     });
 
-    it('ao terminar, esconde a região e o botão de avançar: ele não fica no Tab nem cobre a tela (SPEC-05, SPEC-09)', async () => {
-      const { cena, el, botao } = montar();
+    it('ao terminar, esconde a região: ela não cobre a tela durante o envelope e a carta (SPEC-05, SPEC-09)', async () => {
+      const { cena, el } = montar();
 
       await cena.run();
 
-      expect(botao().hidden).toBe(true);
       expect(el('.historia').hidden).toBe(true);
     });
 
@@ -248,6 +228,28 @@ describe('história em balões (SPEC-05)', () => {
       }
     });
 
+    it('na horizontal o balão para mais alto, para a legenda não cair sobre o baú (ADR-0012)', async () => {
+      vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(200); // o happy-dom não mede
+      const alturaDeParada = async (largura: number) => {
+        document.body.innerHTML = '';
+        Object.assign(window, { innerWidth: largura, innerHeight: 800 });
+        const { cena } = montar();
+        void cena.run();
+        const primeiro = document.querySelector('.balao');
+        await vi.waitFor(() => {
+          expect(Number(gsap.getProperty(primeiro, 'opacity'))).toBe(1);
+        });
+        const y = Number(gsap.getProperty(primeiro, 'y'));
+        cena.skip();
+        return y;
+      };
+
+      const vertical = await alturaDeParada(400);
+      const horizontal = await alturaDeParada(1200);
+
+      expect(horizontal).toBeLessThan(vertical); // y menor = mais perto do alto da tela
+    });
+
     it('cada balão sai da boca do baú com desvio horizontal próprio (SPEC-05, desvios)', async () => {
       const { cena } = montar();
       Object.assign(window, { innerWidth: 1000, innerHeight: 800 });
@@ -261,86 +263,69 @@ describe('história em balões (SPEC-05)', () => {
     });
   });
 
-  describe('dica "Toque para avançar" (RF-05.7)', () => {
-    it('aparece na primeira vez que a história toca neste aparelho', async () => {
-      const { cena, opacidade } = montar({ visitado: false });
-      void cena.run();
-
+  describe('nada na tela acelera nem pula a história (ADR-0012)', () => {
+    it('tocar na região ou na tela não muda a velocidade da linha do tempo', async () => {
+      const { cena, el, linha } = montar();
+      const execucao = cena.run();
       await vi.waitFor(() => {
-        expect(opacidade('.historia__dica')).toBe(1);
+        expect(linha().time()).toBeGreaterThan(0);
       });
+
+      el('.historia').click();
+      document.body.click();
+      document.dispatchEvent(new Event('pointerdown'));
+
+      expect(linha().timeScale()).toBe(1);
+      await execucao;
     });
 
-    it('não aparece a partir da segunda visita (CT-05.4)', async () => {
-      const { cena, opacidade } = montar({ visitado: true });
-      let maxima = 0;
-      const amostrar = setInterval(() => {
-        maxima = Math.max(maxima, opacidade('.historia__dica'));
-      }, 5);
+    it('as cinco frases são anunciadas, na ordem, sem pular nenhuma', async () => {
+      const { cena, frases } = montar();
 
       await cena.run();
-      clearInterval(amostrar);
-
-      expect(maxima).toBe(0);
-    });
-  });
-
-  describe('acelerar (CA-05.3.1, CT-05.3)', () => {
-    it('um toque triplica a velocidade e volta a 1× ao chegar no próximo balão', async () => {
-      const { cena, botao, linha } = montar();
-      const execucao = cena.run();
-      await vi.waitFor(() => {
-        expect(linha().time()).toBeGreaterThan(0);
-      });
-
-      botao().click();
-      expect(linha().timeScale()).toBe(config.historia.aceleracao);
-
-      await vi.waitFor(() => {
-        expect(linha().timeScale()).toBe(1);
-      });
-      await execucao;
-    });
-
-    it('toques em sequência rápida nunca passam de 3×', async () => {
-      const { cena, botao, linha } = montar();
-      void cena.run();
-      await vi.waitFor(() => {
-        expect(linha().time()).toBeGreaterThan(0);
-      });
-
-      botao().click();
-      botao().click();
-      botao().click();
-
-      expect(linha().timeScale()).toBe(config.historia.aceleracao);
-    });
-
-    it('acelerar não pula nenhuma frase', async () => {
-      const { cena, botao, frases } = montar();
-      const execucao = cena.run();
-
-      const tocar = setInterval(() => {
-        botao().click();
-      }, 4);
-      await execucao;
-      clearInterval(tocar);
 
       expect(frases).toEqual(content.baloes.map((b) => b.frase));
     });
 
-    it('um toque no último balão acelera até o fim e a velocidade volta ao normal', async () => {
-      const { cena, botao, linha } = montar();
-      const execucao = cena.run();
-      await vi.waitFor(() => {
-        expect(linha().time()).toBeGreaterThan(config.duracoes.balao * 4);
-      });
-      const historia = linha(); // some do GSAP ao terminar; guardamos a referência
+    it('a configuração não tem mais velocidade de aceleração nem dica de toque', () => {
+      expect(config.historia).not.toHaveProperty('aceleracao');
+      expect(config.historia).not.toHaveProperty('dica');
+      expect(content.dicas).not.toHaveProperty('avancar');
+    });
+  });
 
-      botao().click();
-      await execucao;
+  describe('legenda do balão', () => {
+    it('a frase fica fora do corpo que balança, para não girar junto com a nuvem', () => {
+      montar();
 
-      expect(historia.timeScale()).toBe(1);
+      for (const balao of document.querySelectorAll('.balao')) {
+        const frase = balao.querySelector('.balao__frase');
+        expect(frase?.parentElement).toBe(balao);
+        expect(balao.querySelector('.balao__corpo .balao__nuvem')).not.toBeNull();
+        expect(balao.querySelector('.balao__corpo .balao__frase')).toBeNull();
+      }
+    });
+
+    it('o desvio do balão é cancelado na legenda: ela fica no centro da tela (--desvio-x)', async () => {
+      const { cena } = montar();
+      Object.assign(window, { innerWidth: 1000, innerHeight: 800 });
+
+      await cena.run();
+
+      const recuos = [...document.querySelectorAll<HTMLElement>('.balao')].map((b) =>
+        Math.round(Number.parseFloat(b.style.getPropertyValue('--desvio-x'))),
+      );
+      expect(recuos).toEqual([120, -100, 60, -120, 0]); // -(desvio × 1000)
+    });
+
+    it('a frase some antes de o balão partir', async () => {
+      const { cena } = montar();
+
+      await cena.run();
+
+      for (const frase of document.querySelectorAll<HTMLElement>('.balao__frase')) {
+        expect(Number(gsap.getProperty(frase, 'opacity'))).toBe(0);
+      }
     });
   });
 

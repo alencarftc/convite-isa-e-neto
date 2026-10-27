@@ -110,12 +110,26 @@ describe('cena do bosque (SPEC-03)', () => {
 
       cena.init();
 
-      for (const nome of ['ceu', 'ceu-sol', 'lago', 'arvores', 'frente']) {
+      for (const nome of ['ceu', 'ceu-sol', 'arvores']) {
         const quadro = camada(nome);
         expect(quadro.tagName).toBe('PICTURE');
         expect(quadro.querySelector('source')?.media).toBe('(orientation: portrait)');
-        expect(quadro.querySelector('source')?.srcset).toMatch(/-9x16\.svg$/);
-        expect(quadro.querySelector('img')?.getAttribute('src')).toMatch(/-16x9\.svg$/);
+        expect(quadro.querySelector('source')?.srcset).toMatch(/-9x16\.webp$/);
+        expect(quadro.querySelector('img')?.getAttribute('src')).toMatch(/-16x9\.webp$/);
+        expect(quadro.querySelector('img')?.alt).toBe('');
+      }
+    });
+
+    it('lago e primeiro plano têm uma arte só: sem <source>, o recorte de cada orientação é do CSS', () => {
+      const { cena, camada } = montar();
+
+      cena.init();
+
+      for (const nome of ['lago', 'frente']) {
+        const quadro = camada(nome);
+        expect(quadro.tagName).toBe('PICTURE');
+        expect(quadro.querySelector('source')).toBeNull();
+        expect(quadro.querySelector('img')?.getAttribute('src')).toMatch(/\.webp$/);
         expect(quadro.querySelector('img')?.alt).toBe('');
       }
     });
