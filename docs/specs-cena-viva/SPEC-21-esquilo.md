@@ -112,3 +112,39 @@ esquilo: {
 - Altura da linha de chão e largura do esquilo dependem da arte 06 e da imagem 21; ajustar no navegador.
 - O esquilo poderia subir no tronco da árvore da direita em vez de voltar (mais charmoso, mais trabalho: precisaria de
   uma terceira pose). Fica para depois do teste.
+
+## Implementação (27/10/2026)
+
+Implementada na branch `feat/cena-viva-21-esquilo`. Respostas adotadas e desvios do desenho acima:
+
+- **O ponto de parada conta o lado do esquilo voltado para o baú.** O esquilo parte encostado na borda, inteiro fora da
+  tela, e `espaco = esquerda do baú − folga` (ou `largura da tela − (direita do baú + folga)`) é quanto ele pode andar:
+  quando para, a ponta do corpo está a 10% da largura do baú. A primeira versão do planejador somava a largura do esquilo
+  ao espaço e a ponta passava da folga em até 27 px; o teste de caixas do CT-21.5 pegou. O planejador deixou de receber a
+  largura do esquilo.
+- **Se um lado não tem espaço, tenta o outro.** A spec sorteia o lado e cancela se faltar espaço; aqui, com o baú fora do
+  centro, o lado oposto ainda serve. Só se os dois faltam (tela estreita) a visita é cancelada (CT-21.2) e a próxima se
+  agenda normalmente.
+- **Pulos:** de 3 a 6 sorteados, cortados no que cabe (no mínimo dois, RF-21.2); a volta repete pulos como os da ida até
+  cobrir o que foi andado e sair da tela pelo lado de onde veio.
+- **A troca de imagem é por `opacity`:** as duas imagens ficam empilhadas dentro de `.esquilo` (a esticada cobre a
+  encolhida, encostada na base) e o pulo as alterna em instantes exatos da linha do tempo (impulso e pouso). Nunca estão
+  visíveis juntas; sem piscar, porque nenhuma troca `src`.
+- **Parada em três tempos:** duas sacudidas (inclinação do corpo de 3° e volta; a imagem é uma só, então o rabo não
+  sacode sozinho; `config.vida.esquilo.inclinacaoDaSacudida`), vira-se para o outro lado aos 45% da parada, volta a se virar
+  aos 75% e, ao fim, se vira para a borda de onde veio (`scaleX`, RF-21.4).
+- **O esquilo só visita antes do envelope** (`visitaPermitida`, no domínio: fases da entrada até a história); a visita em
+  curso termina, e a seguinte nem é agendada. Com Pular a fase já é `convite` e nada acontece.
+- **A caixa do baú é a de `.bau`,** lida no começo de cada visita (a tela pode ter girado). O baú tem
+  `clamp(150px, 46vw, 290px)` de largura e fica ao centro.
+- **Curva nova em `config.curvas`:** `senoEntrada` (`sine.in`), para a descida do pulo; a subida usa `senoSaida`.
+- **Conferido no Chrome (celular, 390 × 844):** o esquilo de 26 px (7% da largura) corre na grama à esquerda do baú, com a
+  ponta do corpo na folga, sem passar pela chave guardada nem pela dica. É pequeno e discreto, como pede a spec.
+- **Testes de integração com o relógio manual:** 200 s de vida em milissegundos; a amostragem de 0,05 s do CT-21.5 confere
+  que nenhuma caixa do esquilo cruza a do baú nem a folga. Os testes longos têm prazo de 30 s, porque com a máquina
+  ocupada o passo a passo passa dos 5 s do padrão.
+- **Peso:** o JavaScript crítico passou de 65,08 para 66,22 kB gzip (+1,14 kB; a spec previa até 1,5 kB). Somando a água, as
+  folhas, os pássaros e o esquilo, a cena viva está em 8,55 kB, acima dos 8 kB do orçamento do épico: o ajuste fica para o fim
+  (depois do casal), no registro do épico.
+- **Não conferido:** a naturalidade do pulo com a arte definitiva (a provisória é uma silhueta); a altura do chão com
+  a arte 06 na horizontal.
