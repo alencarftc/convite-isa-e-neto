@@ -169,3 +169,46 @@ recorte = remove(
 3. **Esquilo no Pará:** o caxinguelê (esquilo brasileiro) é marrom-avermelhado; o prompt pede um esquilo pequeno,
    marrom quente e discreto. Se o casal preferir outro bicho (um sabiá pousando, uma borboleta azul), a SPEC-21 serve
    de molde.
+
+## Implementação do épico (27/10/2026)
+
+As cinco specs foram implementadas na branch `feat/cena-viva`, cada uma na sua branch (`feat/cena-viva-18-fundacao`,
+`-19-agua`, `-20-folhas-e-passaros`, `-21-esquilo`, `-22-casal`) e mergeada com `--no-ff`. A seção "Implementação" de cada
+spec registra as respostas e os desvios. A ADR da cena viva é a [0013](../decisions/0013-cena-viva-em-codigo-e-webgl.md)
+(nasceu como 0011 e foi renumerada porque a arte final já usava 0011 e 0012).
+
+| Critério (definição de pronto)                        | Situação                                                                                                             |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `pnpm check` verde                                    | Sim, com `domain` e `application` acima de 95%                                                                       |
+| Teste de integração de cada spec                      | Sim: `vida`, `agua`, `folhas-e-passaros`, `esquilo`, `casal` e os ajustes em `bosque`, `carta`, `composicao`         |
+| Conferido no navegador, vertical e horizontal/desktop | Chrome em 390 × 844 e 1366 × 768 (água, folhas, pássaros, esquilo e casal). Quadros por segundo reais: não conferido |
+| Sem texto, tempo, cor ou camada literal               | Sim: `config.vida`, `tokens.css` (`--z-vida-*`, `--cor-passaro`); os desenhos dos pássaros são geometria             |
+| Changeset em cada PR                                  | Sim (um por spec)                                                                                                    |
+| `pnpm verificar` falha só pelo que já faltava         | Falha também pelos textos de pausa (entre colchetes) e pela arte provisória nova (casal, folhas, esquilo)            |
+
+### Orçamento
+
+| Item                                 | Limite                      | Medido                                                                                                        |
+| ------------------------------------ | --------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| JavaScript da cena viva, gzip        | até 8 kB                    | **9,29 kB** (57,67 → 66,96 kB): fundação 1,24 · água 4,2 · folhas e pássaros 1,96 · esquilo 1,14 · casal 0,74 |
+| Pacote inteiro, gzip                 | até 120 kB                  | 66,96 kB                                                                                                      |
+| Trabalho por quadro com CPU 4× lenta | até 4 ms                    | não medido                                                                                                    |
+| Imagens novas                        | folhas 15 kB, esquilo 25 kB | provisórias em SVG (poucas centenas de bytes cada)                                                            |
+
+O limite de 8 kB do épico foi **estourado em 1,29 kB**; o pacote inteiro segue com mais de 50 kB de folga. O motor WebGL da
+água (código, GLSL e elemento) é a maior parte. Se o limite for firme, os caminhos são: enxugar o motor (tirar o suporte à
+direção vertical e o recorte `cobrirTudo`, que nenhum elemento usa, e simplificar o GLSL dos reflexos), ou carregar a cena
+viva em um pedaço à parte depois do toque de entrada (não muda o total publicado, só o crítico).
+
+### O que falta
+
+1. **Imagens definitivas:** 19 (casal sentado, 640 px de largura, 150 kB), 20a–c (folhas, 128 × 128, 15 kB), 21a–b (esquilo,
+   256 px de largura, 25 kB). O `pnpm arte` ainda não tem etapa para elas: ao chegarem, acrescentar as três etapas e trocar
+   as chaves de `config.imagens` (`assets/provisorio/*.svg` → `assets/couple/19-…`, `assets/objects/20-…`, `21-…`). As elipses
+   do vento (`config.vida.casal.vento.regioes`), o tamanho do casal e a linha do chão do esquilo se ajustam sobre elas.
+2. **Texto do botão "Pausar animação"** (US-13.6): `content.dicas.pausarAnimacao` e `retomarAnimacao`, entre colchetes até a
+   aprovação do casal.
+3. **Aparelhos reais:** 50 quadros por segundo num Android intermediário, o nível leve, o vento e a água no iPhone (matriz de
+   testes).
+4. **Decisão de integração:** se o teste for aprovado, a branch entra na `main` de uma vez; se não, a ADR-0013 vira
+   "rejeitada" e nada dela chega à `main`.

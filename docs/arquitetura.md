@@ -87,6 +87,7 @@ src/
 │   ├── historia/                # balões, frases e tlHistoria (SPEC-05)
 │   ├── petalas/                 # função de pétalas, compartilhada com a SPEC-06
 │   ├── bosque/                  # cena do bosque: camadas, revelação e profundidade (SPEC-03)
+│   ├── vida/                    # cena viva (épico 13, SPEC-18 a 22): água, folhas, pássaros, esquilo e casal; só na branch feat/cena-viva
 │   ├── entrada/                 # névoa, nomes e "Toque para entrar" (SPEC-02)
 │   └── informacoes/             # cartões de contagem e botões (SPEC-07)
 └── styles/                      # tokens.css (única fonte de cores/fontes/camadas), base.css, …

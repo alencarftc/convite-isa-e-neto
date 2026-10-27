@@ -108,10 +108,14 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
 
 ## Estado atual
 
-**Branch `feat/cena-viva` (teste, 27/10/2026):** épico 13, "Cena viva", planejado e ainda não implementado. Comece por
-[docs/specs-cena-viva/README.md](docs/specs-cena-viva/README.md) (ordem, branches por spec, definição de pronto e
-orçamento) e pela [ADR-0013](docs/decisions/0013-cena-viva-em-codigo-e-webgl.md). As branches de cada spec saem desta
-e voltam para ela, nunca para a `main`.
+**Branch `feat/cena-viva` (teste, 27/10/2026):** épico 13, "Cena viva", **implementado** (SPEC-18 a 22: água com
+WebGL, folhas, pássaros, esquilo e casal sentado e vivo, com o botão "Pausar animação"), sobre a arte final e os ajustes
+da ADR-0012. Comece por [docs/specs-cena-viva/README.md](docs/specs-cena-viva/README.md) (situação, orçamento e o que
+falta) e pela [ADR-0013](docs/decisions/0013-cena-viva-em-codigo-e-webgl.md). As branches de cada spec saíram desta e
+voltaram para ela, nunca para a `main`. A cena viva é um componente que ouve o barramento (`criarCenaViva`, em
+`presentation/vida/`), não uma etapa; os elementos seguem o contrato `ElementoDeVida`; tudo se move no relógio do GSAP
+(nos testes, `tests/integration/suporte/relogio-gsap.ts` o avança à mão). As imagens 19 (casal sentado), 20a–c e 21a–b
+ainda são arte provisória.
 
 Feito: ferramentas e CI; SPEC-01 completa (barramento, fases, estado, orquestrador, contrato `Cena`,
 modo de segurança); fatia vertical da SPEC-07 (contagem e estados por data, botões). SPEC-08 (porta de áudio, Howler,

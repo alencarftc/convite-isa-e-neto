@@ -57,6 +57,10 @@ Para repetir: `pnpm build`, `pnpm preview` e, em outro terminal, `pnpm dlx light
 | Chave no inventário e entrada na fechadura    | ADR-0012 (6, 7)           | ☐                 | ☐               | ☐                  | ☐                | ☐          |
 | Carta: leitura em sequência e "Role para ler" | ADR-0012 (15, 16)         | ☐                 | ☐               | ☐                  | ☐                | ☐          |
 | Transição do toque no selo da entrada         | ADR-0012 (3)              | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Cena viva: água, folhas, pássaros, esquilo    | CA-13.1.1, CA-13.1.2      | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Cena viva: 50 quadros por segundo no Android  | CA-13.1.2, RNF-18.2       | ☐                 | —               | ☐                  | —                | —          |
+| Casal sentado: respiração, vento, halo        | CA-13.5.1, CA-13.5.2      | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| "Pausar animação" e animação reduzida         | CA-13.1.4, CA-13.6.1      | ☐                 | ☐               | ☐                  | ☐                | ☐          |
 
 Os estados por data (CT-07.7) e a rede lenta têm teste automático (`?data=` e o carregamento com limites); no
 aparelho vale conferir o resultado visual. O iPhone com a chave do modo silencioso ligada (CT-08.6) precisa
