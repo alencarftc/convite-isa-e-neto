@@ -302,6 +302,27 @@ describe('src/main.ts', () => {
       expect(depoisDoSom[0]).toBe('entrada__tocar');
     });
 
+    it('"Pausar animação" aparece quando o bosque fica pronto, logo depois do som na ordem do Tab (SPEC-18, RF-18.9)', async () => {
+      await abrirEntrando();
+      await vi.waitFor(() => {
+        expect(document.querySelector<HTMLButtonElement>('.bau__botao')?.disabled).toBe(false);
+      });
+
+      const tabulaveis = [...document.querySelectorAll('button')]
+        .filter((botao) => !botao.disabled && !botao.hidden)
+        .map((botao) => botao.className);
+
+      expect(tabulaveis.slice(0, 4)).toEqual([
+        'visualmente-oculto atalho',
+        'botao-pular',
+        'botao-som',
+        'botao-movimento',
+      ]);
+      expect(document.querySelector('.botao-movimento')?.getAttribute('aria-label')).toBe(
+        content.dicas.pausarAnimacao,
+      );
+    });
+
     it('na primeira visita, "Pular para o convite" também aparece: quem não quer a abertura vai direto (ADR-0012)', async () => {
       await import('@/main');
       await vi.waitFor(() => {
@@ -331,6 +352,7 @@ describe('src/main.ts', () => {
       expect(document.querySelector<HTMLElement>('.historia')?.hidden ?? true).toBe(true);
       expect(document.querySelector<HTMLElement>('.envelope')?.hidden).toBe(true);
       expect(document.querySelector('.bau__corpo')).not.toBeNull(); // montado, mas nunca tocado
+      expect(document.querySelector('.botao-movimento')).toBeNull(); // nada se move: não há o que pausar (SPEC-18)
       expect(blocosDoConteudo()).toEqual(COM_HISTORIA_ESTATICA);
       expect(document.querySelectorAll('.historia-estatica__cartao')).toHaveLength(
         content.baloes.length,

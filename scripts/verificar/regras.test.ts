@@ -225,11 +225,31 @@ describe('validarArteDefinitiva', () => {
     );
   });
 
-  it('a arte gerada já não é acusada: restam só as fotos provisórias dos balões', () => {
+  it('a arte gerada já não é acusada: restam as fotos dos balões e a arte da cena viva, ainda provisórias', () => {
     const problemas = validarArteDefinitiva(config, content);
 
+    const naoEsperados = problemas.filter(
+      (p) =>
+        !p.mensagem.startsWith('content.baloes[') &&
+        !/^config.imagens.(casal|folha[ABC]|esquilo(Encolhido|Esticado)) /.test(p.mensagem),
+    );
     expect(problemas.length).toBeGreaterThan(0);
-    expect(problemas.every((p) => p.mensagem.startsWith('content.baloes['))).toBe(true);
+    expect(naoEsperados).toEqual([]);
+  });
+
+  it('acusa a arte provisória da cena viva (folhas, esquilo e casal sentado) até as imagens 19, 20 e 21 chegarem', () => {
+    const mensagens = validarArteDefinitiva(config, content).map((p) => p.mensagem);
+
+    for (const chave of [
+      'casal',
+      'folhaA',
+      'folhaB',
+      'folhaC',
+      'esquiloEncolhido',
+      'esquiloEsticado',
+    ]) {
+      expect(mensagens, chave).toContainEqual(expect.stringContaining(`config.imagens.${chave} `));
+    }
   });
 
   it('acusa também as fotos dos balões que apontam para a arte provisória', () => {

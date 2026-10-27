@@ -32,6 +32,8 @@ const conteudo: ConteudoConvite = {
     chaveCelular: 'Toque',
     selo: 'Selo',
     rolar: 'Role',
+    pausarAnimacao: 'Pausar',
+    retomarAnimacao: 'Retomar',
   },
   previa: { titulo: 't', descricao: 'd' },
   carta: {

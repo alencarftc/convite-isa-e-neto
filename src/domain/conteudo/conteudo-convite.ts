@@ -77,6 +77,12 @@ export interface ConteudoConvite {
     readonly chaveCelular: string;
     readonly selo: string;
     readonly rolar: string;
+    /**
+     * Nome do botão que pausa e retoma o movimento da cena (SPEC-18, US-13.6; WCAG 2.2.2). Entre colchetes
+     * até o casal aprovar o texto.
+     */
+    readonly pausarAnimacao: string;
+    readonly retomarAnimacao: string;
   };
   readonly carta: CartaDoConvite;
   /** O que aparece na prévia do link no WhatsApp e na aba do navegador (SPEC-10, RF-10.1). */

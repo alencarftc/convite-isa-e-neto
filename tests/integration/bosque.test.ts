@@ -66,7 +66,7 @@ afterEach(() => {
 
 describe('cena do bosque (SPEC-03)', () => {
   describe('estrutura das camadas', () => {
-    it('empilha céu, céu do pôr do sol, lago, árvores, baú, primeiro plano, luz e casal (RF-03.1)', () => {
+    it('empilha céu, céu do pôr do sol, lago, árvores, baú, primeiro plano, luz e casal, com os espaços da vida entre eles (RF-03.1, RF-18.6)', () => {
       const { cena, cenaEl } = montar();
 
       cena.init();
@@ -75,12 +75,38 @@ describe('cena do bosque (SPEC-03)', () => {
       expect(classes).toEqual([
         'camada camada--ceu',
         'camada camada--ceu-sol',
+        'vida vida--ceu',
         'camada camada--lago',
         'camada camada--arvores',
+        'vida vida--fundo',
         'bau',
         'camada camada--frente',
+        'vida vida--chao',
         'camada camada--luz',
         'casal',
+      ]);
+    });
+
+    it('os espaços da vida nascem vazios, decorativos e com a profundidade da camada ao lado (CT-18.10)', () => {
+      const { cena, cenaEl } = montar();
+
+      cena.init();
+
+      const espacos = [...cenaEl().querySelectorAll<HTMLElement>('.vida')];
+      expect(espacos.map((espaco) => espaco.className)).toEqual([
+        'vida vida--ceu',
+        'vida vida--fundo',
+        'vida vida--chao',
+      ]);
+      for (const espaco of espacos) {
+        expect(espaco.getAttribute('aria-hidden'), espaco.className).toBe('true');
+        expect(espaco.childElementCount, espaco.className).toBe(0);
+        expect(espaco.querySelector('button, a, [tabindex]')).toBeNull();
+      }
+      expect(espacos.map((espaco) => espaco.getAttribute('data-prof'))).toEqual([
+        '0.15',
+        '0.6',
+        '1',
       ]);
     });
 
@@ -142,7 +168,18 @@ describe('cena do bosque (SPEC-03)', () => {
         e.getAttribute('data-prof'),
       );
 
-      expect(profundidades).toEqual(['0.15', '0.15', '0.3', '0.6', '0.75', '1']);
+      // Os espaços da vida (céu, fundo e chão) repetem a profundidade da camada ao lado (RF-18.6).
+      expect(profundidades).toEqual([
+        '0.15',
+        '0.15',
+        '0.15',
+        '0.3',
+        '0.6',
+        '0.6',
+        '0.75',
+        '1',
+        '1',
+      ]);
     });
 
     it('as imagens do pôr do sol têm prioridade baixa; as críticas, alta (RNF-02.3)', () => {
@@ -263,6 +300,29 @@ describe('cena do bosque (SPEC-03)', () => {
 
       // o mouse é ignorado: o x vem só da deriva (no máximo 6 px × profundidade)
       expect(Math.abs(Number(gsap.getProperty(camada('frente'), 'x')))).toBeLessThanOrEqual(6);
+    });
+
+    it('"Pausar animação" congela a deriva do celular e retomar a devolve (SPEC-18, RF-18.9)', async () => {
+      const { cena, camada, estado } = montar({ instantaneo: true, toque: true });
+      cena.init();
+      await cena.run();
+      const deriva = () => gsap.getTweensOf(camada('frente'));
+
+      estado.definirMovimento(false);
+
+      expect(deriva().every((animacao) => animacao.paused())).toBe(true);
+
+      estado.definirMovimento(true);
+
+      expect(deriva().some((animacao) => !animacao.paused())).toBe(true);
+    });
+
+    it('com a pausa gravada numa visita anterior, a deriva já nasce congelada', async () => {
+      const { cena, camada } = montar({ instantaneo: true, toque: true, movimentoLigado: false });
+      cena.init();
+      await cena.run();
+
+      expect(gsap.getTweensOf(camada('frente')).every((animacao) => animacao.paused())).toBe(true);
     });
 
     it('destroy para a profundidade e remove a cena', async () => {

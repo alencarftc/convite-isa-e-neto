@@ -1,0 +1,24 @@
+/*
+ * Cena viva (épico 13, SPEC-18): três espaços vazios dentro da cena, onde moram os movimentos de ambiente
+ * (pássaros no céu, folhas atrás do baú, esquilo e folhas da frente no chão). Cada um acompanha a
+ * profundidade da camada ao lado (`data-prof`). São decorativos: sem toque, sem foco. A água é um canvas
+ * dentro da camada do lago, não um espaço (SPEC-19). Só `transform` e `opacity` se animam.
+ */
+.vida {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.vida--ceu {
+  z-index: var(--z-vida-ceu);
+}
+
+.vida--fundo {
+  z-index: var(--z-vida-fundo);
+}
+
+.vida--chao {
+  z-index: var(--z-vida-chao);
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ARTE PROVISÓRIA: substituir pela imagem definitiva (docs/specs-cena-viva/README.md, "Imagens novas") · esquilo-esticado.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" data-provisorio="true" width="256" height="192" viewBox="0 0 256 192">
+<defs>
+  <linearGradient id="pelo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b3683a"/><stop offset="1" stop-color="#8a4a28"/></linearGradient>
+  <linearGradient id="rabo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c47a47"/><stop offset="1" stop-color="#8a4a28"/></linearGradient>
+</defs>
+<path d="M64 92 C8 100 -4 40 36 22 C62 12 84 34 74 54 C68 66 84 74 92 82 Z" fill="url(#rabo)"/>
+<g transform="rotate(-14 130 92)">
+  <ellipse cx="128" cy="96" rx="62" ry="26" fill="url(#pelo)"/>
+  <ellipse cx="140" cy="106" rx="38" ry="12" fill="#dcae84"/>
+  <path d="M70 100 C48 108 30 124 20 144" fill="none" stroke="#7a4023" stroke-width="12" stroke-linecap="round"/>
+  <path d="M182 104 C206 116 224 126 240 128" fill="none" stroke="#7a4023" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="190" cy="78" r="23" fill="#a85f34"/>
+  <path d="M178 62 L174 38 L196 54Z" fill="#8a4a28"/>
+  <ellipse cx="209" cy="86" rx="15" ry="10" fill="#cb8d60"/>
+  <circle cx="221" cy="83" r="3.8" fill="#3b2418"/>
+  <circle cx="196" cy="73" r="4" fill="#2a1a10"/>
+  <circle cx="197.3" cy="71.7" r="1.2" fill="#fff6e6"/>
+</g>
+</svg>

@@ -28,6 +28,11 @@ const config = {
     selo: 'selo',
     papelCarta: 'papel-carta',
     casal: 'casal',
+    folhaA: 'folha-a',
+    folhaB: 'folha-b',
+    folhaC: 'folha-c',
+    esquiloEncolhido: 'esquilo-encolhido',
+    esquiloEsticado: 'esquilo-esticado',
     ceuPorDoSol: { vertical: 'sol-v', horizontal: 'sol-h' },
   },
 } as unknown as Pick<ConfigConvite, 'duracoes' | 'imagens'>;
@@ -229,13 +234,15 @@ describe('criarCarregamento', () => {
       ]);
       expect(pendentes[0]?.prioridade).toBe('baixa');
 
-      // Cada grupo só começa quando o anterior termina: céu do pôr do sol, depois carta, depois casal.
+      // Cada grupo só começa quando o anterior termina: a cena viva (folhas e esquilo, épico 13), o céu do pôr do
+      // sol, depois a carta, depois o casal.
       const aposOGrupo = async (esperado: string[]) => {
         for (const pendente of pendentes.splice(0)) pendente.liberar();
         await vi.waitFor(() => {
           expect(chamadas.slice(-esperado.length)).toEqual(esperado);
         });
       };
+      await aposOGrupo(['folha-a', 'folha-b', 'folha-c', 'esquilo-encolhido', 'esquilo-esticado']);
       await aposOGrupo(['sol-h']);
       await aposOGrupo(['envelope-fechado', 'envelope-aberto', 'selo', 'papel-carta']);
       await aposOGrupo(['casal']);

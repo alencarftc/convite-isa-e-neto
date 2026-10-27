@@ -8,7 +8,7 @@ import type { ConfigConvite } from '@/domain/config/config-convite';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { type ChaveDeImagem, urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
-import { iniciarProfundidade } from './profundidade';
+import { iniciarProfundidade, type ProfundidadeEmAndamento } from './profundidade';
 
 export interface DependenciasDoBosque {
   readonly raiz: HTMLElement;
@@ -61,7 +61,9 @@ function criarEspaco(classe: string, profundidade?: number, decorativo = true): 
  * Cena do bosque (SPEC-03): camadas de imagem da mais distante à mais próxima, a névoa da entrada
  * se dissipando em `duracoes.nevoa`, a aproximação de 1,06 para 1 e a profundidade (mouse no
  * computador, deriva no celular). Os espaços `.bau` e `.casal` são das SPEC-04 e SPEC-06; a luz do
- * pôr do sol (`.camada--ceu-sol` e `.camada--luz`) é animada pela história (SPEC-05, RF-03.5).
+ * pôr do sol (`.camada--ceu-sol` e `.camada--luz`) é animada pela história (SPEC-05, RF-03.5). Os três
+ * espaços `.vida` (céu, fundo e chão) ficam vazios: a cena viva (SPEC-18) põe neles os pássaros, as folhas
+ * e o esquilo, e a profundidade os move junto com a camada ao lado.
  */
 export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
   const { raiz, config, estado, eventos, carregamento } = dependencias;
@@ -70,7 +72,8 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
 
   let cena: HTMLElement | undefined;
   let linhaDoTempo: gsap.core.Timeline | undefined;
-  let pararProfundidade: (() => void) | undefined;
+  let profundidade: ProfundidadeEmAndamento | undefined;
+  let pararDeOuvirMovimento: (() => void) | undefined;
 
   function montar(): HTMLElement {
     if (cena) return cena;
@@ -81,10 +84,13 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
     nova.append(
       criarCamada(config, 'ceu', 'ceu', camadas.ceu, 'high'),
       criarCamada(config, 'ceu-sol', 'ceuPorDoSol', camadas.ceu, 'low'),
+      criarEspaco('vida vida--ceu', camadas.ceu),
       criarCamada(config, 'lago', 'lago', camadas.lago, 'high'),
       criarCamada(config, 'arvores', 'arvores', camadas.arvores, 'high'),
+      criarEspaco('vida vida--fundo', camadas.arvores),
       criarEspaco('bau', camadas.bau, false),
       criarCamada(config, 'frente', 'primeiroPlano', camadas.frente, 'high'),
+      criarEspaco('vida vida--chao', camadas.frente),
       criarEspaco('camada camada--luz'),
       criarEspaco('casal'),
     );
@@ -106,8 +112,10 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
 
   function parar(): void {
     linhaDoTempo?.kill();
-    pararProfundidade?.();
-    pararProfundidade = undefined;
+    pararDeOuvirMovimento?.();
+    pararDeOuvirMovimento = undefined;
+    profundidade?.parar();
+    profundidade = undefined;
   }
 
   return {
@@ -150,13 +158,21 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
       });
 
       esconderEntrada();
-      pararProfundidade = iniciarProfundidade({
+      const derivando = iniciarProfundidade({
         camadas: camadasComProfundidade(),
         toque: estado.toque,
         parametros: movimento.profundidade,
         curva: curvas.suave,
         janela: window,
       });
+      profundidade = derivando;
+      // "Pausar animação" (SPEC-18, RF-18.9) congela a deriva junto com a cena viva; vale desde o começo.
+      const seguirMovimento = () => {
+        if (estado.movimentoLigado) derivando.retomar();
+        else derivando.pausar();
+      };
+      seguirMovimento();
+      pararDeOuvirMovimento = estado.aoMudar(seguirMovimento);
       eventos.emit('bosque:pronto');
     },
 

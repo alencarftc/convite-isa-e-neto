@@ -13,6 +13,7 @@ import { criarCarregamentoFalso } from './suporte/carregamento-falso';
 import { configRapida } from './suporte/config-rapida';
 import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
 import { montarIndexHtml } from './suporte/index-html';
+import { criarRelogioManual } from './suporte/relogio-gsap';
 
 const config: ConfigConvite = configRapida(configReal);
 
@@ -228,26 +229,33 @@ describe('história em balões (SPEC-05)', () => {
       }
     });
 
-    it('na horizontal o balão para mais alto, para a legenda não cair sobre o baú (ADR-0012)', async () => {
+    it('na horizontal o balão para mais alto, para a legenda não cair sobre o baú (ADR-0012)', () => {
       vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(200); // o happy-dom não mede
-      const alturaDeParada = async (largura: number) => {
+      // Relógio manual: com o relógio real, uma máquina ocupada lia a altura já na subida da leitura.
+      const relogio = criarRelogioManual();
+      const alturaDeParada = (largura: number) => {
         document.body.innerHTML = '';
         Object.assign(window, { innerWidth: largura, innerHeight: 800 });
         const { cena } = montar();
         void cena.run();
         const primeiro = document.querySelector('.balao');
-        await vi.waitFor(() => {
-          expect(Number(gsap.getProperty(primeiro, 'opacity'))).toBe(1);
-        });
+        // Anda até o balão terminar de sair da boca do baú, que é onde ele "para".
+        for (let i = 0; i < 2000 && Number(gsap.getProperty(primeiro, 'opacity')) < 1; i += 1) {
+          relogio.avancar(0.005, 0.005);
+        }
         const y = Number(gsap.getProperty(primeiro, 'y'));
         cena.skip();
         return y;
       };
 
-      const vertical = await alturaDeParada(400);
-      const horizontal = await alturaDeParada(1200);
+      try {
+        const vertical = alturaDeParada(400);
+        const horizontal = alturaDeParada(1200);
 
-      expect(horizontal).toBeLessThan(vertical); // y menor = mais perto do alto da tela
+        expect(horizontal).toBeLessThan(vertical); // y menor = mais perto do alto da tela
+      } finally {
+        relogio.restaurar();
+      }
     });
 
     it('cada balão sai da boca do baú com desvio horizontal próprio (SPEC-05, desvios)', async () => {

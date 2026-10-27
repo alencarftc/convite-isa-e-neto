@@ -10,6 +10,11 @@ export interface EstadoConvite {
   readonly somLigado: boolean;
   /** Já abriu o convite neste aparelho? (SPEC-09) */
   readonly visitado: boolean;
+  /**
+   * Movimento de ambiente ligado? Preferência salva no aparelho (SPEC-18, US-13.6); ligado por padrão e
+   * desligado depois de "Pausar animação". Vale para a cena viva e para a deriva das camadas.
+   */
+  readonly movimentoLigado: boolean;
   /** Animação reduzida: o convite vai direto ao estado final (SPEC-09). */
   readonly reduzido: boolean;
   /** O ponteiro principal é de toque (`pointer: coarse`): celular, tablet. */
@@ -26,7 +31,9 @@ export interface EstadoConvite {
   marcarVisitado(): void;
   /** Liga ou desliga o som e lembra a escolha para a próxima visita (RF-08.6). */
   definirSom(ligado: boolean): void;
-  /** Avisa a cada mudança de fase, de som ou de orientação; devolve a função que cancela o aviso. */
+  /** Liga ou desliga o movimento de ambiente e lembra a escolha para a próxima visita (SPEC-18, RF-18.9). */
+  definirMovimento(ligado: boolean): void;
+  /** Avisa a cada mudança de fase, de som, de movimento ou de orientação; devolve a função que cancela o aviso. */
   aoMudar(escuta: (estado: EstadoConvite) => void): () => void;
   /** Para de ouvir o ambiente e esquece os avisos. */
   destruir(): void;
@@ -44,6 +51,7 @@ export function criarEstado({ preferencias, ambiente }: DependenciasDoEstado): E
 
   let somLigado = preferencias.ler('convite:som', true);
   let visitado = preferencias.ler('convite:visitado', false);
+  let movimentoLigado = preferencias.ler('convite:movimento', true);
   const reduzido = ambiente.animacaoReduzida();
   const toque = ambiente.porToque();
   const algumToque = ambiente.algumToque();
@@ -68,6 +76,9 @@ export function criarEstado({ preferencias, ambiente }: DependenciasDoEstado): E
     get visitado() {
       return visitado;
     },
+    get movimentoLigado() {
+      return movimentoLigado;
+    },
     reduzido,
     toque,
     algumToque,
@@ -90,6 +101,12 @@ export function criarEstado({ preferencias, ambiente }: DependenciasDoEstado): E
       if (ligado === somLigado) return;
       somLigado = ligado;
       preferencias.gravar('convite:som', ligado);
+      avisar();
+    },
+    definirMovimento(ligado) {
+      if (ligado === movimentoLigado) return;
+      movimentoLigado = ligado;
+      preferencias.gravar('convite:movimento', ligado);
       avisar();
     },
     aoMudar(escuta) {

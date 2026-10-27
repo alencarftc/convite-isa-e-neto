@@ -35,7 +35,12 @@ export const LIMITE_DAS_IMAGENS: Readonly<Record<ChaveDeImagem, number>> = {
   petalaA: 15 * KB, // 16a
   petalaB: 15 * KB,
   petalaC: 15 * KB,
-  casal: 150 * KB, // 17
+  casal: 150 * KB, // 17 na main; 19 (sentado) na cena viva
+  folhaA: 15 * KB, // 20a
+  folhaB: 15 * KB,
+  folhaC: 15 * KB,
+  esquiloEncolhido: 25 * KB, // 21a
+  esquiloEsticado: 25 * KB, // 21b
 };
 
 /** Fotos dos balões (SPEC-05, RNF-05.3), prévia do link (SPEC-10, RF-10.2) e fontes (RNF da SPEC-02). */

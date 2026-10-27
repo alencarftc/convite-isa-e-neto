@@ -5,6 +5,8 @@ import type { Ambiente, Orientacao } from '@/application/ports/ambiente';
 
 export interface OpcoesDoEstadoFalso {
   readonly visitado?: boolean;
+  /** Padrão: ligado. Falso = o convidado pausou a animação numa visita anterior (SPEC-18). */
+  readonly movimentoLigado?: boolean;
   readonly reduzido?: boolean;
   readonly toque?: boolean;
   /** Padrão: o mesmo que `toque`. Verdadeiro com `toque` falso = notebook com tela de toque. */
@@ -16,7 +18,10 @@ export interface OpcoesDoEstadoFalso {
 export function criarEstadoFalso(opcoes: OpcoesDoEstadoFalso = {}): {
   estado: EstadoConvite;
   girar: (nova: Orientacao) => void;
+  /** O que o estado gravou nas preferências. */
+  gravar: ReturnType<typeof vi.fn>;
 } {
+  const gravar = vi.fn();
   let orientacao: Orientacao = opcoes.orientacao ?? 'vertical';
   const giros = new Set<(o: Orientacao) => void>();
   const ambiente: Ambiente = {
@@ -33,13 +38,18 @@ export function criarEstadoFalso(opcoes: OpcoesDoEstadoFalso = {}): {
   };
   const estado = criarEstado({
     preferencias: {
-      ler: (chave, padrao) => (chave === 'convite:visitado' ? (opcoes.visitado ?? padrao) : padrao),
-      gravar: vi.fn(),
+      ler: (chave, padrao) => {
+        if (chave === 'convite:visitado') return opcoes.visitado ?? padrao;
+        if (chave === 'convite:movimento') return opcoes.movimentoLigado ?? padrao;
+        return padrao;
+      },
+      gravar,
     },
     ambiente,
   });
   return {
     estado,
+    gravar,
     girar(nova) {
       orientacao = nova;
       for (const escuta of giros) escuta(nova);

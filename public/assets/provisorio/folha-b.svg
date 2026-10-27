@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ARTE PROVISÓRIA: substituir pela imagem definitiva (docs/specs-cena-viva/README.md, "Imagens novas") · folha-b.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" data-provisorio="true" width="128" height="128" viewBox="0 0 128 128">
+<defs><linearGradient id="folha" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#a2b98a"/><stop offset="1" stop-color="#5f7d52"/></linearGradient></defs>
+<path d="M64 4 C92 30 100 76 66 124 C34 86 30 34 64 4Z" fill="url(#folha)"/>
+<path d="M64 14 C64 50 66 90 66 118" fill="none" stroke="#44603a" stroke-width="3" stroke-linecap="round" opacity="0.65"/>
+<path d="M65 44 L40 30 M65 62 L86 46 M66 80 L42 64 M66 96 L84 82" fill="none" stroke="#44603a" stroke-width="2" stroke-linecap="round" opacity="0.45"/>
+</svg>
