@@ -1,6 +1,8 @@
 import type { ParametrosDeLeitura } from '../carta/tempo-de-leitura';
 import type { ArteDaImagem, ChaveDeImagem } from '../imagens/catalogo-de-imagens';
+import type { ParametrosDeFolha } from '../vida/folhas';
 import type { OndaDeOndulacao, ReflexosDaOndulacao } from '../vida/ondulacao';
+import type { ParametrosDePassaros } from '../vida/passaros';
 import type { RegiaoDeOndulacao } from '../vida/regioes';
 
 /** Formato de `src/config/config.ts` (SPEC-01, "Conteúdo e configuração"). Tempos em segundos. */
@@ -416,12 +418,23 @@ export interface ConfigConvite {
         readonly brilhoMaximo: number;
       };
     };
+    /** Folhas que se soltam da copa e caem balançando (SPEC-20). */
+    readonly folhas: ParametrosDeFolha & {
+      /** A primeira folha cai tantos segundos depois do início da vida. */
+      readonly primeiroEm: number;
+    };
+    /** Bandos de pássaros que cruzam o céu (SPEC-20). */
+    readonly passaros: ParametrosDePassaros & {
+      readonly primeiroEm: number;
+    };
   };
   /** Arquivo de cada imagem do convite (SPEC-02, SPEC-03); caminhos relativos à página. */
   readonly imagens: Readonly<Record<ChaveDeImagem, ArteDaImagem>>;
   readonly curvas: {
     /** Mola curta com que o selo volta ao lugar se o gesto não chegou ao limiar (SPEC-16). */
     readonly mola: string;
+    /** Sem aceleração (`none`): a travessia dos pássaros. */
+    readonly linear: string;
     readonly suave: string;
     readonly saida: string;
     readonly pouso: string;
