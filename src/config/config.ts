@@ -244,6 +244,25 @@ export const config: ConfigConvite = {
       planar: { chance: 0.3, duracao: 1.2, escala: 0.6 },
       largura: [10, 18],
     },
+    esquilo: {
+      primeiroEm: 6,
+      intervalo: [20, 35],
+      largura: { vertical: 0.07, horizontal: 0.035 },
+      chao: { vertical: 0.12, horizontal: 0.09 },
+      pulos: [3, 6],
+      pulo: {
+        distancia: [0.04, 0.06],
+        altura: [12, 18],
+        voo: 0.28,
+        pouso: 0.08,
+        achatamento: 0.92,
+        respiro: [0.05, 0.2],
+      },
+      folgaDoBau: 0.1,
+      parada: [1.2, 2.4],
+      sacudidasDoRabo: 2,
+      inclinacaoDaSacudida: 3,
+    },
   },
   // Arte gerada (docs/decisions/0011), preparada por `pnpm arte` a partir de `arte/originais/`.
   // Lago e primeiro plano valem nas duas orientações (o `cover` do CSS escolhe o recorte); o céu e a
@@ -288,6 +307,7 @@ export const config: ConfigConvite = {
     mola: 'elastic.out(1, 0.5)',
     linear: 'none',
     suave: 'sine.inOut',
+    senoEntrada: 'sine.in',
     saida: 'power2.out',
     pouso: 'power3.out',
     entrada: 'power2.in',

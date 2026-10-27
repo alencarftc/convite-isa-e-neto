@@ -64,3 +64,30 @@
   stroke-linejoin: round;
   stroke-width: 1.6;
 }
+
+/*
+ * Esquilo (SPEC-21): duas imagens empilhadas (encolhido e esticado no pulo), trocadas por `opacity`; a largura e a
+ * altura do chão vêm da configuração. Posicionado pela base, que é onde ele pousa e se achata.
+ */
+.esquilo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+
+.esquilo__pose {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+/* A imagem esticada cobre a encolhida, encostada na base. */
+.esquilo__pose--esticado {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}

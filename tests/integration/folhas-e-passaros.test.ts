@@ -8,6 +8,7 @@ import { criarFolhas } from '@/presentation/vida/folhas';
 import { criarPassaros } from '@/presentation/vida/passaros';
 
 import { criarEstadoFalso } from './suporte/estado-falso';
+import { fingirImagens } from './suporte/imagens-falsas';
 import { criarRelogioManual } from './suporte/relogio-gsap';
 
 /** Gerador determinístico, para o teste repetir sempre os mesmos sorteios. */
@@ -20,22 +21,7 @@ function congruente(semente: number): Aleatorio {
 }
 
 let relogio: ReturnType<typeof criarRelogioManual>;
-const estiloOriginal = {
-  complete: undefined as PropertyDescriptor | undefined,
-  largura: undefined as PropertyDescriptor | undefined,
-};
-
-/** O happy-dom não decodifica imagens: faz toda imagem parecer carregada (ou não). */
-function imagensCarregadas(carregadas: boolean): void {
-  Object.defineProperty(HTMLImageElement.prototype, 'complete', {
-    configurable: true,
-    get: () => carregadas,
-  });
-  Object.defineProperty(HTMLImageElement.prototype, 'naturalWidth', {
-    configurable: true,
-    get: () => (carregadas ? 20 : 0),
-  });
-}
+let desfazerImagens: () => void;
 
 function montar(
   opcoes: { config?: ConfigConvite; semente?: number; orientacao?: 'vertical' | 'horizontal' } = {},
@@ -80,27 +66,19 @@ function comIntervalo(intervalo: readonly [number, number]): ConfigConvite {
 }
 
 beforeEach(() => {
-  estiloOriginal.complete = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'complete');
-  estiloOriginal.largura = Object.getOwnPropertyDescriptor(
-    HTMLImageElement.prototype,
-    'naturalWidth',
-  );
-  imagensCarregadas(true);
+  desfazerImagens = fingirImagens(true);
   relogio = criarRelogioManual();
 });
 afterEach(() => {
   relogio.restaurar();
-  for (const [nome, descritor] of [
-    ['complete', estiloOriginal.complete],
-    ['naturalWidth', estiloOriginal.largura],
-  ] as const) {
-    if (descritor) Object.defineProperty(HTMLImageElement.prototype, nome, descritor);
-    else Reflect.deleteProperty(HTMLImageElement.prototype, nome);
-  }
+  desfazerImagens();
   vi.restoreAllMocks();
 });
 
-describe('folhas (SPEC-20, "Folhas")', () => {
+// Simular 60 a 120 s de vida passo a passo leva alguns segundos com a máquina ocupada.
+const PRAZO_DAS_SIMULACOES = 30_000;
+
+describe('folhas (SPEC-20, "Folhas")', { timeout: PRAZO_DAS_SIMULACOES }, () => {
   it('em 60 s nunca há mais de 8 folhas no ar, e cada uma sai do DOM no fim da queda (CT-20.3, CA-13.3.2)', () => {
     const { folhas, raiz } = montar();
     folhas.iniciar('completo');
@@ -204,7 +182,8 @@ describe('folhas (SPEC-20, "Folhas")', () => {
   });
 
   it('sem imagem pronta a folha da vez é pulada, sem erro; quando a imagem chega elas começam (RF-20.1, RF-18.7)', () => {
-    imagensCarregadas(false);
+    desfazerImagens();
+    desfazerImagens = fingirImagens(false);
     const { folhas, raiz } = montar();
     expect(() => {
       folhas.iniciar('completo');
@@ -212,7 +191,8 @@ describe('folhas (SPEC-20, "Folhas")', () => {
     }).not.toThrow();
     expect(raiz.querySelectorAll('.folha')).toHaveLength(0);
 
-    imagensCarregadas(true);
+    desfazerImagens();
+    desfazerImagens = fingirImagens(true);
     correr(10);
 
     expect(raiz.querySelectorAll('.folha').length).toBeGreaterThan(0);
@@ -250,7 +230,7 @@ describe('folhas (SPEC-20, "Folhas")', () => {
   });
 });
 
-describe('pássaros (SPEC-20, "Pássaros")', () => {
+describe('pássaros (SPEC-20, "Pássaros")', { timeout: PRAZO_DAS_SIMULACOES }, () => {
   it('em 60 s pelo menos um bando nasce e sai do DOM, e nunca há dois ao mesmo tempo (CT-20.5, CA-13.3.3)', () => {
     const { passaros, raiz } = montar();
     passaros.iniciar('completo');
