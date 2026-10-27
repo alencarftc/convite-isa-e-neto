@@ -175,3 +175,41 @@ agua: {
   por uma máscara em tons de cinza (`mascaraDoLago`, uma por orientação, 20 kB) como segunda textura. O motor já recebe
   as regiões de forma genérica; a máscara seria um terceiro tipo de região.
 - O reflexo do casal na água (quando ele surge) fica de fora: a distorção já mistura o que estiver pintado na camada.
+
+## Implementação (27/10/2026)
+
+Implementada na branch `feat/cena-viva-19-agua`. Respostas adotadas e desvios do desenho acima:
+
+- **Região da água medida na arte 04:** `inicio: 0,53` e `borda: 0,05` nas duas orientações (o palpite da spec era 0,45).
+  A mata, a ilha e as pedras da margem vão até cerca de 55% da altura; a faixa mais alta deixaria as pedras tremendo.
+  Como a camada usa `object-fit: cover` e a arte 04 tem a mesma proporção da caixa na vertical e na horizontal, a fração é
+  a mesma da imagem. A margem não é reta (a ilha da esquerda desce mais que o horizonte da direita); a faixa reta serviu,
+  e a máscara pintada (Could) não foi preciso.
+- **O canvas é transparente fora da região** (a saída do fragmento é multiplicada por `clamp(r × 4, 0, 1)`): a imagem de
+  baixo aparece como sempre foi, sem somar duas vezes o alfa das bordas translúcidas da arte (o céu e as montanhas da 04).
+  Dentro da água a imagem é opaca e o canvas a cobre por inteiro. Para o vento do casal (SPEC-22) o motor aceita
+  `cobrirTudo`, que desliga esse recorte.
+- **A fase da onda é periódica:** o motor envia `(tempo × velocidade) mod 1` e as senoides usam múltiplos inteiros dela
+  (1, 2, 3), então a onda fecha o ciclo sem emenda; o tempo dos reflexos dá a volta a cada 1000 s. Assim a precisão do
+  shader não degrada com o convite aberto por horas.
+- **Reflexos em pixels, não em frações:** os traços têm 14 × 1,6 px de tela (a densidade vem de `config.vida.agua.reflexos`),
+  para terem o mesmo tamanho no celular e no computador. Cada traço acende e apaga no próprio ritmo.
+- **Amplitude convertida por eixo:** a amplitude em pixels de tela vira fração da largura e da altura da caixa, então o
+  deslocamento mede o mesmo nos dois eixos. O pico das três senoides é normalizado para 1.
+- **O brilho lê a opacidade de `.camada--ceu-sol` no estilo da própria camada** (onde o GSAP a escreve), e não com
+  `gsap.getProperty`: é a mesma informação sem forçar o cálculo de estilo a cada quadro.
+- **`config.vida.agua.aparece` (0,8 s):** o canvas só aparece depois do primeiro quadro desenhado e entra por esmaecimento,
+  para qualquer diferença de nitidez com a imagem não saltar aos olhos. É o único campo acrescentado à config da spec.
+- **O contexto WebGL pede `failIfMajorPerformanceCaveat`** (como a sonda de `Capacidades`): renderizador por software
+  não passa, e o lago fica parado. O motor devolve `null` também quando o shader não compila.
+- **Testes:** o happy-dom não tem WebGL; `tests/integration/suporte/webgl-falso.ts` é um contexto que aceita qualquer
+  chamada e as registra. Cobrem o ciclo de vida, uma chamada de desenho por quadro, o nível leve (um quadro em dois a
+  60 Hz), a perda de contexto, a textura com alfa pré-multiplicado e a troca da região ao girar. O GLSL foi conferido no
+  navegador.
+- **Conferido no Chrome (placa Intel, via ANGLE), 390 × 844 e 1366 × 768:** sem erro de GL. Com as linhas do tempo do GSAP
+  congeladas e dois quadros com 0,8 s de intervalo, a diferença entre eles é nula acima da margem (mata, ilha e céu) e
+  concentrada na água, com traços de luz curtos à direita; a legenda do baú, por cima do lago, fica intacta.
+- **Peso:** o JavaScript crítico passou de 58,91 para 63,12 kB gzip (+4,2 kB; o motor, o GLSL e o elemento). A spec previa
+  até 3 kB para a água; o orçamento do épico (8 kB) continua à vista e é conferido no fim.
+- **Não conferido:** o custo por quadro com a CPU 4× mais lenta (CT-19.8) e a aparência em celular real; o headless não mede
+  isso. O reflexo do casal na água continua fora, como a spec diz.

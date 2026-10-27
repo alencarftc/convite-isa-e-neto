@@ -57,6 +57,7 @@ import { criarCenaEntrada } from '@/presentation/entrada/cena-entrada';
 import { refletirFaseNoCorpo } from '@/presentation/fase-no-corpo';
 import { criarCenaHistoria } from '@/presentation/historia/cena-historia';
 import { criarCenaInformacoes } from '@/presentation/informacoes/cena-informacoes';
+import { criarAgua } from '@/presentation/vida/agua';
 import { criarCenaViva } from '@/presentation/vida/cena-viva';
 
 const raiz = document.querySelector<HTMLElement>('#app');
@@ -124,7 +125,7 @@ const cartaEConvite = criarCartaEConvite({ raiz, conteudo: content, config, esta
 
 const capacidades = criarCapacidadesDoNavegador(window);
 // Cena viva (épico 13, SPEC-18): movimentos de ambiente sobre as camadas. Não é uma etapa: ouve o barramento,
-// como o áudio. Cada spec seguinte (19 a 22) acrescenta o seu elemento à lista.
+// como o áudio. Cada spec seguinte (20 a 22) acrescenta o seu elemento à lista.
 const cenaViva = criarCenaViva({
   raiz,
   config,
@@ -132,7 +133,7 @@ const cenaViva = criarCenaViva({
   estado,
   eventos,
   capacidades,
-  elementos: [],
+  elementos: [criarAgua({ raiz, config, estado, capacidades, ticker: gsap.ticker })],
   ticker: gsap.ticker,
   avisar: (erro) => {
     console.warn('[convite] cena viva: elemento parado', erro);

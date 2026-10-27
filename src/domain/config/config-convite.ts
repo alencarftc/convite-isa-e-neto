@@ -1,5 +1,7 @@
 import type { ParametrosDeLeitura } from '../carta/tempo-de-leitura';
 import type { ArteDaImagem, ChaveDeImagem } from '../imagens/catalogo-de-imagens';
+import type { OndaDeOndulacao, ReflexosDaOndulacao } from '../vida/ondulacao';
+import type { RegiaoDeOndulacao } from '../vida/regioes';
 
 /** Formato de `src/config/config.ts` (SPEC-01, "Conteúdo e configuração"). Tempos em segundos. */
 export interface ConfigConvite {
@@ -395,6 +397,24 @@ export interface ConfigConvite {
     readonly completo: {
       readonly resolucaoDaAgua: number;
       readonly maximoDeFolhas: number;
+    };
+    /** Água viva (SPEC-19): a superfície do lago ondula e reflete a luz do pôr do sol. */
+    readonly agua: {
+      /** A água começa tantos segundos depois do início da vida. */
+      readonly primeiroEm: number;
+      /** O canvas aparece por esmaecimento nesse tempo, para qualquer diferença com a imagem não saltar aos olhos. */
+      readonly aparece: number;
+      /** Onde a água começa na camada do lago (a mata ao fundo não se mexe), uma região por orientação. */
+      readonly regiao: {
+        readonly vertical: RegiaoDeOndulacao;
+        readonly horizontal: RegiaoDeOndulacao;
+      };
+      readonly onda: OndaDeOndulacao;
+      /** Os reflexos crescem do brilho mínimo ao máximo com a opacidade do céu do pôr do sol. */
+      readonly reflexos: Omit<ReflexosDaOndulacao, 'cor'> & {
+        readonly brilhoMinimo: number;
+        readonly brilhoMaximo: number;
+      };
     };
   };
   /** Arquivo de cada imagem do convite (SPEC-02, SPEC-03); caminhos relativos à página. */
