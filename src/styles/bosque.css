@@ -94,12 +94,7 @@
   }
 }
 
-/* Espaço da SPEC-06 (casal); o do baú (`.bau`) é estilizado em bau.css (SPEC-04). */
-.casal {
-  position: absolute;
-  inset: 0;
-  z-index: var(--z-primeiro-plano);
-}
+/* O espaço do casal (SPEC-06, SPEC-22) é estilizado em carta.css; o do baú (`.bau`), em bau.css (SPEC-04). */
 
 /* Luz quente do pôr do sol, vinda do fundo à direita (SPEC-03, "Luz"). */
 .camada--luz {

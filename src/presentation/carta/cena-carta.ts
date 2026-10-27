@@ -46,7 +46,10 @@ interface Elementos {
   readonly chao: HTMLElement;
   readonly rolar: HTMLElement;
   readonly seta: SVGSVGElement;
+  /** A figura do casal (`.casal__figura`): é nela que a abertura anima `opacity` e `y`; a vida anima os de dentro. */
   readonly casal: HTMLElement | null;
+  /** O halo atrás do casal (`.casal__brilho`); a cena viva o acende (SPEC-22). */
+  readonly brilhoDoCasal: HTMLElement | null;
   /** Preenchida em `carta.run`: as variações da chuva de pétalas, já pedidas ao navegador. */
   readonly petalas: HTMLImageElement[];
 }
@@ -162,13 +165,19 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     gsap.set(rolar, { opacity: 0 });
     cartaEl.append(rolar);
 
-    // O casal vive no espaço `.casal` da cena do bosque: sobe junto com ela.
+    // O casal vive no espaço `.casal` da cena do bosque: sobe junto com ela. A abertura anima a figura; a cena
+    // viva anima a respiração (`.casal__respiro`) e o halo (`.casal__brilho`), cada uma no seu elemento, para
+    // nenhuma brigar pelo `transform` da outra (SPEC-22, RF-22.1).
     const espacoDoCasal = raiz.querySelector<HTMLElement>('.casal');
-    const casal = espacoDoCasal
-      ? criarImagem('casal__imagem', urlDaImagem(config.imagens.casal, 'vertical'))
-      : null;
-    if (espacoDoCasal && casal) {
-      espacoDoCasal.append(casal);
+    let casal: HTMLElement | null = null;
+    let brilhoDoCasal: HTMLElement | null = null;
+    if (espacoDoCasal) {
+      brilhoDoCasal = criar('span', 'casal__brilho');
+      casal = criar('span', 'casal__figura');
+      const respiro = criar('span', 'casal__respiro');
+      respiro.append(criarImagem('casal__imagem', urlDaImagem(config.imagens.casal, 'vertical')));
+      casal.append(respiro);
+      espacoDoCasal.append(brilhoDoCasal, casal);
       gsap.set(casal, { opacity: 0 });
     }
 
@@ -202,6 +211,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
       rolar,
       seta,
       casal,
+      brilhoDoCasal,
       petalas,
     };
     return elementos;
@@ -443,6 +453,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
           parte.remove();
         }
         elementos.casal?.remove();
+        elementos.brilhoDoCasal?.remove();
         elementos = undefined;
       }
       pararDeOuvirSeguranca?.();

@@ -3,6 +3,8 @@
 - **Status:** aceita para teste em 2026-10-27, só na branch `feat/cena-viva` (épico 13,
   [specs da cena viva](../specs-cena-viva/README.md)). Se o teste for recusado, esta ADR fica como "rejeitada" e nada
   dela chega à `main`.
+- **Implementação:** feita em 2026-10-27 na própria `feat/cena-viva` (specs 18 a 22); o registro, o orçamento de peso e o que falta
+  estão em [specs-cena-viva/README.md](../specs-cena-viva/README.md#implementação-do-épico-27102026).
 - **Contexto:** o casal de costas (imagem 17), montado sobre as camadas, pareceu colado na cena, e o Felipe pediu
   movimento no bosque: água, folhas, pássaros, um esquilo e o casal, "algo bem simples, mas com motion". O convite abre
   pelo WhatsApp, em aparelhos de todo tipo (ADR-0009), com orçamento de 120 kB de JavaScript (hoje 56 kB) e a regra de

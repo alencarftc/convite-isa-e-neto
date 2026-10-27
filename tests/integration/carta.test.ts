@@ -280,6 +280,24 @@ describe('envelope e carta (SPEC-06)', () => {
 
       expect(el('.cena .casal .casal__imagem')).toBeTruthy();
     });
+
+    it('o casal é montado como brilho e figura, com o respiro e a imagem dentro: cada animação no seu elemento (CT-22.1, RF-22.1)', () => {
+      const { el } = montar();
+
+      const casal = el('.cena .casal');
+
+      expect([...casal.children].map((filho) => filho.className)).toEqual([
+        'casal__brilho',
+        'casal__figura',
+      ]);
+      const respiro = el('.casal__figura > .casal__respiro');
+      expect(respiro.children).toHaveLength(1);
+      expect(respiro.firstElementChild?.className).toBe('casal__imagem');
+      expect(casal.getAttribute('aria-hidden')).toBe('true');
+      // A abertura anima a figura (some até o casal surgir); a cena viva anima o respiro e o halo.
+      expect(Number(gsap.getProperty(el('.casal__figura'), 'opacity'))).toBe(0);
+      expect(gsap.getTweensOf(respiro)).toHaveLength(0);
+    });
   });
 
   describe('o envelope (tlCarta)', () => {
@@ -467,7 +485,8 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(Number(gsap.getProperty(el('.cena'), 'y'))).toBeCloseTo(
         -800 * config.convite.cenaSobeFracao,
       );
-      expect(opacidade('.casal__imagem')).toBe(1);
+      expect(opacidade('.casal__figura')).toBe(1);
+      expect(Number(gsap.getProperty(el('.casal__figura'), 'y'))).toBe(0);
     });
 
     it('libera a rolagem, tira o inert e leva o foco ao título (RF-06.9, RF-06.10)', async () => {
@@ -668,7 +687,8 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(document.body.style.overflow).toBe('');
       expect(el('.conteudo').hasAttribute('inert')).toBe(false);
       expect(opacidade('.bau')).toBe(0);
-      expect(opacidade('.casal__imagem')).toBe(1);
+      expect(opacidade('.casal__figura')).toBe(1);
+      expect(Number(gsap.getProperty(el('.casal__figura'), 'y'))).toBe(0);
     });
 
     it('skip leva o foco ao título da carta, como quem viu a abertura (SPEC-09, RF-09.6)', () => {

@@ -154,3 +154,41 @@ cor temporária ajuda).
   recortar: elas valem para a pose sentada.
 - Reflexo do casal na água: como a água é a camada 04 (sem o casal), o reflexo não aparece. Se fizer falta, uma cópia
   da figura invertida, esmaecida e dentro da região da água é o caminho mais barato (nova spec).
+
+## Implementação (27/10/2026)
+
+Implementada na branch `feat/cena-viva-22-casal`. Respostas adotadas e desvios do desenho acima:
+
+- **`.casal` virou o espaço estático que posiciona o casal** (`carta.css`, `--casal-x`, `--casal-base`, `--casal-altura`,
+  `--casal-proporcao`, `translateX(-50%)`): a figura que a carta anima (`opacity` e `y`) não precisa do `translateX`, e o
+  respiro e o halo ficam dentro dele. A regra antiga `.casal { inset: 0 }` saiu de `bosque.css`. A marcação é a do
+  RF-22.1: `.casal > .casal__brilho + .casal__figura > .casal__respiro > img`; `elementos.casal` é a figura, e o `skip()` a
+  deixa com `opacity` 1 e `y` 0. A carta também guarda o halo (`elementos.brilhoDoCasal`) para tirá-lo no `destroy`.
+- **Tamanho e posição medidos na cena, não os da spec:** vertical 12% da altura (a spec dizia 10%), centro em 66%, base em
+  29%; horizontal 14% (a spec, 12%), centro em 64%, base em 23%. Com o casal pequeno demais (106 px de largura num
+  celular) o cabelo e o braço não se liam. A arte 19 definitiva pode pedir novo ajuste; os valores são só variáveis da CSS.
+  Na vertical o casal fica sobre a água, na beira do lago e sob a árvore da direita; no computador, sobre a margem, entre as
+  flores.
+- **A respiração e o halo** são tweens de `scaleY` (1 → 1,006, `sine.inOut`, ida e volta, 4,5 s por ciclo) e de `opacity` (50%
+  → 85%, 6 s) no relógio da vida. O halo acende primeiro (de 0 até o mínimo em `config.convite.casalAparece`, 1,5 s) e só
+  então respira; o CSS o deixa em 0 até a vida o acender e `mix-blend-mode: soft-light`.
+- **O vento usa o motor da SPEC-19** com as duas elipses (cabelo e barra do vestido) e `ajuste: 'contain'`, sem faixa, e o
+  canvas fica transparente fora delas (a imagem de baixo nunca é escondida). A força é `calmo + (inteiro − calmo) ×
+(0,5 + 0,5 · sen(2π · t / rajada))`, com a rajada sorteada de 8 a 12 s a cada ciclo; os limites vêm de
+  `config.vida.casal.vento.forca` (`[0,1; 1]`, que é o 0,55 ± 0,45 da spec). O canvas é limitado por
+  `config.vida.completo.resolucaoDoVento` (1,5, campo novo).
+- **Quando começa:** `casalEm` (2 s) depois de `carta:abrindo`; na hora com `convite:pulado`; e, se a vida só começa com a
+  carta já aberta (a pausa foi desfeita depois, ou Pular), a fase `convite`/`informacoes` já basta. O elemento escuta o
+  barramento e solta as escutas no `parar`. Se a imagem ainda não carregou, só o vento espera o `load`.
+- **Nível leve e sem WebGL:** respiração e halo ficam, sem vento (e sem canvas); descer para leve no meio da vida tira o
+  canvas. Perder o contexto tira só o vento. Com animação reduzida a vida nem começa: o casal fica parado e sem halo.
+- **Pausa:** respiração, halo e vento congelam juntos (a linha do tempo e o ticker). `parar` apaga o canvas, limpa o `scaleY`
+  e a opacidade do halo (volta a pintura parada).
+- **O vento sobre a arte provisória:** o recorte dá uma leve irregularidade no contorno do cabelo, como se espera de
+  1,5 px de deslocamento. A elipse do cabelo e a da barra são palpites sobre o SVG provisório; ajustar sobre a 19.
+- **Conferido no Chrome (celular e computador):** o casal sentado aparece depois da abertura, o halo chega a 0,82 de
+  opacidade, a respiração chega a 1,0009 e há canvas do vento sobre o casal.
+- **Peso:** o JavaScript crítico passou de 66,22 para 66,96 kB gzip (+0,74 kB; a spec previa até 1 kB). O total do épico,
+  contado a partir dos 57,67 kB que havia antes da cena viva, é **9,29 kB, 1,29 kB acima dos 8 kB** do orçamento: a água
+  (motor WebGL, GLSL e elemento) pesa cerca de 4,2 kB, a maior parte do épico. Ver "Orçamento" no registro do épico.
+- **Não conferido:** a semelhança e a cena com a imagem 19 definitiva; o custo do vento por quadro com a CPU 4× mais lenta.
