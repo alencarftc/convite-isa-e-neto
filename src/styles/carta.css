@@ -155,28 +155,66 @@
 }
 
 /*
- * O casal, de costas, em pé na grama da margem do lago (RF-06.8), com a metade de baixo das pernas sobre o
- * primeiro plano. `--casal-base` é a distância dos pés à base da cena (a margem fica a cerca de 30%) e
- * `--casal-altura` o tamanho; centrado, com as margens automáticas.
+ * O casal, sentado de costas na grama da margem do lago, sob a árvore da direita (SPEC-22, RF-06.8). `.casal` é o
+ * espaço estático que o posiciona: `--casal-x` é o centro dele na largura, `--casal-base` a distância da base
+ * à base da cena e `--casal-altura` o tamanho; a largura vem da proporção da imagem (sentados, mais largos que
+ * altos). Dentro dele, a figura recebe a abertura (opacity e y), o respiro recebe a respiração (scaleY) e o halo
+ * brilha atrás: cada um no seu elemento, para nenhum brigar pelo transform do outro.
  */
-.casal__imagem {
-  --casal-altura: 25%;
-  --casal-base: 26%;
+.casal {
+  --casal-x: 66%;
+  --casal-base: 29%;
+  --casal-altura: 12%;
+  --casal-proporcao: 1.3;
 
   position: absolute;
-  right: 0;
   bottom: var(--casal-base);
-  left: 0;
-  width: auto;
+  left: var(--casal-x);
+  z-index: var(--z-primeiro-plano);
   height: var(--casal-altura);
-  margin-inline: auto;
+  aspect-ratio: var(--casal-proporcao);
+  transform: translateX(-50%);
 }
 
 @media (orientation: landscape) {
-  .casal__imagem {
-    --casal-altura: 30%;
-    --casal-base: 20%;
+  .casal {
+    --casal-x: 64%;
+    --casal-base: 23%;
+    --casal-altura: 14%;
   }
+}
+
+.casal__figura,
+.casal__respiro {
+  position: absolute;
+  inset: 0;
+}
+
+/* A respiração cresce a partir dos pés. */
+.casal__respiro {
+  transform-origin: 50% 100%;
+}
+
+.casal__imagem {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom;
+}
+
+/* O halo do sol baixo atrás deles: maior que a figura, centrado um pouco acima dela; a vida o acende. */
+.casal__brilho {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  width: 160%;
+  height: 140%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, var(--cor-luz-45), transparent);
+  opacity: 0;
+  mix-blend-mode: soft-light;
+  transform: translate(-50%, -50%);
 }
 
 .petala--chuva {

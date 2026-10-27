@@ -58,6 +58,7 @@ import { refletirFaseNoCorpo } from '@/presentation/fase-no-corpo';
 import { criarCenaHistoria } from '@/presentation/historia/cena-historia';
 import { criarCenaInformacoes } from '@/presentation/informacoes/cena-informacoes';
 import { criarAgua } from '@/presentation/vida/agua';
+import { criarCasal } from '@/presentation/vida/casal';
 import { criarCenaViva } from '@/presentation/vida/cena-viva';
 import { criarEsquilo } from '@/presentation/vida/esquilo';
 import { criarFolhas } from '@/presentation/vida/folhas';
@@ -128,7 +129,7 @@ const cartaEConvite = criarCartaEConvite({ raiz, conteudo: content, config, esta
 
 const capacidades = criarCapacidadesDoNavegador(window);
 // Cena viva (épico 13, SPEC-18): movimentos de ambiente sobre as camadas. Não é uma etapa: ouve o barramento,
-// como o áudio. A SPEC-22 (casal) acrescenta o seu elemento à lista.
+// como o áudio. Água, pássaros, folhas, esquilo e casal (SPEC-19 a 22), na ordem em que começam.
 const cenaViva = criarCenaViva({
   raiz,
   config,
@@ -141,6 +142,7 @@ const cenaViva = criarCenaViva({
     criarPassaros({ raiz, config }),
     criarFolhas({ raiz, config, estado }),
     criarEsquilo({ raiz, config, estado }),
+    criarCasal({ raiz, config, estado, eventos, capacidades, ticker: gsap.ticker }),
   ],
   ticker: gsap.ticker,
   avisar: (erro) => {
