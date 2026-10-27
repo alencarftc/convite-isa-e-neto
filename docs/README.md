@@ -61,8 +61,8 @@ nas tabelas das SPEC-01 e do roteiro (requisitos).
   **SPEC-02**: entrada (névoa, nomes, toque), pré-carregamento crítico e secundário, fontes do próprio
   site — com arte provisória;
   **SPEC-03**: bosque em camadas, revelação da névoa e profundidade (mouse no computador, deriva no celular);
-  **SPEC-04**: baú, chave (cursor ou flutuante), dica, reforço, abertura em 2 s com pétalas;
-  **SPEC-05**: cinco balões com foto e frase, luz do pôr do sol na mesma linha do tempo, aceleração por toque, anúncio ao leitor de tela — fotos e descrições provisórias;
+  **SPEC-04**: baú, chave no inventário (usada no toque no baú), dica, reforço, abertura em 2 s com pétalas;
+  **SPEC-05**: cinco balões com foto e frase, luz do pôr do sol na mesma linha do tempo, sem aceleração por toque, anúncio ao leitor de tela — fotos e descrições provisórias;
   **SPEC-06**: envelope que pousa sobre o baú, selo que se parte, carta que se desdobra com o casal ao fundo, pétalas e rolagem liberada; a carta e as informações no mesmo conteúdo;
   **SPEC-12**: orçamento de peso por arquivo e por grupo no `verificar`, arquivos citados em CSS/HTML conferidos, fluxo completo sem erro no console, Lighthouse medido (desempenho 89, acessibilidade 100, boas práticas 100, CLS 0) e matriz de testes em aparelhos;
   **SPEC-10**: metadados e prévia gerados de `content`/`config`, workflow de publicação no GitHub Pages, gate com endereço e serviços externos — faltam a imagem da prévia e os ícones;
@@ -72,6 +72,8 @@ nas tabelas das SPEC-01 e do roteiro (requisitos).
   `verificar` com 3 regras;
   **specs adicionais 13 a 17** ([specs-adicionais](./specs-adicionais/README.md)): história estática para quem não vê os balões, "Pular" fixo na segunda visita, "Role para ler" sobre a carta, verso opcional, compatibilidade com aparelhos antigos e plano B (ADR-0009), deslizar o selo, selo na entrada e "Salvar na agenda" (texto novo a aprovar);
   **revisão do código** ([ADR-0010](./decisions/0010-revisao-do-codigo.md)): 14 defeitos corrigidos (baú e botões alcançáveis por leitor de tela, foco, pétalas, selo no Chrome 90, plano B, imagens só depois do toque…), com guardas de teste e lint para não voltarem.
-- **Próximo:** o que depende do casal e de aparelhos reais: arte gerada, fotos, MP3, verso do louvor, imagem da prévia e ícones, matriz de testes ([lançamento](./operacao/lancamento.md)).
+- **Arte final** ([ADR-0011](./decisions/0011-arte-final-e-pipeline-de-imagens.md), 2026-10-27): as imagens geradas entraram (`pnpm arte` as prepara a partir de `arte/originais/`, dentro do orçamento de peso), com a imagem de prévia e os ícones; o `pnpm verificar` caiu de 45 para 17 pendências.
+- **Ajustes depois dos testes no celular** ([ADR-0012](./decisions/0012-ajustes-de-experiencia-apos-testes-no-celular.md), 2026-10-27): tema só claro, selo com siglas na arte e transição ao tocar, baú com sombra e aura, chave no inventário entrando na horizontal, árvores menores, legenda dos balões, nada acelera por toque e "Pular" desde a primeira visita, casal maior na margem, papel em três partes, texto em tinta marrom, "Role para ler" animado e carta revelada bloco a bloco. Os espelhos das specs 04, 05, 06 e 14 e os dois Claude Docs ainda descrevem o comportamento antigo.
+- **Próximo:** o que depende do casal e de aparelhos reais: fotos dos balões (e as descrições), MP3, verso do louvor, matriz de testes ([lançamento](./operacao/lancamento.md)).
 - **Pendências de conteúdo** (bloqueiam `pnpm verificar` e o envio): fotos dos balões, imagens geradas,
-  músicas licenciadas e os 6 MP3 em `public/audio/`, **troca da arte provisória** (`config.imagens`, fotos dos balões e suas descrições), **verso do louvor** (entre colchetes em `content.mensagem`), URL publicada. Lista completa no fim de [documentacao.md](./documentacao.md).
+  músicas licenciadas e os 6 MP3 em `public/audio/`, **fotos dos balões** (hoje `assets/provisorio/foto-*.svg`) **e suas descrições**, **verso do louvor** (entre colchetes em `content.mensagem`), URL publicada. Lista completa no fim de [documentacao.md](./documentacao.md).

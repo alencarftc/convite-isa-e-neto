@@ -28,31 +28,35 @@ Para repetir: `pnpm build`, `pnpm preview` e, em outro terminal, `pnpm dlx light
 
 ## Matriz
 
-| Cenário                                | Casos de teste            | iPhone · WhatsApp | iPhone · Safari | Android · WhatsApp | Android · Chrome | Computador |
-| -------------------------------------- | ------------------------- | ----------------- | --------------- | ------------------ | ---------------- | ---------- |
-| Primeira visita completa               | CT-02.1 a CT-06.5         | ☐                 | ☐               | ☐                  | ☐                | ☐          |
-| Som: ambiente, efeitos, músicas, botão | CT-08.1 a CT-08.5         | ☐                 | ☐               | ☐                  | ☐                | ☐          |
-| Modo silencioso do iPhone              | CT-08.6                   | ☐                 | ☐               | —                  | —                | —          |
-| Sair e voltar ao aplicativo            | CT-08.5                   | ☐                 | ☐               | ☐                  | ☐                | —          |
-| Acelerar a história e esperar o selo   | CT-05.3, CT-06.3          | ☐                 | ☐               | ☐                  | ☐                | ☐          |
-| Girar o aparelho                       | CT-03.6                   | ☐                 | ☐               | ☐                  | ☐                | —          |
-| Segunda visita e Pular                 | CT-09.2                   | ☐                 | ☐               | ☐                  | ☐                | ☐          |
-| Animação reduzida                      | CT-09.1                   | ☐                 | ☐               | ☐                  | ☐                | ☐          |
-| Leitor de tela                         | CT-05.6, CT-09.3          | ☐                 | —               | ☐                  | —                | —          |
-| Teclado                                | CT-04.6, CT-09.4          | —                 | —               | —                  | —                | ☐          |
-| Rede lenta e falha de imagem           | CT-02.4, CT-02.5, CT-09.7 | —                 | —               | —                  | —                | ☐          |
-| Estados por data                       | CT-07.7                   | —                 | —               | —                  | —                | ☐          |
-| Confirmar presença e Como chegar       | CT-07.5, CT-07.6          | ☐                 | ☐               | ☐                  | ☐                | ☐          |
-| Formulário e planilha                  | CT-11.1 a CT-11.5         | ☐                 | —               | ☐                  | —                | ☐          |
-| Prévia do link                         | CT-10.1                   | ☐                 | —               | ☐                  | —                | —          |
-| Aparelho antigo (iOS 15, Android 8)    | CT-15.5                   | ☐                 | ☐               | ☐                  | ☐                | —          |
-| JavaScript bloqueado e rede lenta      | CT-15.1, CT-15.2          | —                 | —               | —                  | —                | ☐          |
-| "Pular" durante a abertura (2ª visita) | CT-14.1, CT-14.5          | ☐                 | ☐               | ☐                  | ☐                | ☐          |
-| Celular deitado (entrada, envelope)    | ADR-0010 (achado 9)       | ☐                 | ☐               | ☐                  | ☐                | —          |
-| Leitor de tela: baú e botões da etapa  | ADR-0010 (achados 1 a 4)  | ☐                 | —               | ☐                  | —                | —          |
-| Rede lenta: só críticas antes do toque | ADR-0010 (achado 10)      | ☐                 | ☐               | ☐                  | ☐                | ☐          |
-| Deslizar o selo e selo na entrada      | CT-16.1, CT-16.4, CT-16.5 | ☐                 | ☐               | ☐                  | ☐                | ☐          |
-| Salvar na agenda                       | CT-17.1, CT-17.2          | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Cenário                                       | Casos de teste            | iPhone · WhatsApp | iPhone · Safari | Android · WhatsApp | Android · Chrome | Computador |
+| --------------------------------------------- | ------------------------- | ----------------- | --------------- | ------------------ | ---------------- | ---------- |
+| Primeira visita completa                      | CT-02.1 a CT-06.5         | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Som: ambiente, efeitos, músicas, botão        | CT-08.1 a CT-08.5         | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Modo silencioso do iPhone                     | CT-08.6                   | ☐                 | ☐               | —                  | —                | —          |
+| Sair e voltar ao aplicativo                   | CT-08.5                   | ☐                 | ☐               | ☐                  | ☐                | —          |
+| Esperar o selo (nada acelera por toque)       | CT-06.3, ADR-0012         | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Girar o aparelho                              | CT-03.6                   | ☐                 | ☐               | ☐                  | ☐                | —          |
+| Pular (primeira e segunda visita)             | CT-09.2, ADR-0012         | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Animação reduzida                             | CT-09.1                   | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Leitor de tela                                | CT-05.6, CT-09.3          | ☐                 | —               | ☐                  | —                | —          |
+| Teclado                                       | CT-04.6, CT-09.4          | —                 | —               | —                  | —                | ☐          |
+| Rede lenta e falha de imagem                  | CT-02.4, CT-02.5, CT-09.7 | —                 | —               | —                  | —                | ☐          |
+| Estados por data                              | CT-07.7                   | —                 | —               | —                  | —                | ☐          |
+| Confirmar presença e Como chegar              | CT-07.5, CT-07.6          | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Formulário e planilha                         | CT-11.1 a CT-11.5         | ☐                 | —               | ☐                  | —                | ☐          |
+| Prévia do link                                | CT-10.1                   | ☐                 | —               | ☐                  | —                | —          |
+| Aparelho antigo (iOS 15, Android 8)           | CT-15.5                   | ☐                 | ☐               | ☐                  | ☐                | —          |
+| JavaScript bloqueado e rede lenta             | CT-15.1, CT-15.2          | —                 | —               | —                  | —                | ☐          |
+| "Pular" durante a abertura                    | CT-14.1, CT-14.5          | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Celular deitado (entrada, envelope)           | ADR-0010 (achado 9)       | ☐                 | ☐               | ☐                  | ☐                | —          |
+| Leitor de tela: baú e botões da etapa         | ADR-0010 (achados 1 a 4)  | ☐                 | —               | ☐                  | —                | —          |
+| Rede lenta: só críticas antes do toque        | ADR-0010 (achado 10)      | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Deslizar o selo e selo na entrada             | CT-16.1, CT-16.4, CT-16.5 | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Salvar na agenda                              | CT-17.1, CT-17.2          | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Modo escuro do aparelho ligado                | ADR-0012 (1)              | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Chave no inventário e entrada na fechadura    | ADR-0012 (6, 7)           | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Carta: leitura em sequência e "Role para ler" | ADR-0012 (15, 16)         | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Transição do toque no selo da entrada         | ADR-0012 (3)              | ☐                 | ☐               | ☐                  | ☐                | ☐          |
 
 Os estados por data (CT-07.7) e a rede lenta têm teste automático (`?data=` e o carregamento com limites); no
 aparelho vale conferir o resultado visual. O iPhone com a chave do modo silencioso ligada (CT-08.6) precisa
