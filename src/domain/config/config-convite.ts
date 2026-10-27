@@ -1,5 +1,6 @@
 import type { ParametrosDeLeitura } from '../carta/tempo-de-leitura';
 import type { ArteDaImagem, ChaveDeImagem } from '../imagens/catalogo-de-imagens';
+import type { ParametrosDoEsquilo } from '../vida/esquilo';
 import type { ParametrosDeFolha } from '../vida/folhas';
 import type { OndaDeOndulacao, ReflexosDaOndulacao } from '../vida/ondulacao';
 import type { ParametrosDePassaros } from '../vida/passaros';
@@ -427,6 +428,8 @@ export interface ConfigConvite {
     readonly passaros: ParametrosDePassaros & {
       readonly primeiroEm: number;
     };
+    /** O esquilo que corre na grama de tempos em tempos (SPEC-21). */
+    readonly esquilo: ParametrosDoEsquilo;
   };
   /** Arquivo de cada imagem do convite (SPEC-02, SPEC-03); caminhos relativos à página. */
   readonly imagens: Readonly<Record<ChaveDeImagem, ArteDaImagem>>;
@@ -436,6 +439,8 @@ export interface ConfigConvite {
     /** Sem aceleração (`none`): a travessia dos pássaros. */
     readonly linear: string;
     readonly suave: string;
+    /** Subida do pulo do esquilo (`sine.out` já existe como `senoSaida`); a descida usa a entrada de seno. */
+    readonly senoEntrada: string;
     readonly saida: string;
     readonly pouso: string;
     /** Entrada de movimento (`power2.in`), na volta do salto do baú. */
