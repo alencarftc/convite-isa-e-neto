@@ -211,13 +211,25 @@ describe('validarConsistenciaDeDatas', () => {
 
 describe('validarArteDefinitiva', () => {
   it('acusa cada imagem que ainda aponta para a arte provisória', () => {
-    const problemas = validarArteDefinitiva(config, content);
+    const comProvisoria = {
+      ...config,
+      imagens: { ...config.imagens, bauFechado: 'assets/provisorio/bau-fechado.svg' },
+    };
+
+    const problemas = validarArteDefinitiva(comProvisoria, content);
 
     expect(problemas.length).toBeGreaterThan(0);
     expect(problemas.every((p) => p.regra === 'arte-provisoria')).toBe(true);
     expect(problemas.map((p) => p.mensagem)).toContainEqual(
       expect.stringContaining('config.imagens.bauFechado'),
     );
+  });
+
+  it('a arte gerada já não é acusada: restam só as fotos provisórias dos balões', () => {
+    const problemas = validarArteDefinitiva(config, content);
+
+    expect(problemas.length).toBeGreaterThan(0);
+    expect(problemas.every((p) => p.mensagem.startsWith('content.baloes['))).toBe(true);
   });
 
   it('acusa também as fotos dos balões que apontam para a arte provisória', () => {
@@ -254,11 +266,11 @@ describe('validarArquivos', () => {
       config,
       content,
       ['audio/ambiente.mp3'],
-      (caminho) => caminho !== 'audio/ambiente.mp3' && caminho !== 'assets/provisorio/chave.svg',
+      (caminho) => caminho !== 'audio/ambiente.mp3' && caminho !== 'assets/objects/10-chave.webp',
     );
 
     expect(problemas.map((p) => p.mensagem)).toEqual([
-      'config.imagens.chave: "public/assets/provisorio/chave.svg" não existe',
+      'config.imagens.chave: "public/assets/objects/10-chave.webp" não existe',
       'áudio: "public/audio/ambiente.mp3" não existe',
     ]);
     expect(problemas.every((p) => p.regra === 'arquivo-ausente')).toBe(true);
@@ -272,8 +284,8 @@ describe('validarArquivos', () => {
       return true;
     });
 
-    expect(visitados).toContain('assets/provisorio/ceu-9x16.svg');
-    expect(visitados).toContain('assets/provisorio/ceu-16x9.svg');
+    expect(visitados).toContain('assets/scene/02-ceu-baunilha-9x16.webp');
+    expect(visitados).toContain('assets/scene/02-ceu-baunilha-16x9.webp');
   });
 
   it('confere a imagem da prévia e os ícones da publicação (SPEC-10)', () => {

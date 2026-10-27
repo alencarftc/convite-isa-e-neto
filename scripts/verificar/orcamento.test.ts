@@ -40,11 +40,11 @@ describe('validarPeso (SPEC-12, "Orçamento de peso")', () => {
     expect(problemas[0]?.regra).toBe('peso');
   });
 
-  it('cada imagem tem o limite da tabela: o selo passa de 40 KB, o céu ainda cabe em 300 KB', () => {
+  it('cada imagem tem o limite da tabela: o selo passa de 60 KB, o céu ainda cabe em 300 KB', () => {
     const selo = config.imagens.selo as string;
     const ceu = urlsDaImagem(config.imagens.ceu)[0] ?? '';
 
-    expect(validarPeso(config, content, [], [], tamanhos({ [selo]: 41 * KB }))).toHaveLength(1);
+    expect(validarPeso(config, content, [], [], tamanhos({ [selo]: 61 * KB }))).toHaveLength(1);
     expect(validarPeso(config, content, [], [], tamanhos({ [ceu]: 300 * KB }))).toHaveLength(0);
   });
 
