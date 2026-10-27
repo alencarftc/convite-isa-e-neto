@@ -186,6 +186,30 @@ export const config: ConfigConvite = {
     desempenho: { janelaDeMedicao: 2, quadroLento: 0.025, fracaoDeQuadrosLentos: 0.5 },
     leve: { quadrosDaAgua: 30, resolucaoDaAgua: 1, maximoDeFolhas: 4 },
     completo: { resolucaoDaAgua: 1.5, maximoDeFolhas: 8 },
+    agua: {
+      primeiroEm: 0,
+      aparece: 0.8,
+      // A água começa logo abaixo da margem da arte 04: a mata, a ilha e as pedras da margem (até 55% da
+      // altura) ficam paradas.
+      regiao: {
+        vertical: { tipo: 'faixa', inicio: 0.53, borda: 0.05 },
+        horizontal: { tipo: 'faixa', inicio: 0.53, borda: 0.05 },
+      },
+      onda: {
+        amplitude: 2.5,
+        frequencia: 9,
+        velocidade: 0.12,
+        direcao: 'horizontal',
+        perspectiva: 1,
+      },
+      reflexos: {
+        densidade: 0.02,
+        colunaDoSol: 0.78,
+        larguraDaColuna: 0.35,
+        brilhoMinimo: 0.25,
+        brilhoMaximo: 0.9,
+      },
+    },
   },
   // Arte gerada (docs/decisions/0011), preparada por `pnpm arte` a partir de `arte/originais/`.
   // Lago e primeiro plano valem nas duas orientações (o `cover` do CSS escolhe o recorte); o céu e a

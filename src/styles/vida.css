@@ -22,3 +22,16 @@
 .vida--chao {
   z-index: var(--z-vida-chao);
 }
+
+/*
+ * Canvas da ondulação (SPEC-19): cobre a caixa da imagem que ele redesenha. Nasce invisível e só aparece depois do
+ * primeiro quadro desenhado (a cena o esmaece por `config.vida.agua.aparece`); a imagem de baixo nunca é escondida.
+ */
+.ondulacao {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+}
