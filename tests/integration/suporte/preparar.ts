@@ -1,5 +1,9 @@
 import { vi } from 'vitest';
 
+import { instalarGeometriaDeSvg } from './svg-falso';
+
+instalarGeometriaDeSvg();
+
 /**
  * Prazo padrão de `vi.waitFor` nos testes de integração. As animações dos testes são de verdade,
  * só encolhidas (`configRapida`), e o conjunto inteiro roda em paralelo com o build do pacote:

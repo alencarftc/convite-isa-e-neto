@@ -8,6 +8,7 @@
   --cor-texto: #3a2e22; /* tinta marrom-escura: 11,9:1 sobre marfim; 8,4:1 sobre bege */
   --cor-texto-suave: #5e4b3a; /* 7,4:1 sobre marfim; 5,3:1 sobre bege */
   --cor-luz: #e5aa6e; /* luz quente do pôr do sol sobre o bosque (SPEC-03) */
+  --cor-passaro: #4a4038; /* pássaros no céu: cinza-castanho escuro, funciona sobre o céu baunilha e o pôr do sol (SPEC-20) */
 
   /* Cores com transparência, pré-calculadas (hex de 8 dígitos): `color-mix()` não existe em aparelhos mais antigos (SPEC-15). */
   --cor-bege-55: #dbceb08c;

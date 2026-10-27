@@ -35,3 +35,32 @@
   pointer-events: none;
   opacity: 0;
 }
+
+/* Folha que cai (SPEC-20): clone de uma das três imagens, posicionada pelo GSAP (x, y, giro e opacidade). */
+.folha {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* Bando de pássaros (SPEC-20): um svg do tamanho da tela; cada pássaro é um "v" de traço arredondado. */
+.bando {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.passaro {
+  fill: none;
+  stroke: var(--cor-passaro);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}

@@ -210,6 +210,40 @@ export const config: ConfigConvite = {
         brilhoMaximo: 0.9,
       },
     },
+    folhas: {
+      primeiroEm: 1,
+      intervalo: [1.6, 3.2],
+      duracao: [7, 11],
+      balanco: [20, 60],
+      trocasDeLado: [2, 3],
+      giro: 540,
+      largura: { fundo: [0.014, 0.024], frente: [0.026, 0.036] },
+      fracaoNaFrente: 0.2,
+      aceleracaoNaFrente: 1.3,
+      // A folhagem da árvore da direita na arte 05 (a copa densa vai do topo a 40% da altura, de 72% da
+      // largura para a direita na vertical); é de lá que as folhas se soltam.
+      copa: {
+        vertical: { x: [0.74, 0.98], y: [0.04, 0.4] },
+        horizontal: { x: [0.7, 0.97], y: [0.04, 0.4] },
+      },
+      chao: [0.72, 0.86],
+      esmaecerNoFim: 0.2,
+      aparece: 0.5,
+      inclinacao: 25,
+      larguraMinima: 10,
+    },
+    passaros: {
+      primeiroEm: 3,
+      intervalo: [12, 25],
+      tamanhoDoBando: [2, 5],
+      desvio: { x: 40, y: 24 },
+      faixa: [0.08, 0.3],
+      travessia: [9, 14],
+      ondulacao: { amplitude: 10, ciclos: [2, 3] },
+      asas: { periodo: [0.35, 0.5], escalaMinima: -0.55 },
+      planar: { chance: 0.3, duracao: 1.2, escala: 0.6 },
+      largura: [10, 18],
+    },
   },
   // Arte gerada (docs/decisions/0011), preparada por `pnpm arte` a partir de `arte/originais/`.
   // Lago e primeiro plano valem nas duas orientações (o `cover` do CSS escolhe o recorte); o céu e a
@@ -252,6 +286,7 @@ export const config: ConfigConvite = {
   },
   curvas: {
     mola: 'elastic.out(1, 0.5)',
+    linear: 'none',
     suave: 'sine.inOut',
     saida: 'power2.out',
     pouso: 'power3.out',
