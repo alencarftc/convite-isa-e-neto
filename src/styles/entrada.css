@@ -94,12 +94,6 @@
   color: var(--cor-texto);
 }
 
-/* O "&" fica na própria linha, entre os dois nomes. */
-.entrada__e {
-  display: block;
-  line-height: 1;
-}
-
 /* Área de toque da entrada: a tela inteira, e é um <button> (Enter e Espaço funcionam). */
 .entrada__tocar {
   position: absolute;

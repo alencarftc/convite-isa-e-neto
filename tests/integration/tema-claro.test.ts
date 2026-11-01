@@ -9,17 +9,27 @@ const base = readFileSync(join(raiz, 'src', 'styles', 'base.css'), 'utf8');
 
 /**
  * No celular com o modo escuro ligado, o Chrome, o Samsung Internet e o navegador do WhatsApp escurecem
- * sozinhos as páginas que não dizem que já cuidaram do tema, e os fundos marfim viravam preto (ADR-0012).
- * `only light` é a recusa explícita; sem ela o convite não é o que o casal pintou.
+ * sozinhos as páginas que não dizem que já cuidaram do tema: os fundos marfim viravam preto (ADR-0012) e, em
+ * 01/11/2026, o texto da carta virou claro sobre o papel creme, que é imagem e não muda (ADR-0015). `only light`
+ * não foi respeitado em todos eles; `dark` é o aviso que respeitam: "esta página já é do tema escuro, não mexa".
+ * O convite não usa nenhuma cor padrão do navegador, então a aparência não muda.
  */
-describe('só tema claro (ADR-0012)', () => {
-  it('o index.html recusa o tema escuro forçado nos dois nomes que os navegadores entendem', () => {
-    expect(html).toMatch(/<meta\s+name="color-scheme"\s+content="only light"/);
-    expect(html).toMatch(/<meta\s+name="supported-color-schemes"\s+content="light"/);
+describe('o convite avisa que cuida do próprio tema (ADR-0015)', () => {
+  it('o index.html declara color-scheme dark, e não só o claro, que os navegadores ignoravam', () => {
+    expect(html).toMatch(/<meta\s+name="color-scheme"\s+content="dark"/);
+    expect(html).not.toMatch(/only light/);
+    expect(html).not.toMatch(/supported-color-schemes/);
   });
 
-  it('a CSS repete a recusa na raiz, para valer mesmo que o <meta> seja ignorado', () => {
-    expect(base).toMatch(/html\s*\{[^}]*color-scheme:\s*only light/);
+  it('a CSS repete o aviso na raiz, para valer mesmo que o <meta> seja ignorado', () => {
+    expect(base).toMatch(/html\s*\{[^}]*color-scheme:\s*dark/);
+    expect(base).not.toMatch(/color-scheme:\s*only light/);
+  });
+
+  it('a barra de rolagem, a única coisa que o aviso escurece, ganha as cores do convite', () => {
+    expect(base).toMatch(
+      /html\s*\{[^}]*scrollbar-color:\s*var\(--cor-dourado\)\s+var\(--cor-marfim\)/,
+    );
   });
 
   it('nenhuma folha de estilo do convite troca de cores por prefers-color-scheme', () => {

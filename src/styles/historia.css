@@ -12,7 +12,7 @@
 }
 
 .balao {
-  --largura: clamp(160px, 52vw, 260px);
+  --largura: clamp(210px, 68vw, 300px);
 
   position: absolute;
   top: 0;
@@ -24,7 +24,7 @@
 
 @media (orientation: landscape) {
   .balao {
-    --largura: clamp(170px, 18vw, 240px);
+    --largura: clamp(200px, 22vw, 280px);
   }
 }
 
@@ -116,23 +116,25 @@
 }
 
 /*
- * Balão sem foto: a frase vive dentro da nuvem, no miolo claro dela (a fita fica abaixo), e balança junto com o
- * balão. O tamanho da letra acompanha a largura do balão, para a frase caber em qualquer tela.
+ * Balão sem foto: a frase vive dentro da nuvem, no miolo claro dela (a fita fica abaixo), numa placa marfim com
+ * filete dourado: sem ela o texto fino se perdia no branco e no azul da nuvem e no céu, no celular. A placa
+ * balança junto com o balão. O tamanho da letra acompanha a largura do balão, para a frase caber em qualquer tela.
  */
 .balao--sem-foto .balao__frase {
-  top: 14%;
-  left: 21%;
+  top: 15%;
+  left: 14%;
   display: grid;
   place-items: center;
-  width: 58%;
-  height: 38%;
+  width: 72%;
   max-width: none;
-  padding: 0;
-  font-size: calc(var(--largura) * 0.078);
-  line-height: 1.22;
-  background: none;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
+  min-height: 36%;
+  padding: 0.5em 0.7em;
+  font-size: calc(var(--largura) * 0.082);
+  line-height: 1.25;
+  color: var(--cor-texto);
+  background: var(--cor-marfim-88);
+  border: 1px solid var(--cor-dourado-55);
+  border-radius: 1.1em;
+  box-shadow: var(--sombra-cartao);
   transform: none;
 }

@@ -136,7 +136,7 @@ describe('cena do bosque (SPEC-03)', () => {
 
       cena.init();
 
-      for (const nome of ['ceu', 'ceu-sol', 'arvores']) {
+      for (const nome of ['ceu', 'ceu-sol']) {
         const quadro = camada(nome);
         expect(quadro.tagName).toBe('PICTURE');
         expect(quadro.querySelector('source')?.media).toBe('(orientation: portrait)');
@@ -146,23 +146,28 @@ describe('cena do bosque (SPEC-03)', () => {
       }
     });
 
-    it('lago e primeiro plano têm uma arte de retrato (a água prolongada e o mosaico de rosas) e uma de paisagem', () => {
+    it('na vertical a camada do lago leva a cena mestre inteira e as árvores e o primeiro plano ficam vazios (ADR-0015)', () => {
       const { cena, camada } = montar();
 
       cena.init();
 
-      for (const nome of ['lago', 'frente']) {
+      const lago = camada('lago');
+      expect(lago.querySelector('source')?.media).toBe('(orientation: portrait)');
+      expect(lago.querySelector('source')?.srcset).toMatch(/01-cena-9x16\.webp$/);
+      expect(lago.querySelector('img')?.getAttribute('src')).toMatch(/04-lago\.webp$/);
+      for (const nome of ['arvores', 'frente']) {
         const quadro = camada(nome);
-        expect(quadro.tagName).toBe('PICTURE');
         expect(quadro.querySelector('source')?.media).toBe('(orientation: portrait)');
-        expect(quadro.querySelector('source')?.srcset).toMatch(/-9x16\.webp$/);
+        expect(quadro.querySelector('source')?.srcset).toMatch(/vazio\.webp$/);
         expect(quadro.querySelector('img')?.getAttribute('src')).toMatch(/\.webp$/);
-        expect(quadro.querySelector('img')?.getAttribute('src')).not.toMatch(/-9x16/);
-        expect(quadro.querySelector('img')?.alt).toBe('');
+        expect(quadro.querySelector('img')?.getAttribute('src')).not.toMatch(/vazio/);
+      }
+      for (const nome of ['lago', 'arvores', 'frente']) {
+        expect(camada(nome).querySelector('img')?.alt).toBe('');
       }
     });
 
-    it('as profundidades seguem a tabela: céu 0,15 · lago 0,3 · árvores 0,6 · baú 0,75 · frente 1', () => {
+    it('as profundidades seguem a tabela: céu 0,15 · lago 0,3 · árvores 0,6 · baú 0,75 · frente 1, e o casal acompanha o baú', () => {
       const { cena, cenaEl } = montar();
       cena.init();
 
@@ -170,7 +175,7 @@ describe('cena do bosque (SPEC-03)', () => {
         e.getAttribute('data-prof'),
       );
 
-      // Os espaços da vida (céu, fundo e chão) repetem a profundidade da camada ao lado (RF-18.6).
+      // Os espaços da vida (céu, fundo e chão) repetem a profundidade da camada ao lado (RF-18.6); o casal, a do baú.
       expect(profundidades).toEqual([
         '0.15',
         '0.15',
@@ -181,6 +186,7 @@ describe('cena do bosque (SPEC-03)', () => {
         '0.75',
         '1',
         '1',
+        '0.75',
       ]);
     });
 

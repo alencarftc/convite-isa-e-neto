@@ -32,10 +32,10 @@ interface Partes {
 }
 
 /**
- * História em balões (SPEC-05): cinco balões saem do baú em cascata, um a cada `duracoes.balao`, e se
- * ajeitam num cacho, cada um com a sua frase (dentro da nuvem; com foto, num cartão embaixo); a luz caminha ao pôr do sol na mesma linha do tempo (`tlHistoria`). Nada na tela
- * acelera nem pula a história: quem não quer vê-la inteira usa "Pular para o convite" (ADR-0012). A
- * região `aria-live` anuncia cada frase uma vez (RF-05.8).
+ * História em balões (SPEC-05): os cinco balões saem do baú um depois do outro, cada um à vista por
+ * `duracoes.balao` (5 s, o tempo de ler a sua frase, dentro da nuvem; com foto, num cartão embaixo); a luz caminha
+ * ao pôr do sol na mesma linha do tempo (`tlHistoria`). Nada na tela acelera nem pula a história: quem não quer
+ * vê-la inteira usa "Pular para o convite" (ADR-0012). A região `aria-live` anuncia cada frase uma vez (RF-05.8).
  */
 export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
   const { raiz, conteudo, config, eventos } = dependencias;
@@ -98,7 +98,7 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
     return { x: caixa.left + caixa.width / 2, y: caixa.top + caixa.height * 0.3 };
   }
 
-  /** Um balão de 3 s: sai da boca do baú, é lido e sobe pelo alto (tabela "Linha do tempo"). */
+  /** Um balão de `duracoes.balao`: sai da boca do baú, é lido e sobe pelo alto (tabela "Linha do tempo"). */
   function linhaDoBalao(balao: HTMLElement, indice: number): gsap.core.Timeline {
     const corpo = balao.querySelector('.balao__corpo');
     const frase = balao.querySelector('.balao__frase');

@@ -19,7 +19,7 @@ export const config: ConfigConvite = {
   duracoes: {
     nevoa: 3,
     bau: 2,
-    balao: 0.55,
+    balao: 5,
     carta: 3,
     convite: 7,
     dicaChave: 1.5,
@@ -96,7 +96,7 @@ export const config: ConfigConvite = {
     envelopeDesce: 0.8,
     cenaSobeEm: 1.7,
     cenaSobe: 1.5,
-    cenaSobeFracao: 0.28,
+    cenaSobeFracao: 0.22,
     bauSome: 0.6,
     casalEm: 2,
     casalAparece: 1.5,
@@ -123,22 +123,24 @@ export const config: ConfigConvite = {
     rolar: { aparece: 0.5, periodo: 1.2, deslocamento: 9 },
   },
   historia: {
-    saida: 0.7,
+    // Cada balão se apresenta por `duracoes.balao` = 5 s, um depois do outro: sobe, a frase fica à vista por uns 3,5 s
+    // (tempo de ler) e ele sai pelo alto quando o próximo já está subindo.
+    saida: 0.8,
     escalaInicial: 0.4,
-    fraseEm: 0.35,
-    fraseAparece: 0.2,
+    fraseEm: 0.6,
+    fraseAparece: 0.3,
     fraseSome: 0.3,
-    leituraEm: 0.5,
-    leitura: 1.8,
+    leituraEm: 0.8,
+    leitura: 3.6,
     balanco: 3,
-    subidaFinalEm: 2.3,
-    subidaFinal: 0.4,
-    // Um cacho de cinco balões: cada um para numa altura e num lado, e cada frase vive dentro da sua nuvem.
-    alturas: [0.78, 0.7, 0.6, 0.52, 0.42],
-    alturasNaHorizontal: [0.9, 0.82, 0.74, 0.66, 0.58],
+    subidaFinalEm: 4.5,
+    subidaFinal: 0.5,
+    // Os cinco ficam na faixa de leitura, no alto da tela, e se alternam de lado, como num vaivém leve.
+    alturas: [0.7, 0.66, 0.72, 0.64, 0.68],
+    alturasNaHorizontal: [0.82, 0.78, 0.84, 0.76, 0.8],
     subidaDaLeitura: 0.04,
     margemSuperior: 16,
-    desvios: [-0.22, 0.2, -0.2, 0.22, 0],
+    desvios: [-0.12, 0.12, -0.08, 0.1, 0],
   },
   bau: {
     dicaSome: 0.2,
@@ -191,9 +193,15 @@ export const config: ConfigConvite = {
       // A água começa logo abaixo da margem da arte 04: a mata, a ilha e as pedras da margem (até 55% da
       // altura) ficam paradas.
       regiao: {
-        // Na vertical a arte do lago tem 300 linhas de água a mais embaixo (863 no total): a margem fica a
-        // 0,53 × 563 / 863 = 0,346 da altura dela.
-        vertical: { tipo: 'faixa', inicio: 0.346, borda: 0.033 },
+        // Na vertical o lago é uma elipse sobre a água da cena mestre (de 44% a 56% da altura): a mata, a ilha, o
+        // muro e o gramado ficam parados. Frações da caixa da camada, que na vertical é a tela inteira.
+        vertical: {
+          tipo: 'elipse',
+          centro: [0.68, 0.5],
+          raio: [0.32, 0.05],
+          borda: 0.6,
+          intensidade: 1,
+        },
         horizontal: { tipo: 'faixa', inicio: 0.53, borda: 0.05 },
       },
       onda: {
@@ -224,7 +232,7 @@ export const config: ConfigConvite = {
       // A folhagem da árvore da direita na arte 05 (a copa densa vai do topo a 40% da altura, de 72% da
       // largura para a direita na vertical); é de lá que as folhas se soltam.
       copa: {
-        vertical: { x: [0.74, 0.98], y: [0.04, 0.4] },
+        vertical: { x: [0.72, 0.98], y: [0.03, 0.3] },
         horizontal: { x: [0.7, 0.97], y: [0.04, 0.4] },
       },
       chao: [0.72, 0.86],
@@ -249,7 +257,7 @@ export const config: ConfigConvite = {
       primeiroEm: 6,
       intervalo: [20, 35],
       largura: { vertical: 0.07, horizontal: 0.035 },
-      chao: { vertical: 0.12, horizontal: 0.09 },
+      chao: { vertical: 0.1, horizontal: 0.09 },
       pulos: [3, 6],
       pulo: {
         distancia: [0.04, 0.06],
@@ -266,8 +274,8 @@ export const config: ConfigConvite = {
     },
   },
   // Arte gerada (docs/decisions/0011), preparada por `pnpm arte` a partir de `arte/originais/`.
-  // Lago e primeiro plano valem nas duas orientações (o `cover` do CSS escolhe o recorte); o céu e a
-  // moldura de árvores têm um arquivo por orientação.
+  // Cada camada tem um arquivo por orientação. Na vertical a chave `lago` leva a cena mestre 9:16 inteira, sem o
+  // céu (ADR-0015), e as árvores e o primeiro plano apontam para uma imagem vazia de 1 × 1.
   imagens: {
     ceu: {
       vertical: 'assets/scene/02-ceu-baunilha-9x16.webp',
@@ -278,15 +286,15 @@ export const config: ConfigConvite = {
       horizontal: 'assets/scene/03-ceu-por-do-sol-16x9.webp',
     },
     lago: {
-      vertical: 'assets/scene/04-lago-9x16.webp',
+      vertical: 'assets/scene/01-cena-9x16.webp',
       horizontal: 'assets/scene/04-lago.webp',
     },
     arvores: {
-      vertical: 'assets/scene/05-arvores-9x16.webp',
+      vertical: 'assets/scene/vazio.webp',
       horizontal: 'assets/scene/05-arvores-16x9.webp',
     },
     primeiroPlano: {
-      vertical: 'assets/scene/06-primeiro-plano-9x16.webp',
+      vertical: 'assets/scene/vazio.webp',
       horizontal: 'assets/scene/06-primeiro-plano.webp',
     },
     chao: {

@@ -33,20 +33,22 @@
   background: radial-gradient(closest-side, var(--cor-texto-55), transparent);
 }
 
-/* A carta dobrada fica atrás das imagens do envelope e sobe pela abertura, com o mesmo papel da carta. */
+/*
+ * A carta dobrada fica atrás das imagens do envelope e sobe pela abertura, com o mesmo papel da carta. É só a
+ * imagem do papel, de borda irregular: sem cor de fundo, moldura nem sombra retangular, que apareciam como um
+ * retângulo em volta dela (e escuro, no modo escuro forçado do celular). A sombra segue o contorno do papel.
+ */
 .envelope__dobrada {
   position: absolute;
   right: 7%;
   bottom: 10%;
   left: 7%;
   height: 78%;
-  background-color: var(--cor-papel);
   background-image: var(--papel, none);
+  background-repeat: no-repeat;
   background-position: top;
-  background-size: cover;
-  border: 1px solid var(--cor-dourado-55);
-  border-radius: 3px;
-  box-shadow: var(--sombra-cartao);
+  background-size: 100% auto;
+  filter: drop-shadow(0 2px 5px var(--cor-sombra-35));
 }
 
 /*
@@ -171,14 +173,14 @@
 }
 
 /*
- * O casal, de costas, em pé na grama da margem do lago (RF-06.8), com a metade de baixo das pernas sobre o
- * primeiro plano. `--casal-base` é a distância dos pés à base da cena (no retrato, a grama florida começa a
- * cerca de 17%, e a cena sobe `cenaSobeFracao` para ela ficar à mostra acima da carta) e `--casal-altura` o
+ * O casal, de costas, em pé na grama da margem do lago (RF-06.8). `--casal-base` é a distância dos pés à base
+ * da cena: no retrato, o gramado da pintura vai de 66% a 92% da altura (de 8% a 34% da base), e a cena sobe
+ * `cenaSobeFracao` para ele ficar à mostra acima da carta, com os pés bem dentro dele. `--casal-altura` é o
  * tamanho; centrado, com as margens automáticas.
  */
 .casal__imagem {
   --casal-altura: 25%;
-  --casal-base: 13%;
+  --casal-base: 26%;
 
   position: absolute;
   right: 0;

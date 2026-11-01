@@ -27,23 +27,6 @@ function obter(secao: HTMLElement, seletor: string): HTMLElement {
   return elemento;
 }
 
-/**
- * Escreve os nomes como o `index.html` os traz: o "&" num `<span class="entrada__e">`, que a CSS põe na própria
- * linha (31/10/2026). O texto continua "Isabella & David", então o nome acessível não muda.
- */
-function escreverNomes(elemento: HTMLElement, nomes: string): void {
-  const [noiva, noivo, ...resto] = nomes.split(' & ');
-  if (noiva === undefined || noivo === undefined || resto.length > 0) {
-    elemento.textContent = nomes;
-    return;
-  }
-  elemento.replaceChildren(
-    document.createTextNode(`${noiva} `),
-    criar('span', 'entrada__e', '&'),
-    document.createTextNode(` ${noivo}`),
-  );
-}
-
 function obterBotao(secao: HTMLElement, seletor: string): HTMLButtonElement {
   const botao = secao.querySelector<HTMLButtonElement>(seletor);
   if (!botao) throw new Error(`index.html sem "${seletor}" na entrada (SPEC-02, RF-02.1)`);
@@ -96,7 +79,7 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
     const entrada = raiz.querySelector<HTMLElement>('.entrada');
     if (!entrada) throw new Error('index.html sem a seção ".entrada" (SPEC-02, RF-02.1)');
 
-    escreverNomes(obter(entrada, '.entrada__nomes'), conteudo.entrada.nomes);
+    obter(entrada, '.entrada__nomes').textContent = conteudo.entrada.nomes;
     obter(entrada, '.entrada__chamada').textContent = conteudo.entrada.tocar;
     obter(entrada, '.entrada__volume').textContent = conteudo.entrada.volume;
     obter(entrada, '.entrada__aguarde').textContent = conteudo.entrada.aguarde;

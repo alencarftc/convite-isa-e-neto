@@ -24,6 +24,7 @@ import {
   medirPoseGirada,
   normalizarAlfa,
   type Quadro,
+  removerCeu,
   removerFundoLiso,
   removerFundoNeutroInterno,
   removerManchasPequenas,
@@ -40,6 +41,8 @@ const QUALIDADES = [90, 86, 82, 78, 74, 70, 66, 62, 58] as const;
 /** Quanto do limite o arquivo pode usar: sobra margem para a arte final trocar sem estourar. */
 const USO_DO_LIMITE = 0.95;
 const FOLGA_DO_RECORTE = 6;
+/** A chave `lago` leva a cena inteira no retrato (limite maior); o lago do computador continua nos 150 kB de antes. */
+const LIMITE_DO_LAGO_NO_COMPUTADOR = 150 * 1024;
 
 type Quadro4 = Quadro & { readonly canais: 4 };
 
@@ -129,6 +132,8 @@ interface Objeto {
   readonly chave: keyof typeof LIMITE_DAS_IMAGENS;
   /** Largura final, em pixels, antes de procurar a qualidade. */
   readonly largura: number;
+  /** Teto de peso desta imagem, quando a chave tem outro teto para a outra orientação. */
+  readonly limite?: number;
 }
 
 /**
@@ -165,7 +170,7 @@ async function objetos(
     if (opcoes.baseNoChao) {
       escurecerBase(quadro, comum, opcoes.baseNoChao.fracao, opcoes.baseNoChao.forca);
     }
-    const limite = LIMITE_DAS_IMAGENS[objeto.chave];
+    const limite = objeto.limite ?? LIMITE_DAS_IMAGENS[objeto.chave];
     const base = paraSharp(quadro).extract({
       left: comum.esquerda,
       top: comum.topo,
@@ -178,220 +183,49 @@ async function objetos(
   }
 }
 
-/** Tamanho das artes de retrato (9:16) das camadas do cenário, em pixels da arte. */
-const LARGURA_DO_RETRATO = 941;
-const ALTURA_DO_RETRATO = 1672;
-
 /**
- * A moldura de árvores só veio em 16:9. No celular (retrato) o `object-fit: cover` mostraria apenas o meio
- * vazio dela, sem tronco nem copa. O 9:16 é montado com os DOIS lados da mesma arte, cada um do seu canto, com a
- * arte esticada na vertical (`ESCALA_X` menor que `ESCALA_Y`): os troncos ficam finos e altos, com a copa caída
- * sobre o céu, como numa moldura de retrato, e nenhuma fatia é apagada: a arte aparece inteira em vez de
- * esmaecer (o esmaecimento dos troncos os fazia "sumir"). A base da arte (as moitas) esmaece embaixo, onde o
- * primeiro plano a esconde.
+ * A cena em retrato (9:16) é a pintura mestre (`01-cena-mestre-9x16`) inteira: o bosque, a ponte de rosas, o lago e o
+ * gramado com o muro de pedra, numa composição pensada para o celular. Só o céu dela sai (as árvores, as colinas e o
+ * lago ficam), para o céu de verdade, que a história troca de baunilha para pôr do sol, aparecer por trás das folhas.
+ * Ela ocupa a chave `lago` do manifesto, a camada do meio, e as camadas das árvores e do primeiro plano ficam vazias
+ * na vertical (`vazio.webp`). As medidas da semente e do horizonte são da pintura, em pixels dela.
  */
-const ESCALA_X_DA_MOLDURA = 0.65;
-const ESCALA_Y_DA_MOLDURA = 1.55;
-const ESMAECIMENTO_DA_BASE = 0.05;
+const SEMENTE_DO_CEU = [571, 386] as const;
+const HORIZONTE_DA_PINTURA = 722;
+const AREA_DO_BOLSAO_DE_CEU = 60;
+/** As nuvens brancas da pintura (claras, soltas, sem tocar a borda) também saem, até este tamanho. */
+const FURO_NO_CEU = { area: 14000, luma: 185 } as const;
+/** Quantos pixels da borda do recorte pegam a cor das folhas, para não sobrar um contorno claro de céu antigo. */
+const PROFUNDIDADE_DA_BORDA_DO_CEU = 2;
 
-async function molduraVertical(): Promise<void> {
-  const limite = LIMITE_DAS_IMAGENS.arvores;
-  const quadro = await lerQuadro(join(originais, '05-arvores-16x9.png'));
-  limparRecorte(quadro, 2, { bordaAberta: true });
-  const largura = Math.round(quadro.largura * ESCALA_X_DA_MOLDURA);
-  const altura = Math.round(quadro.altura * ESCALA_Y_DA_MOLDURA);
-  const esticada = await paraSharp(quadro)
-    .resize(largura, altura, { fit: 'fill' })
-    .png()
-    .toBuffer();
-
-  const lado = async (esquerda: number) => {
-    const { data, info } = await sharp(esticada)
-      .extract({ left: esquerda, top: 0, width: LARGURA_DO_RETRATO, height: altura })
-      .ensureAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-    // A base esmaece em linha reta, de cheia a nada, nas últimas linhas.
-    const faixa = Math.round(info.height * ESMAECIMENTO_DA_BASE);
-    for (let y = info.height - faixa; y < info.height; y++) {
-      const peso = (info.height - 1 - y) / faixa;
-      for (let x = 0; x < info.width; x++) {
-        const indice = (y * info.width + x) * 4 + 3;
-        data[indice] = Math.round((data[indice] ?? 0) * peso);
-      }
-    }
-    return { data, info };
-  };
-  const [esquerdo, direito] = await Promise.all([lado(0), lado(largura - LARGURA_DO_RETRATO)]);
-  const montada = await sharp({
-    create: {
-      width: LARGURA_DO_RETRATO,
-      height: ALTURA_DO_RETRATO,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    },
-  })
-    .composite(
-      [esquerdo, direito].map(({ data, info }) => ({
-        input: data,
-        raw: { width: info.width, height: info.height, channels: 4 as const },
-        left: 0,
-        top: 0,
-      })),
-    )
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-  const base = sharp(montada.data, {
-    raw: { width: montada.info.width, height: montada.info.height, channels: 4 },
-  });
-  const codificada = await codificarNoLimite(base, LARGURA_DO_RETRATO, limite);
-  const destino = 'assets/scene/05-arvores-9x16.webp';
-  escrever(join(publico, destino), codificada.buffer);
-  relatar(`${destino} (montada)`, codificada, limite);
-}
-
-/**
- * O lago em retrato: a mesma arte, com a água prolongada para baixo pelo espelho das últimas linhas, na mesma
- * escala. Na vertical a camada do lago termina acima da grama e o que ficava entre os dois mostrava o céu por trás
- * das flores ("céu no mar"); com a água continuando até a grama, o buraco some. O espelho é contínuo na emenda.
- */
-const LINHAS_DE_AGUA_A_MAIS = 300;
-const LARGURA_DO_LAGO_VERTICAL = 1280;
-
-async function lagoVertical(): Promise<void> {
+async function cenaVertical(): Promise<Quadro4> {
   const limite = LIMITE_DAS_IMAGENS.lago;
-  const quadro = await lerQuadro(join(originais, '04-lago.png'));
-  normalizarAlfa(quadro);
-  const { largura, altura } = quadro;
-  const extensao = await paraSharp(quadro)
-    .extract({
-      left: 0,
-      top: altura - LINHAS_DE_AGUA_A_MAIS,
-      width: largura,
-      height: LINHAS_DE_AGUA_A_MAIS,
-    })
-    .flip()
-    .png()
-    .toBuffer();
-  const inteiro = await paraSharp(quadro).png().toBuffer();
-  const montada = await sharp({
-    create: {
-      width: largura,
-      height: altura + LINHAS_DE_AGUA_A_MAIS,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    },
-  })
-    .composite([
-      { input: inteiro, left: 0, top: 0 },
-      { input: extensao, left: 0, top: altura },
-    ])
-    .png()
-    .toBuffer();
-  const codificada = await codificarNoLimite(sharp(montada), LARGURA_DO_LAGO_VERTICAL, limite);
-  const destino = 'assets/scene/04-lago-9x16.webp';
+  const quadro = await lerQuadro(join(originais, '01-cena-mestre-9x16.png'));
+  const removidos = removerCeu(quadro, {
+    semente: SEMENTE_DO_CEU,
+    limiteDeY: HORIZONTE_DA_PINTURA,
+    areaDoBolsao: AREA_DO_BOLSAO_DE_CEU,
+    furo: FURO_NO_CEU,
+  });
+  descontaminarBorda(quadro, PROFUNDIDADE_DA_BORDA_DO_CEU);
+  suavizarAlfa(quadro, 1);
+  const base = paraSharp(quadro);
+  const codificada = await codificarNoLimite(base, quadro.largura, limite);
+  const destino = 'assets/scene/01-cena-9x16.webp';
   escrever(join(publico, destino), codificada.buffer);
-  relatar(`${destino} (água prolongada)`, codificada, limite);
+  relatar(`${destino} (${String(removidos)} px de céu)`, codificada, limite);
+  return quadro;
 }
 
-/**
- * O primeiro plano em retrato: o recorte cheio só mostrava o meio, com pouca flor. Aqui é um mosaico dos dois
- * cantos da arte (os maciços de rosas), com uma emenda esmaecida no meio, como no computador. `ESCALA_DO_MOSAICO`
- * é a razão entre a arte e o mosaico (maior = rosas maiores).
- */
-const LARGURA_DO_MOSAICO = 1100;
-const ALTURA_DO_MOSAICO = 683;
-const ESCALA_DO_MOSAICO = 1.3;
-const EMENDA_DO_MOSAICO = 140;
-
-async function primeiroPlanoVertical(): Promise<Quadro4> {
-  const limite = LIMITE_DAS_IMAGENS.primeiroPlano;
-  const quadro = await lerQuadro(join(originais, '06-primeiro-plano.png'));
-  normalizarAlfa(quadro);
-  const caixa = caixaDoObjeto(quadro);
-  if (!caixa) throw new RangeError('Primeiro plano sem nenhum pixel visível');
-  const recorte = await paraSharp(quadro)
-    .extract({
-      left: 0,
-      top: caixa.topo,
-      width: quadro.largura,
-      height: quadro.altura - caixa.topo,
-    })
-    .resize({
-      height: ALTURA_DO_MOSAICO,
-      fit: 'fill',
-      width: Math.round(quadro.largura * ESCALA_DO_MOSAICO),
-    })
-    .png()
-    .toBuffer();
-  const meta = await sharp(recorte).metadata();
-  const larguraDaArte = meta.width;
-  const metade = LARGURA_DO_MOSAICO / 2 + EMENDA_DO_MOSAICO / 2;
-
-  const lado = async (esquerda: number, esmaece: boolean) => {
-    const { data, info } = await sharp(recorte)
-      .extract({ left: esquerda, top: 0, width: metade, height: ALTURA_DO_MOSAICO })
-      .ensureAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-    // Só o lado direito esmaece, na borda voltada ao centro, em curva suave: o esquerdo fica inteiro por baixo,
-    // então a emenda mistura as cores sem abrir um buraco de transparência no meio.
-    if (esmaece) {
-      for (let x = 0; x < EMENDA_DO_MOSAICO; x++) {
-        const u = x / EMENDA_DO_MOSAICO;
-        const peso = u * u * (3 - 2 * u);
-        for (let y = 0; y < info.height; y++) {
-          const indice = (y * info.width + x) * 4 + 3;
-          data[indice] = Math.round((data[indice] ?? 0) * peso);
-        }
-      }
-    }
-    return { data, info };
-  };
-  const [esquerdo, direito] = await Promise.all([
-    lado(0, false),
-    lado(larguraDaArte - metade, true),
-  ]);
-  const montado = await sharp({
-    create: {
-      width: LARGURA_DO_MOSAICO,
-      height: ALTURA_DO_MOSAICO,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    },
+/** Uma imagem de 1 × 1 transparente: as camadas que na vertical não têm arte (as árvores e o primeiro plano). */
+async function vazio(): Promise<void> {
+  const buffer = await sharp({
+    create: { width: 1, height: 1, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } },
   })
-    .composite([
-      {
-        input: esquerdo.data,
-        raw: { width: esquerdo.info.width, height: esquerdo.info.height, channels: 4 },
-        left: 0,
-        top: 0,
-      },
-      {
-        input: direito.data,
-        raw: { width: direito.info.width, height: direito.info.height, channels: 4 },
-        left: LARGURA_DO_MOSAICO - direito.info.width,
-        top: 0,
-      },
-    ])
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-  const codificada = await codificarNoLimite(
-    sharp(montado.data, {
-      raw: { width: LARGURA_DO_MOSAICO, height: ALTURA_DO_MOSAICO, channels: 4 },
-    }),
-    LARGURA_DO_MOSAICO,
-    limite,
-  );
-  const destino = 'assets/scene/06-primeiro-plano-9x16.webp';
-  escrever(join(publico, destino), codificada.buffer);
-  relatar(`${destino} (mosaico)`, codificada, limite);
-  return {
-    largura: LARGURA_DO_MOSAICO,
-    altura: ALTURA_DO_MOSAICO,
-    dados: new Uint8Array(montado.data.buffer, montado.data.byteOffset, montado.data.byteLength),
-    canais: 4,
-  };
+    .webp({ lossless: true })
+    .toBuffer();
+  escrever(join(publico, 'assets/scene/vazio.webp'), buffer);
+  console.log(`  assets/scene/vazio.webp ${String(buffer.length)} bytes`);
 }
 
 /**
@@ -672,7 +506,15 @@ async function main(): Promise<void> {
 
   console.log('Camadas com transparência');
   await objetos(
-    [{ origem: '04-lago.png', destino: 'assets/scene/04-lago.webp', chave: 'lago', largura: 1536 }],
+    [
+      {
+        origem: '04-lago.png',
+        destino: 'assets/scene/04-lago.webp',
+        chave: 'lago',
+        largura: 1536,
+        limite: LIMITE_DO_LAGO_NO_COMPUTADOR,
+      },
+    ],
     { limpar: false },
   );
   await objetos(
@@ -686,8 +528,6 @@ async function main(): Promise<void> {
     ],
     { limpar: true, bordaAberta: true },
   );
-  await molduraVertical();
-  await lagoVertical();
   await objetos(
     [
       {
@@ -699,7 +539,8 @@ async function main(): Promise<void> {
     ],
     { limpar: false },
   );
-  const retrato = await primeiroPlanoVertical();
+  const retrato = await cenaVertical();
+  await vazio();
   await chao(retrato, 'assets/scene/06-chao-9x16.webp');
   // O chão do computador vem da borda de baixo do primeiro plano em 16:9.
   const paisagem = await lerQuadro(join(originais, '06-primeiro-plano.png'));

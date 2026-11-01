@@ -10,8 +10,9 @@ import { criarCenaEntrada } from '@/presentation/entrada/cena-entrada';
 import { criarCarregamentoFalso } from './suporte/carregamento-falso';
 import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
 import { montarIndexHtml, textoDoIndexHtml } from './suporte/index-html';
+import { criarRelogioManual } from './suporte/relogio-gsap';
 
-function montar(opcoes: OpcoesDoEstadoFalso = {}, conteudo: typeof content = content) {
+function montar(opcoes: OpcoesDoEstadoFalso = {}) {
   montarIndexHtml();
   const raiz = document.querySelector<HTMLElement>('#app');
   if (!raiz) throw new Error('index.html sem #app');
@@ -21,7 +22,7 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}, conteudo: typeof content = con
   const eventos = criarBarramento<EventosConvite>();
   const aoTocar = vi.fn();
   eventos.on('entrada:tocou', aoTocar);
-  const cena = criarCenaEntrada({ raiz, conteudo, config, estado, eventos, carregamento });
+  const cena = criarCenaEntrada({ raiz, conteudo: content, config, estado, eventos, carregamento });
 
   const el = (seletor: string) => {
     const elemento = document.querySelector<HTMLElement>(seletor);
@@ -66,27 +67,14 @@ describe('cena de entrada (SPEC-02)', () => {
       expect(el('.entrada__nomes').textContent).toBe(content.entrada.nomes);
     });
 
-    it('o "&" dos nomes tem o próprio elemento (a CSS o põe numa linha), antes e depois do init; o texto não muda (31/10/2026)', () => {
+    it('os nomes da entrada ficam numa linha só, "Isabella & David", sem elemento que os quebre (01/11/2026)', () => {
       const { cena, el } = montar();
-      expect(el('.entrada__nomes .entrada__e').textContent).toBe('&'); // o primeiro quadro, do index.html
+      expect(el('.entrada__nomes').children).toHaveLength(0); // o primeiro quadro, do index.html
 
-      el('.entrada__nomes').textContent = 'texto antigo';
       cena.init();
 
-      expect(el('.entrada__nomes .entrada__e').textContent).toBe('&');
+      expect(el('.entrada__nomes').children).toHaveLength(0);
       expect(el('.entrada__nomes').textContent).toBe('Isabella & David');
-    });
-
-    it('nome sem "&" no content é escrito como está, sem quebrar', () => {
-      const { cena, el } = montar(
-        {},
-        { ...content, entrada: { ...content.entrada, nomes: 'Isabella' } },
-      );
-
-      cena.init();
-
-      expect(el('.entrada__nomes').textContent).toBe('Isabella');
-      expect(el('.entrada__nomes').querySelector('.entrada__e')).toBeNull();
     });
 
     it('sem a seção .entrada no HTML, falha com mensagem clara', () => {
@@ -273,16 +261,27 @@ describe('cena de entrada (SPEC-02)', () => {
     });
 
     it('a névoa só pode abrir quando o selo se solta: o run espera config.entrada.saida.nevoaEm', async () => {
-      const { botao, execucao, concluirImagens } = await ateOToque();
-      const inicio = performance.now();
+      // Relógio manual: medir o tempo real falhava com a máquina ocupada (o conjunto todo roda junto).
+      const relogio = criarRelogioManual();
+      try {
+        const { botao, execucao, concluirImagens } = await ateOToque();
+        let resolvida = false;
+        void execucao.then(() => {
+          resolvida = true;
+        });
 
-      botao('.entrada__tocar').click();
-      concluirImagens();
-      await execucao;
+        botao('.entrada__tocar').click();
+        concluirImagens();
+        relogio.avancar(config.entrada.saida.nevoaEm - 0.05, 0.01);
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(resolvida).toBe(false); // o selo ainda não se soltou
 
-      expect(performance.now() - inicio).toBeGreaterThanOrEqual(
-        config.entrada.saida.nevoaEm * 1000 - 30,
-      );
+        relogio.avancar(5, 0.05);
+        await expect(execucao).resolves.toBe('entrar');
+      } finally {
+        relogio.restaurar();
+      }
     });
 
     it('com animação reduzida, o toque só esmaece: o selo não se solta nem o clarão acende', async () => {

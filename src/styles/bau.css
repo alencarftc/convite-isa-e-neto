@@ -17,7 +17,7 @@
 
 @media (orientation: landscape) {
   .bau {
-    bottom: 25%;
+    bottom: 20%;
     width: clamp(170px, 17vw, 280px);
   }
 }

@@ -12,6 +12,7 @@ import { criarCarregamentoFalso } from './suporte/carregamento-falso';
 import { configRapida } from './suporte/config-rapida';
 import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
 import { montarIndexHtml } from './suporte/index-html';
+import { criarRelogioManual } from './suporte/relogio-gsap';
 
 const config = configRapida(configReal);
 
@@ -239,16 +240,30 @@ describe('baú e chave (SPEC-04)', () => {
     });
 
     it('o reforço repete a dica no máximo 3 vezes e depois para (CT-04.5)', async () => {
-      const { cena, el } = montar({ toque: true });
-      let mudancas = 0;
-      new MutationObserver(() => (mudancas += 1)).observe(el('.bau__dica'), { childList: true });
-      void cena.run();
+      // Relógio manual: contar mudanças numa janela de tempo real falhava com a máquina ocupada.
+      const relogio = criarRelogioManual();
+      try {
+        const { cena, el } = montar({ toque: true });
+        let mudancas = 0;
+        new MutationObserver(() => (mudancas += 1)).observe(el('.bau__dica'), { childList: true });
+        void cena.run();
+        /** Anda 1 s do relógio do GSAP em passos curtos, dando a vez às promessas entre um passo e outro. */
+        const andarUmSegundo = async () => {
+          for (let i = 0; i < 100; i += 1) {
+            relogio.avancar(0.01, 0.01);
+            await Promise.resolve();
+          }
+          await Promise.resolve();
+        };
 
-      await esperar(900); // dicaChave 0,05 + 3 × reforcoDica 0,15, com folga
+        await andarUmSegundo(); // dicaChave 0,05 + 3 × reforcoDica 0,15, com folga
+        expect(mudancas).toBe(1 + config.bau.reforco.maximo);
 
-      expect(mudancas).toBe(1 + config.bau.reforco.maximo);
-      await esperar(400);
-      expect(mudancas).toBe(1 + config.bau.reforco.maximo);
+        await andarUmSegundo();
+        expect(mudancas).toBe(1 + config.bau.reforco.maximo);
+      } finally {
+        relogio.restaurar();
+      }
     });
 
     it('o toque fora do baú não abre: só pulsa (CA-04.2.3)', async () => {
