@@ -116,7 +116,7 @@ vivo (SPEC-22) foi **revertido** depois do teste no celular: a cena voltou à im
 [ADR-0014](docs/decisions/0014-ajustes-da-cena-viva-no-celular.md) e [ADR-0015](docs/decisions/0015-cena-vertical-da-pintura-mestre-e-aviso-de-tema.md)
 (os ajustes do teste no celular: selo inteiro, envelope que espera o toque, papel da carta com textura do início ao fim, "&"
 da carta em linha própria; e, na ADR-0015, a **cena vertical é a pintura mestre 9:16 sem o céu**, os balões vêm um de cada vez
-por 5 s com a frase numa placa legível, e o convite declara `color-scheme: dark` para o celular não o escurecer por cima). As branches de cada spec saíram desta e voltaram para
+por 5 s com a frase numa placa legível, e o convite declara `color-scheme: dark`; como o navegador do casal ignora isso e escurece por conta própria, o texto da carta é um cinza claro misturado por diferença ao papel, que dá a tinta marrom sem ser invertido: [ADR-0016](docs/decisions/0016-tinta-da-carta-contra-o-escurecimento-forcado.md)). As branches de cada spec saíram desta e voltaram para
 ela, nunca para a `main`. A cena viva é um componente que ouve o barramento (`criarCenaViva`, em `presentation/vida/`), não
 uma etapa; os elementos seguem o contrato `ElementoDeVida`; tudo se move no relógio do GSAP (nos testes,
 `tests/integration/suporte/relogio-gsap.ts` o avança à mão). As imagens 20a–c e 21a–b ainda são arte provisória, e as fotos
