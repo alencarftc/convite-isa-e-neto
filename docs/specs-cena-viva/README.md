@@ -208,6 +208,12 @@ selo, no envelope, nos balões e na carta. Tudo está na [ADR-0014](../decisions
 que muda neste épico: a SPEC-22 está revertida (a imagem 19, a respiração, o vento e o halo saíram) e o motor WebGL ficou
 só com a água; `config.imagens.casal` voltou a `assets/couple/17-casal-costas.webp`.
 
+### Atualização de 01/11/2026: a cena vertical
+
+Na vertical a cena passou a ser a pintura mestre 9:16 sem o céu (ADR-0015). A água ondula numa elipse sobre o lago da
+pintura (`config.vida.agua.regiao.vertical`), as folhas caem da copa da direita dela e o esquilo corre a 10% da base, no
+gramado. Na horizontal nada mudou.
+
 ### O que falta
 
 1. **Imagens definitivas:** 20a–c (folhas, 128 × 128, 15 kB) e 21a–b (esquilo, 256 px de largura, 25 kB). O `pnpm arte` ainda

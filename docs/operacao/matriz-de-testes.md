@@ -62,8 +62,11 @@ Para repetir: `pnpm build`, `pnpm preview` e, em outro terminal, `pnpm dlx light
 | "Pausar animação" e animação reduzida                 | CA-13.1.4, CA-13.6.1      | ☐                 | ☐               | ☐                  | ☐                | ☐          |
 | Selo inteiro (entrada e envelope), sem metades        | ADR-0014 (1)              | ☐                 | ☐               | ☐                  | ☐                | ☐          |
 | Envelope espera o toque; papel só ao abrir            | ADR-0014 (8)              | ☐                 | ☐               | ☐                  | ☐                | ☐          |
-| Balões em cascata (5 s), frase na nuvem               | ADR-0014 (7)              | ☐                 | ☐               | ☐                  | ☐                | ☐          |
-| Cena vertical: árvores, lago, baú na grama            | ADR-0014 (2, 3, 4)        | ☐                 | ☐               | ☐                  | ☐                | —          |
+| Balões um de cada vez (5 s), frase na placa legível   | ADR-0015 (3)              | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Cena vertical: pintura mestre, baú e casal no gramado | ADR-0015 (2, 4)           | ☐                 | ☐               | ☐                  | ☐                | —          |
+| Modo escuro forçado: tudo claro e a carta legível     | ADR-0015 (5)              | ☐                 | ☐               | ☐                  | ☐                | ☐          |
+| Casal acompanha o mouse (computador)                  | ADR-0015 (4)              | —                 | —               | —                  | —                | ☐          |
+| Água ondulando a 50 quadros por segundo no celular    | ADR-0015 (cena vertical)  | ☐                 | —               | ☐                  | —                | —          |
 | Casal em pé na grama, acima da carta                  | ADR-0014 (5)              | ☐                 | ☐               | ☐                  | ☐                | ☐          |
 | Papel da carta com textura da primeira à última linha | ADR-0014 (9)              | ☐                 | ☐               | ☐                  | ☐                | ☐          |
 

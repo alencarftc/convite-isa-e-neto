@@ -108,14 +108,15 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
 
 ## Estado atual
 
-**Branch `feat/cena-viva` (teste, 31/10/2026):** épico 13, "Cena viva", **implementado** (SPEC-18 a 21: água com WebGL,
+**Branch `feat/cena-viva` (teste, 01/11/2026):** épico 13, "Cena viva", **implementado** (SPEC-18 a 21: água com WebGL,
 folhas, pássaros e esquilo, com o botão "Pausar animação"), sobre a arte final e os ajustes da ADR-0012. O casal sentado e
 vivo (SPEC-22) foi **revertido** depois do teste no celular: a cena voltou à imagem 17 (em pé). Comece por
 [docs/specs-cena-viva/README.md](docs/specs-cena-viva/README.md) (situação, orçamento e o que falta), pela
 [ADR-0013](docs/decisions/0013-cena-viva-em-codigo-e-webgl.md) e pela
-[ADR-0014](docs/decisions/0014-ajustes-da-cena-viva-no-celular.md) (os ajustes do teste: selo inteiro, envelope que espera o
-toque, balões em cascata de 5 s sem as fotos provisórias, cena vertical com árvores, lago e mosaico de rosas próprios, papel
-da carta com textura do início ao fim, "&" dos nomes em linha própria). As branches de cada spec saíram desta e voltaram para
+[ADR-0014](docs/decisions/0014-ajustes-da-cena-viva-no-celular.md) e [ADR-0015](docs/decisions/0015-cena-vertical-da-pintura-mestre-e-aviso-de-tema.md)
+(os ajustes do teste no celular: selo inteiro, envelope que espera o toque, papel da carta com textura do início ao fim, "&"
+da carta em linha própria; e, na ADR-0015, a **cena vertical é a pintura mestre 9:16 sem o céu**, os balões vêm um de cada vez
+por 5 s com a frase numa placa legível, e o convite declara `color-scheme: dark` para o celular não o escurecer por cima). As branches de cada spec saíram desta e voltaram para
 ela, nunca para a `main`. A cena viva é um componente que ouve o barramento (`criarCenaViva`, em `presentation/vida/`), não
 uma etapa; os elementos seguem o contrato `ElementoDeVida`; tudo se move no relógio do GSAP (nos testes,
 `tests/integration/suporte/relogio-gsap.ts` o avança à mão). As imagens 20a–c e 21a–b ainda são arte provisória, e as fotos
