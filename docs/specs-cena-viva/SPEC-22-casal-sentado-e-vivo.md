@@ -1,6 +1,10 @@
 # SPEC-22 · Casal sentado e vivo
 
-> **Aprovada para teste em 27/10/2026**, só na branch `feat/cena-viva` ([épico 13](./README.md)). Substitui, nesta
+> **Revertida em 31/10/2026** ([ADR-0014](../decisions/0014-ajustes-da-cena-viva-no-celular.md)): no teste do celular o
+> casal pediu para tirar a animação e os personagens novos e voltar aos anteriores (imagem 17, casal de costas, em pé).
+> Este documento fica como registro do que foi tentado; nada dele vale na branch.
+>
+> **Aprovada para teste em 27/10/2026**, só na branch `feat/cena-viva` ([épico 13](./README.md)). Substituía, nesta
 > branch, a imagem 17 (casal em pé) e o RF-06.8 da SPEC-06 no que diz respeito ao tamanho e à pose do casal.
 
 **Histórias:** US-13.5 · **Prioridade:** Must · **Pontos:** 5 · **Depende de:** SPEC-18, SPEC-19, SPEC-06
