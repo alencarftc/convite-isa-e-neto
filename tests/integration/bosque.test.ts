@@ -167,28 +167,35 @@ describe('cena do bosque (SPEC-03)', () => {
       }
     });
 
-    it('as profundidades seguem a tabela: céu 0,15 · lago 0,3 · árvores 0,6 · baú 0,75 · frente 1, e o casal acompanha o baú', () => {
-      const { cena, cenaEl } = montar();
-      cena.init();
+    it.each([
+      ['vertical', '0.3'],
+      ['horizontal', '1'],
+    ] as const)(
+      'as profundidades seguem a tabela (céu 0,15 · lago 0,3 · árvores 0,6 · frente 1), e o baú e o casal acompanham o chão: %s = %s',
+      (orientacao, solo) => {
+        const { cena, cenaEl } = montar({ orientacao });
+        cena.init();
 
-      const profundidades = [...cenaEl().querySelectorAll('[data-prof]')].map((e) =>
-        e.getAttribute('data-prof'),
-      );
+        const profundidades = [...cenaEl().querySelectorAll('[data-prof]')].map((e) =>
+          e.getAttribute('data-prof'),
+        );
 
-      // Os espaços da vida (céu, fundo e chão) repetem a profundidade da camada ao lado (RF-18.6); o casal, a do baú.
-      expect(profundidades).toEqual([
-        '0.15',
-        '0.15',
-        '0.15',
-        '0.3',
-        '0.6',
-        '0.6',
-        '0.75',
-        '1',
-        '1',
-        '0.75',
-      ]);
-    });
+        // Os espaços da vida (céu, fundo e chão) repetem a profundidade da camada ao lado (RF-18.6). O baú e o casal
+        // pisam no chão e se movem com ele, e não por conta própria: antes flutuavam com o mouse (01/11/2026).
+        expect(profundidades).toEqual([
+          '0.15',
+          '0.15',
+          '0.15',
+          '0.3',
+          '0.6',
+          '0.6',
+          solo,
+          '1',
+          '1',
+          solo,
+        ]);
+      },
+    );
 
     it('as imagens do pôr do sol têm prioridade baixa; as críticas, alta (RNF-02.3)', () => {
       const { cena, camada } = montar();

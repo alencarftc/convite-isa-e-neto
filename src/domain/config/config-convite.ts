@@ -115,8 +115,12 @@ export interface ConfigConvite {
       readonly ceu: number;
       readonly lago: number;
       readonly arvores: number;
-      readonly bau: number;
       readonly frente: number;
+      /**
+       * O chão em que o baú e o casal pisam, por orientação: eles se movem junto dele, e não por conta própria, para
+       * não flutuarem sobre a cena. Na vertical o chão é a pintura (a camada do lago); na horizontal, o primeiro plano.
+       */
+      readonly solo: { readonly vertical: number; readonly horizontal: number };
     };
     readonly profundidade: {
       /** Deslocamento máximo com o mouse (computador), antes de multiplicar pela profundidade. */

@@ -69,6 +69,8 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
   const { raiz, config, estado, eventos, carregamento } = dependencias;
   const { duracoes, curvas, movimento } = config;
   const camadas = movimento.profundidadeDasCamadas;
+  /** O baú e o casal acompanham o chão em que pisam (01/11/2026: antes flutuavam com o mouse). */
+  const solo = camadas.solo[estado.orientacao];
 
   let cena: HTMLElement | undefined;
   let linhaDoTempo: gsap.core.Timeline | undefined;
@@ -88,12 +90,11 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
       criarCamada(config, 'lago', 'lago', camadas.lago, 'high'),
       criarCamada(config, 'arvores', 'arvores', camadas.arvores, 'high'),
       criarEspaco('vida vida--fundo', camadas.arvores),
-      criarEspaco('bau', camadas.bau, false),
+      criarEspaco('bau', solo, false),
       criarCamada(config, 'frente', 'primeiroPlano', camadas.frente, 'high'),
       criarEspaco('vida vida--chao', camadas.frente),
       criarEspaco('camada camada--luz'),
-      // O casal pisa na grama, entre o lago e o primeiro plano, e acompanha o mouse como o baú (01/11/2026).
-      criarEspaco('casal', camadas.bau),
+      criarEspaco('casal', solo),
     );
     // Invisível até as imagens críticas estarem prontas (a CSS também parte de opacidade 0).
     gsap.set(nova, { opacity: 0 });

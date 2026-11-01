@@ -278,7 +278,9 @@ describe('esquilo (SPEC-21)', { timeout: 30_000 }, () => {
 
     const bicho = chao.querySelector<HTMLElement>('.esquilo');
 
-    expect(parseFloat(bicho?.style.width ?? '0')).toBeCloseTo(0.07 * 390);
+    expect(parseFloat(bicho?.style.width ?? '0')).toBeCloseTo(
+      config.vida.esquilo.largura.vertical * 390,
+    );
     expect(parseFloat(bicho?.style.bottom ?? '0')).toBeCloseTo(
       config.vida.esquilo.chao.vertical * 844,
     );
