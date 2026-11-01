@@ -13,7 +13,9 @@ import {
   medirPoseGirada,
   normalizarAlfa,
   paraHsv,
+  pontuacaoDeCeu,
   type Quadro,
+  removerCeu,
   removerFundoLiso,
   removerFundoNeutroInterno,
   removerManchasPequenas,
@@ -397,5 +399,103 @@ describe('escurecerBase', () => {
 
     expect(alfaEm(quadro, 0, 3)).toBe(255);
     expect(quadro.dados[(3 * 2 + 1) * 4]).toBe(90); // transparente: cor intacta
+  });
+});
+
+describe('pontuacaoDeCeu', () => {
+  it('o céu quente e claro pontua alto; folha, água, colina e nuvem branca pontuam zero', () => {
+    expect(pontuacaoDeCeu(248, 224, 185)).toBe(1);
+    expect(pontuacaoDeCeu(110, 130, 70)).toBe(0); // folha
+    expect(pontuacaoDeCeu(200, 210, 150)).toBe(0); // folha clara: verde acima do vermelho
+    expect(pontuacaoDeCeu(167, 167, 183)).toBe(0); // colina
+    expect(pontuacaoDeCeu(190, 200, 215)).toBe(0); // água
+    expect(pontuacaoDeCeu(240, 238, 232)).toBe(0); // nuvem branca: pouco vermelho sobre o azul
+    expect(pontuacaoDeCeu(150, 100, 60)).toBe(0); // escuro demais
+  });
+});
+
+describe('removerCeu', () => {
+  type Cor = [number, number, number, number];
+  const CEU: Cor = [248, 224, 185, 255];
+  const FOLHA: Cor = [90, 110, 60, 255];
+  const COLINA: Cor = [167, 167, 183, 255];
+  const NUVEM: Cor = [240, 238, 232, 255];
+
+  /** 40 × 30: folhas nos lados e no alto, céu de 8 a 31 de largura e de 3 a 23 de altura, colinas de 24 para baixo. */
+  function cena(extra: (x: number, y: number) => Cor | undefined = () => undefined) {
+    return quadroDe(40, 30, (x, y) => {
+      const especial = extra(x, y);
+      if (especial) return especial;
+      if (y >= 24) return COLINA;
+      if (x < 8 || x >= 32 || y < 3) return FOLHA;
+      return CEU;
+    });
+  }
+  const opcoes = { semente: [20, 10] as const, limiteDeY: 24, areaDoBolsao: 20 };
+
+  it('tira a região do céu que contém a semente e deixa folhas e colinas', () => {
+    const quadro = cena();
+
+    const removidos = removerCeu(quadro, opcoes);
+
+    expect(removidos).toBe(24 * 21);
+    expect(alfaEm(quadro, 20, 10)).toBe(0);
+    expect(alfaEm(quadro, 2, 10)).toBe(255); // folha
+    expect(alfaEm(quadro, 20, 27)).toBe(255); // colina, abaixo do horizonte
+  });
+
+  it('um bolsão de céu entre as folhas, solto da região principal, sai se for grande e fica se for pequeno', () => {
+    const grande = (x: number, y: number) =>
+      x >= 1 && x < 6 && y >= 5 && y < 11 ? CEU : undefined;
+    const pequeno = (x: number, y: number) =>
+      x >= 1 && x < 3 && y >= 5 && y < 7 ? CEU : undefined;
+
+    const comGrande = cena(grande);
+    const comPequeno = cena(pequeno);
+    removerCeu(comGrande, opcoes);
+    removerCeu(comPequeno, opcoes);
+
+    expect(alfaEm(comGrande, 3, 8)).toBe(0); // 30 px²: sai
+    expect(alfaEm(comPequeno, 1, 5)).toBe(255); // 4 px²: é uma folha clara, fica
+  });
+
+  it('a nuvem branca solta dentro do céu sai só com a opção "furo"', () => {
+    const nuvem = (x: number, y: number) =>
+      x >= 15 && x < 20 && y >= 8 && y < 12 ? NUVEM : undefined;
+    const sem = cena(nuvem);
+    const com = cena(nuvem);
+
+    removerCeu(sem, opcoes);
+    const removidos = removerCeu(com, { ...opcoes, furo: { area: 100, luma: 185 } });
+
+    expect(alfaEm(sem, 17, 10)).toBe(255);
+    expect(alfaEm(com, 17, 10)).toBe(0);
+    expect(removidos).toBe(24 * 21);
+  });
+
+  it('o furo escuro ou grande demais continua: é uma folha ou um galho, não uma nuvem', () => {
+    const galho: Cor = [60, 70, 40, 255];
+    const escuro = (x: number, y: number) =>
+      x >= 15 && x < 20 && y >= 8 && y < 12 ? galho : undefined;
+    const grande = (x: number, y: number) =>
+      x >= 10 && x < 30 && y >= 5 && y < 20 ? NUVEM : undefined;
+    const comEscuro = cena(escuro);
+    const comGrande = cena(grande);
+    const furo = { area: 100, luma: 185 };
+
+    removerCeu(comEscuro, { ...opcoes, furo });
+    removerCeu(comGrande, { ...opcoes, furo });
+
+    expect(alfaEm(comEscuro, 17, 10)).toBe(255);
+    expect(alfaEm(comGrande, 20, 10)).toBe(255); // 300 px² passa do máximo de 100
+  });
+
+  it('um pedaço que toca a borda do quadro não é furo, mesmo claro e pequeno', () => {
+    const naBorda = (x: number, y: number) => (x < 3 && y >= 8 && y < 10 ? NUVEM : undefined);
+    const quadro = cena(naBorda);
+
+    removerCeu(quadro, { ...opcoes, furo: { area: 100, luma: 185 } });
+
+    expect(alfaEm(quadro, 1, 8)).toBe(255);
   });
 });

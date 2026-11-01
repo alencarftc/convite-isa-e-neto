@@ -18,7 +18,7 @@ const MB = 1024 * KB;
 /** Limite de cada imagem do manifesto, na orientação em que ela é baixada. */
 export const LIMITE_DAS_IMAGENS: Readonly<Record<ChaveDeImagem, number>> = {
   ceu: 300 * KB, // 02
-  lago: 150 * KB, // 04
+  lago: 520 * KB, // 04 (computador, até 150 kB) e a cena mestre em retrato (celular)
   arvores: 300 * KB, // 05
   primeiroPlano: 250 * KB, // 06
   bauFechado: 150 * KB, // 08

@@ -360,6 +360,108 @@ export function removerManchasPequenas(quadro: Quadro, areaMinima: number): numb
 }
 
 /**
+ * De 0 a 1, o quanto uma cor parece o céu de um pôr do sol pintado: clara, quente (vermelho não menor que o
+ * verde) e com o azul bem abaixo do vermelho. As folhas, mesmo as iluminadas, têm verde acima do vermelho ou
+ * são bem mais escuras; a água e as colinas, claras e frias, ficam perto de zero.
+ */
+export function pontuacaoDeCeu(r: number, g: number, b: number): number {
+  const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+  if (luma <= 175 || r < g - 2 || r - b <= 20) return 0;
+  return Math.min(1, (luma - 175) / 25) * Math.min(1, (r - b - 20) / 12);
+}
+
+export interface OpcoesDoCeu {
+  /** Um ponto (x, y) que está no céu: o recorte parte da região dele. */
+  readonly semente: readonly [number, number];
+  /** Abaixo desta linha não há céu (o horizonte): nada dali para baixo é tocado. */
+  readonly limiteDeY: number;
+  /** Os bolsões de céu entre as folhas, soltos da região principal, só saem se tiverem pelo menos esta área. */
+  readonly areaDoBolsao: number;
+  /**
+   * Nuvens brancas pintadas dentro do céu não parecem céu (pouco vermelho sobre o azul) e sobrariam como manchas
+   * soltas. Um pedaço que ficou, sem tocar a borda do quadro nem o horizonte, com no máximo `area` pixels e a
+   * luminância média de pelo menos `luma`, é um furo no céu e sai também.
+   */
+  readonly furo?: { readonly area: number; readonly luma: number };
+}
+
+/**
+ * Torna transparente o céu pintado de uma cena inteira, para o céu de verdade (que a história troca) aparecer
+ * por trás das folhas e das colinas. Sai a região contínua de pixels com cara de céu que contém a semente e os
+ * bolsões entre as folhas com `areaDoBolsao` pixels ou mais; devolve quantos pixels saíram.
+ */
+export function removerCeu(quadro: Quadro, opcoes: OpcoesDoCeu): number {
+  const { largura, altura, dados } = quadro;
+  const { semente, limiteDeY, areaDoBolsao } = opcoes;
+  const mascara = new Uint8Array(largura * altura);
+  const ate = Math.min(altura, Math.max(0, limiteDeY));
+  for (let y = 0; y < ate; y++) {
+    for (let x = 0; x < largura; x++) {
+      const indice = y * largura + x;
+      const a = dados[indice * 4 + 3] ?? 0;
+      if (a === 0) continue;
+      const pontos = pontuacaoDeCeu(
+        dados[indice * 4] ?? 0,
+        dados[indice * 4 + 1] ?? 0,
+        dados[indice * 4 + 2] ?? 0,
+      );
+      if (pontos >= 0.5) mascara[indice] = 1;
+    }
+  }
+  const { rotulos, areas } = componentes(mascara, largura, altura);
+  const [sx, sy] = semente;
+  const rotuloDaSemente = rotulos[sy * largura + sx] ?? -1;
+  let removidos = 0;
+  for (let indice = 0; indice < mascara.length; indice++) {
+    const rotulo = rotulos[indice] ?? -1;
+    if (rotulo < 0) continue;
+    if (rotulo !== rotuloDaSemente && (areas[rotulo] ?? 0) < areaDoBolsao) continue;
+    dados[indice * 4 + 3] = 0;
+    removidos += 1;
+  }
+  return removidos + (opcoes.furo ? removerFurosDoCeu(quadro, ate, opcoes.furo) : 0);
+}
+
+/** Tira os pedaços claros e soltos que sobraram dentro do céu já removido (ver `OpcoesDoCeu.furo`). */
+function removerFurosDoCeu(
+  quadro: Quadro,
+  limiteDeY: number,
+  furo: { readonly area: number; readonly luma: number },
+): number {
+  const { largura, dados } = quadro;
+  const altura = limiteDeY;
+  const mascara = new Uint8Array(largura * altura);
+  for (let indice = 0; indice < mascara.length; indice++) {
+    if ((dados[indice * 4 + 3] ?? 0) > 0) mascara[indice] = 1;
+  }
+  const { rotulos, areas } = componentes(mascara, largura, altura);
+  const encosta = new Uint8Array(areas.length);
+  const somaDeLuma = new Float64Array(areas.length);
+  for (let indice = 0; indice < mascara.length; indice++) {
+    const rotulo = rotulos[indice] ?? -1;
+    if (rotulo < 0) continue;
+    const x = indice % largura;
+    const y = Math.floor(indice / largura);
+    if (x === 0 || y === 0 || x === largura - 1 || y === altura - 1) encosta[rotulo] = 1;
+    somaDeLuma[rotulo] =
+      (somaDeLuma[rotulo] ?? 0) +
+      0.299 * (dados[indice * 4] ?? 0) +
+      0.587 * (dados[indice * 4 + 1] ?? 0) +
+      0.114 * (dados[indice * 4 + 2] ?? 0);
+  }
+  let removidos = 0;
+  for (let indice = 0; indice < mascara.length; indice++) {
+    const rotulo = rotulos[indice] ?? -1;
+    if (rotulo < 0 || encosta[rotulo] === 1) continue;
+    const area = areas[rotulo] ?? 0;
+    if (area > furo.area || (somaDeLuma[rotulo] ?? 0) / area < furo.luma) continue;
+    dados[indice * 4 + 3] = 0;
+    removidos += 1;
+  }
+  return removidos;
+}
+
+/**
  * Pinta de novo a borda do objeto com as cores de dentro. Na borda recortada de um fundo escuro, cada
  * pixel é uma mistura de objeto e fundo, e o resultado é um contorno escuro. Das `profundidade`
  * camadas mais externas, a mais interna copia a média dos vizinhos limpos logo abaixo dela, a seguinte

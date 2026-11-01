@@ -79,7 +79,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-/** Os balões saem em cascata: um começa `balao` depois do anterior e o último ainda faz o seu ciclo todo. */
+/** Os balões vêm um depois do outro: cada um começa `balao` depois do anterior e o último faz o seu ciclo todo. */
 const totalDaHistoria =
   config.duracoes.balao * (content.baloes.length - 1) +
   (config.historia.subidaFinalEm + config.historia.subidaFinal);
@@ -198,18 +198,20 @@ describe('história em balões (SPEC-05)', () => {
       expect(frases).toEqual(content.baloes.map((b) => b.frase));
     });
 
-    it('os balões saem em cascata: o segundo é anunciado antes de o primeiro ir embora (31/10/2026)', () => {
+    it('cada balão é anunciado só quando o anterior terminou o seu tempo: um a cada `duracoes.balao` (01/11/2026)', () => {
       const relogio = criarRelogioManual();
       try {
         const { cena, registro } = montar();
+        const { balao } = config.duracoes;
         void cena.run();
 
-        for (let i = 0; i < 2000 && !registro.includes('balao:1'); i += 1) {
-          relogio.avancar(0.002, 0.002);
-        }
-
+        relogio.avancar(balao - 0.02, 0.002);
         expect(registro).toContain('balao:0');
+        expect(registro).not.toContain('balao:1'); // o primeiro ainda está à vista
+
+        relogio.avancar(0.04, 0.002);
         expect(registro).toContain('balao:1');
+        expect(registro).not.toContain('balao:2');
         expect(registro).not.toContain('fim');
         cena.skip();
       } finally {
@@ -317,7 +319,7 @@ describe('história em balões (SPEC-05)', () => {
       const xs = [...document.querySelectorAll<HTMLElement>('.balao')].map((b) =>
         Math.round(Number(gsap.getProperty(b, 'x'))),
       );
-      expect(xs).toEqual([280, 700, 300, 720, 500]); // 1000 × (0,5 + desvio)
+      expect(xs).toEqual([380, 620, 420, 600, 500]); // 1000 × (0,5 + desvio)
     });
   });
 
@@ -350,14 +352,19 @@ describe('história em balões (SPEC-05)', () => {
       expect(frases).toEqual(content.baloes.map((b) => b.frase));
     });
 
-    it('a história inteira dura cerca de 5 s: cinco balões em cascata, não um depois do outro (31/10/2026)', () => {
+    it('cada balão fica 5 s à vista, e a frase pelo menos 3 s, para dar tempo de ler (01/11/2026)', () => {
       const { balao } = configReal.duracoes;
-      const { subidaFinalEm, subidaFinal, alturas, desvios } = configReal.historia;
+      const { subidaFinalEm, subidaFinal, fraseEm, fraseAparece, fraseSome, alturas, desvios } =
+        configReal.historia;
 
       const total = balao * (content.baloes.length - 1) + subidaFinalEm + subidaFinal;
+      const ciclo = subidaFinalEm + subidaFinal;
+      const fraseLegivel = subidaFinalEm - fraseSome - (fraseEm + fraseAparece);
 
-      expect(total).toBeLessThanOrEqual(5);
-      expect(total).toBeGreaterThan(4);
+      expect(balao).toBe(5);
+      expect(ciclo).toBe(balao); // um balão some quando o próximo já está subindo
+      expect(total).toBe(25);
+      expect(fraseLegivel).toBeGreaterThanOrEqual(3);
       expect(alturas).toHaveLength(content.baloes.length);
       expect(desvios).toHaveLength(content.baloes.length);
     });
@@ -390,7 +397,7 @@ describe('história em balões (SPEC-05)', () => {
       const recuos = [...document.querySelectorAll<HTMLElement>('.balao')].map((b) =>
         Math.round(Number.parseFloat(b.style.getPropertyValue('--desvio-x'))),
       );
-      expect(recuos).toEqual([220, -200, 200, -220, 0]); // -(desvio × 1000)
+      expect(recuos).toEqual([120, -120, 80, -100, 0]); // -(desvio × 1000)
     });
 
     it('a frase some antes de o balão partir', async () => {

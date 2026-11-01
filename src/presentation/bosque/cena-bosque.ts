@@ -92,7 +92,8 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
       criarCamada(config, 'frente', 'primeiroPlano', camadas.frente, 'high'),
       criarEspaco('vida vida--chao', camadas.frente),
       criarEspaco('camada camada--luz'),
-      criarEspaco('casal'),
+      // O casal pisa na grama, entre o lago e o primeiro plano, e acompanha o mouse como o baú (01/11/2026).
+      criarEspaco('casal', camadas.bau),
     );
     // Invisível até as imagens críticas estarem prontas (a CSS também parte de opacidade 0).
     gsap.set(nova, { opacity: 0 });

@@ -5,9 +5,8 @@
     <!-- Plano B (SPEC-15): script, estilo e texto simples gerados de content.ts por scripts/vite/plano-b.ts. -->
     <!--PLANO-B-HEAD-->
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <!-- Só tema claro: sem isto, o modo escuro do Chrome, do Samsung Internet e do navegador do WhatsApp escurece os fundos marfim e inverte as cores da arte. -->
-    <meta name="color-scheme" content="only light" />
-    <meta name="supported-color-schemes" content="light" />
+    <!-- O convite pinta todas as suas cores: "dark" avisa que ele já cuidou do tema e o navegador não o escurece por cima (ADR-0015). -->
+    <meta name="color-scheme" content="dark" />
     <meta name="robots" content="noindex, nofollow" />
     <!-- Título, descrição, ícones e og:*: gerados de content.ts e config.ts por scripts/vite/metadados.ts (SPEC-10). -->
     <!--METADADOS-->
@@ -38,9 +37,7 @@
         <div class="nevoa" aria-hidden="true"><span></span><span></span></div>
         <!-- Reserva o lugar do selo: a imagem e as iniciais entram pela cena (SPEC-16), sem empurrar os nomes. -->
         <span class="entrada__selo" aria-hidden="true"></span>
-        <h1 id="entrada-nomes" class="entrada__nomes">
-          Isabella <span class="entrada__e">&amp;</span> David
-        </h1>
+        <h1 id="entrada-nomes" class="entrada__nomes">Isabella &amp; David</h1>
         <button class="entrada__tocar" type="button" hidden>
           <span class="entrada__chamada">Toque para entrar</span>
           <span class="entrada__volume">Para uma experiência completa, aumente o volume.</span>

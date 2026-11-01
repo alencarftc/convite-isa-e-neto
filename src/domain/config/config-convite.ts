@@ -242,9 +242,9 @@ export interface ConfigConvite {
     };
   };
   /**
-   * História em balões (SPEC-05). Os cinco balões sobem juntos, em cascata: um começa `duracoes.balao` depois do
-   * anterior e cada um dura o seu ciclo (`subidaFinalEm` + `subidaFinal`), com os instantes contados do início
-   * dele. A história inteira dura (balões − 1) × `duracoes.balao` + o ciclo (31/10/2026: cerca de 5 s).
+   * História em balões (SPEC-05). Os balões se apresentam um depois do outro: cada um começa `duracoes.balao` (5 s)
+   * depois do anterior e dura o seu ciclo (`subidaFinalEm` + `subidaFinal`, também 5 s), com os instantes contados
+   * do início dele. A história inteira dura (balões − 1) × `duracoes.balao` + o ciclo (01/11/2026: 25 s).
    */
   readonly historia: {
     /** O balão sai da boca do baú e sobe até a altura de leitura. */

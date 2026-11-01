@@ -275,14 +275,15 @@ describe('água viva (SPEC-19)', () => {
     const { agua, ticker, girar } = montar({ config: personalizada });
     agua.iniciar('completo');
     ticker.quadro(16);
-    const { regiao } = config().vida.agua;
-    const vertical = regiao.vertical.tipo === 'faixa' ? regiao.vertical : undefined;
-    expect(webgl?.valorDoUniforme('u_faixa')).toEqual([vertical?.inicio, vertical?.borda]);
+    // Na vertical a água é uma elipse sobre o lago da cena mestre (ADR-0015); na horizontal, uma faixa.
+    expect(config().vida.agua.regiao.vertical.tipo).toBe('elipse');
+    expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([1]);
 
     girar('horizontal');
     ticker.quadro(16);
 
     expect(webgl?.valorDoUniforme('u_faixa')).toEqual([0.4, 0.07]);
+    expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([0]);
   });
 
   it('a faixa e as ondas vêm da configuração, com a amplitude convertida para a caixa', () => {
@@ -293,7 +294,7 @@ describe('água viva (SPEC-19)', () => {
 
     expect(webgl?.valorDoUniforme('u_frequencia')).toEqual([config().vida.agua.onda.frequencia]);
     expect(webgl?.valorDoUniforme('u_perspectiva')).toEqual([config().vida.agua.onda.perspectiva]);
-    expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([0]);
+    expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([1]); // a vertical é a orientação de partida
   });
 });
 
