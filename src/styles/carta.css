@@ -83,6 +83,18 @@
   pointer-events: none;
 }
 
+/*
+ * Sem o retângulo de foco em volta do envelope (o botão cobre o envelope inteiro, e o anel o contornava): o foco do
+ * teclado acende o selo, que vem logo depois do botão no DOM, com um halo dourado.
+ */
+.carta__abrir:focus-visible {
+  outline: none;
+}
+
+.carta__abrir:focus-visible + .selo {
+  filter: drop-shadow(0 0 5px var(--cor-aura)) drop-shadow(0 0 12px var(--cor-aura-55));
+}
+
 .carta__dica {
   position: absolute;
   top: calc(100% + var(--espaco-4));
@@ -102,22 +114,26 @@
 }
 
 /*
- * A base que a cena deixa à mostra quando sobe: o primeiro plano (grama e rosas) espelhado, que continua a
- * partir da borda de baixo dele (`transform-origin` na borda, `scaleY(-1)`), sobe junto com a cena e some atrás da
- * carta. Uma cor lisa deixava uma faixa chapada ao lado da carta nas telas largas.
+ * A base que a cena deixa à mostra quando sobe: a faixa de chão (`06-chao`, uma imagem minúscula com as cores da
+ * borda de baixo do primeiro plano, ampliada pelo navegador num borrão de grama fora de foco). Começa `6vh` acima
+ * da borda do primeiro plano (as primeiras linhas da imagem são transparentes e se misturam com ele, sem emenda),
+ * sobe junto com a cena e some atrás da carta. O espelho do primeiro plano, que vinha antes, aparecia como uma
+ * imagem duplicada.
  */
 .convite__chao {
   position: fixed;
-  inset: 0;
+  top: calc(100% + var(--sobra-da-cena) - 6vh);
+  right: 0;
+  left: 0;
   z-index: var(--z-primeiro-plano);
-  height: 100vh;
-  height: 100dvh;
+  height: 48vh;
   pointer-events: none;
 }
 
-.convite__chao .camada--frente {
-  transform: scaleY(-1);
-  transform-origin: 50% calc(100% - 1px); /* 1 px de sobreposição: sem fio de luz na emenda */
+.convite__chao-imagem {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /*
@@ -156,12 +172,13 @@
 
 /*
  * O casal, de costas, em pé na grama da margem do lago (RF-06.8), com a metade de baixo das pernas sobre o
- * primeiro plano. `--casal-base` é a distância dos pés à base da cena (a margem fica a cerca de 30%) e
- * `--casal-altura` o tamanho; centrado, com as margens automáticas.
+ * primeiro plano. `--casal-base` é a distância dos pés à base da cena (no retrato, a grama florida começa a
+ * cerca de 17%, e a cena sobe `cenaSobeFracao` para ela ficar à mostra acima da carta) e `--casal-altura` o
+ * tamanho; centrado, com as margens automáticas.
  */
 .casal__imagem {
   --casal-altura: 25%;
-  --casal-base: 26%;
+  --casal-base: 13%;
 
   position: absolute;
   right: 0;
@@ -204,17 +221,15 @@
 /*
  * O papel (imagem 14, com a borda irregular transparente) em três partes, para caber em qualquer altura de
  * texto sem cortar a moldura nem as rosas: o topo e a base são as pontas da arte, na proporção dela
- * (`::before` e `::after`, com o tamanho vindo da largura). No meio, só as bordas (deckle e filete dourado,
- * `--papel-margem` de cada lado) vêm de uma faixa fina da arte esticada na vertical, o que as deixa retas; o
- * miolo é o creme liso do papel (`--cor-papel`), que o topo e a base atingem num degradê: esticar a textura
- * do miolo deixava listras verticais. As medidas vêm das variáveis que a cena escreve a partir de
- * `config.carta.papel`. O padding deixa livres as rosas do alto (à direita) e da base (à esquerda). O marfim só
- * aparece, dentro da moldura, se a imagem faltar.
+ * (`::before` e `::after`, com o tamanho vindo da largura). No meio, `.carta__miolo` repete na vertical um
+ * ladrilho da faixa do meio da arte seguida do próprio espelho (`--papel-miolo`): as bordas e o filete dourado
+ * emendam e a textura do papel aparece atrás do texto inteiro, sem fundo liso nem as listras que esticar
+ * uma faixa fina deixava. As medidas vêm das variáveis que a cena escreve a partir de `config.carta.papel`.
+ * O padding deixa livres as rosas do alto (à direita) e da base (à esquerda). O marfim só aparece, dentro da
+ * moldura, se a imagem faltar.
  */
 .carta {
   --carta-largura: min(92vw, 560px);
-  --papel-faixa: calc(var(--papel-corte-ate) - var(--papel-corte-de));
-  --papel-miolo: calc(100% * (1 - 2 * var(--papel-margem)));
 
   position: relative;
   display: flex;
@@ -226,15 +241,24 @@
     calc(var(--carta-largura) * 0.46);
   color: var(--cor-texto);
   text-align: center;
-  background:
-    linear-gradient(var(--cor-papel), var(--cor-papel)) center / var(--papel-miolo) 100% no-repeat,
-    var(--papel) 0 calc(100% * var(--papel-corte-de) / (1 - var(--papel-faixa))) / 100%
-      calc(100% / var(--papel-faixa)) no-repeat,
-    var(--cor-marfim);
-  background-clip: border-box, border-box, content-box;
+  background-color: var(--cor-marfim);
+  background-clip: content-box;
   filter: drop-shadow(0 6px 14px var(--cor-sombra-35));
   isolation: isolate;
   transform-origin: 50% 0;
+}
+
+/*
+ * O miolo vai de onde o topo termina até onde a base começa (1px a mais de cada lado, para não sobrar fresta
+ * no arredondamento) e fica atrás do texto, como as pontas (`--z-papel`), dentro do `isolation` da carta.
+ */
+.carta__miolo {
+  position: absolute;
+  inset: calc(var(--carta-largura) * var(--papel-proporcao) * var(--papel-corte-de) - 1px) 0
+    calc(var(--carta-largura) * var(--papel-proporcao) * (1 - var(--papel-corte-ate)) - 1px);
+  z-index: var(--z-papel);
+  pointer-events: none;
+  background: var(--papel-miolo, none) center top / 100% auto repeat-y;
 }
 
 .carta::before,
@@ -252,21 +276,17 @@
 .carta::before {
   top: 0;
   padding-bottom: calc(var(--papel-proporcao) * var(--papel-corte-de) * 100%);
-  background-image: linear-gradient(to bottom, transparent 60%, var(--cor-papel)), var(--papel);
-  background-position: center, top;
-  background-size:
-    var(--papel-miolo) 100%,
-    100% auto;
+  background-image: var(--papel);
+  background-position: top;
+  background-size: 100% auto;
 }
 
 .carta::after {
   bottom: 0;
   padding-bottom: calc(var(--papel-proporcao) * (1 - var(--papel-corte-ate)) * 100%);
-  background-image: linear-gradient(to top, transparent 60%, var(--cor-papel)), var(--papel);
-  background-position: center, bottom;
-  background-size:
-    var(--papel-miolo) 100%,
-    100% auto;
+  background-image: var(--papel);
+  background-position: bottom;
+  background-size: 100% auto;
 }
 
 .carta p,
@@ -335,7 +355,10 @@
   line-height: 1.3;
 }
 
+/* O "&" dourado fica na própria linha, entre os dois nomes. */
 .carta__e {
+  display: block;
+  line-height: 1.1;
   color: var(--cor-dourado);
 }
 

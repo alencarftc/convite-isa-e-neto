@@ -3,15 +3,22 @@
  * `opacity` se animam. As camadas têm 24 px de sobra em cada lado para o deslocamento nunca mostrar
  * borda. Posições e proporções são o ponto de partida da spec e devem ser ajustadas com a arte final.
  */
-.cena,
-.convite__chao {
-  --sobra: 24px;
-  --frente-altura: 34%;
+:root {
+  /* Quanto cada camada passa da tela, em cada lado, para o deslocamento da profundidade nunca mostrar borda. */
+  --sobra-da-cena: 24px;
 }
 
 .cena {
-  --lago-altura: 30%;
-  --lago-base: 30%;
+  --sobra: var(--sobra-da-cena);
+  --frente-altura: 34%;
+
+  /*
+   * Na vertical o lago (arte 04 com a água prolongada, `pnpm arte`) vai do horizonte, a 40% do alto, até a
+   * grama, atrás do primeiro plano: antes ele terminava a 30% da base e o espaço entre ele e a grama mostrava o céu
+   * por trás das flores.
+   */
+  --lago-altura: 46%;
+  --lago-base: 14%;
 
   position: fixed;
   inset: 0;

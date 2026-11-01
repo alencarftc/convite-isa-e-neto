@@ -10,7 +10,7 @@ import type { EscolhaDeEntrada, EventosConvite } from '@/domain/eventos/eventos-
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
 import { criar } from '../dom';
-import { type MetadesDoSelo, montarMetadesDoSelo, romperSelo } from '../selo/selo-rompivel';
+import { montarImagemDoSelo, soltarSelo } from '../selo/selo';
 
 export interface DependenciasDaEntrada {
   readonly raiz: HTMLElement;
@@ -25,6 +25,23 @@ function obter(secao: HTMLElement, seletor: string): HTMLElement {
   const elemento = secao.querySelector<HTMLElement>(seletor);
   if (!elemento) throw new Error(`index.html sem "${seletor}" na entrada (SPEC-02, RF-02.1)`);
   return elemento;
+}
+
+/**
+ * Escreve os nomes como o `index.html` os traz: o "&" num `<span class="entrada__e">`, que a CSS põe na própria
+ * linha (31/10/2026). O texto continua "Isabella & David", então o nome acessível não muda.
+ */
+function escreverNomes(elemento: HTMLElement, nomes: string): void {
+  const [noiva, noivo, ...resto] = nomes.split(' & ');
+  if (noiva === undefined || noivo === undefined || resto.length > 0) {
+    elemento.textContent = nomes;
+    return;
+  }
+  elemento.replaceChildren(
+    document.createTextNode(`${noiva} `),
+    criar('span', 'entrada__e', '&'),
+    document.createTextNode(` ${noivo}`),
+  );
 }
 
 function obterBotao(secao: HTMLElement, seletor: string): HTMLButtonElement {
@@ -49,38 +66,37 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
   let animacoes: gsap.Context | undefined;
   let pararDeOuvirGiro: (() => void) | undefined;
   let ouvintes: AbortController | undefined;
-  let metadesDoSelo: MetadesDoSelo | undefined;
+  let imagemDoSelo: HTMLImageElement | undefined;
   let linhaDaSaida: gsap.core.Timeline | undefined;
   /** Resolve quando o selo estala e a névoa pode começar a abrir; sem o toque, já está resolvida. */
   let aoRomper: Promise<void> = Promise.resolve();
 
   /**
    * Selo I&D acima dos nomes, o mesmo do envelope (SPEC-16): decorativo, a tela inteira continua sendo o
-   * toque. As siglas vêm em relevo na arte do selo, que aqui já vem em duas metades, prontas para o toque.
+   * toque. As siglas vêm em relevo na própria arte do selo, que fica inteiro até se soltar.
    */
   function montarSelo(entrada: HTMLElement): void {
     const selo = obter(entrada, '.entrada__selo');
     const brilho = criar('span', 'selo__brilho');
     brilho.setAttribute('aria-hidden', 'true');
-    const metades = montarMetadesDoSelo(urlDaImagem(config.imagens.selo, estado.orientacao));
+    const imagem = montarImagemDoSelo(urlDaImagem(config.imagens.selo, estado.orientacao));
     // A imagem do selo não é crítica (SPEC-02 tem seis): o selo aparece quando ela chega, sem
     // atrasar o "Toque para entrar" e sem mexer no lugar dos nomes, que o HTML já reservou.
     const revelar = () => {
       gsap.to(selo, { opacity: 1, duration: duracoes.entradaChamada, ease: curvas.saida });
     };
-    const [primeira] = metades.imagens;
-    if (primeira.complete && primeira.naturalWidth > 0) revelar();
-    else primeira.addEventListener('load', revelar, { once: true });
-    selo.replaceChildren(brilho, metades.esquerda, metades.direita);
+    if (imagem.complete && imagem.naturalWidth > 0) revelar();
+    else imagem.addEventListener('load', revelar, { once: true });
+    selo.replaceChildren(brilho, imagem);
     gsap.set(brilho, { opacity: 0 });
-    metadesDoSelo = metades;
+    imagemDoSelo = imagem;
   }
 
   function iniciar(): HTMLElement {
     const entrada = raiz.querySelector<HTMLElement>('.entrada');
     if (!entrada) throw new Error('index.html sem a seção ".entrada" (SPEC-02, RF-02.1)');
 
-    obter(entrada, '.entrada__nomes').textContent = conteudo.entrada.nomes;
+    escreverNomes(obter(entrada, '.entrada__nomes'), conteudo.entrada.nomes);
     obter(entrada, '.entrada__chamada').textContent = conteudo.entrada.tocar;
     obter(entrada, '.entrada__volume').textContent = conteudo.entrada.volume;
     obter(entrada, '.entrada__aguarde').textContent = conteudo.entrada.aguarde;
@@ -155,9 +171,9 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
   }
 
   /**
-   * O toque no selo (ADR-0012): ele cede sob o dedo, estala em duas metades que giram e caem, um clarão
-   * de luz sai de trás dele, os nomes sobem e se desfazem, e a névoa começa a abrir no instante em que o
-   * selo estala (`saida.nevoaEm`): a promessa devolvida resolve aí, e a linha continua sozinha.
+   * O toque no selo (ADR-0012): ele cede sob o dedo, se solta inteiro (levanta, gira de leve e se desfaz) e
+   * um clarão de luz sai de trás dele, os nomes sobem e se desfazem, e a névoa começa a abrir no instante em
+   * que o selo se solta (`saida.nevoaEm`): a promessa devolvida resolve aí, e a linha continua sozinha.
    */
   function romperOSelo(entrada: HTMLElement): Promise<void> {
     const { saida } = config.entrada;
@@ -167,7 +183,7 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
     const tocar = obterBotao(entrada, '.entrada__tocar');
     // Só a pulsação para: o esmaecimento de entrada do selo, se ainda estiver rodando, segue.
     gsap.killTweensOf(selo, 'scale');
-    const metades = metadesDoSelo;
+    const imagem = imagemDoSelo;
     return new Promise<void>((resolver) => {
       const linha = gsap
         .timeline()
@@ -179,7 +195,7 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
         .to(tocar, { opacity: 0, duration: duracoes.entradaSaida, ease: curvas.saida }, 0)
         .to(
           selo,
-          { scale: config.entrada.seloEscala, duration: saida.rompe.duracao, ease: curvas.saida },
+          { scale: config.entrada.seloEscala, duration: saida.solta.duracao, ease: curvas.saida },
           saida.aperto.duracao,
         )
         .fromTo(
@@ -215,9 +231,9 @@ export function criarCenaEntrada(dependencias: DependenciasDaEntrada): Cena<Esco
           saida.aperto.duracao,
         )
         .call(resolver, [], saida.nevoaEm);
-      if (metades) {
+      if (imagem) {
         linha.add(
-          romperSelo(metades, { ...saida.rompe, curva: curvas.entrada }),
+          soltarSelo(imagem, { ...saida.solta, curva: curvas.saida }),
           saida.aperto.duracao,
         );
       }

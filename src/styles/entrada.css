@@ -44,8 +44,8 @@
 
 /*
  * Selo I&D acima dos nomes (SPEC-16): o lugar é reservado pelo HTML; a cena o preenche e o revela. As
- * siglas vêm em relevo na própria arte. Ao toque ele se parte em duas metades, com um clarão de luz que sai de
- * trás dele (`selo.css`).
+ * siglas vêm em relevo na própria arte. Ao toque ele se solta inteiro, com um clarão de luz que sai de trás
+ * dele (`selo.css`).
  */
 .entrada__selo {
   --tamanho: 120px;
@@ -92,6 +92,12 @@
   font-weight: 400;
   line-height: 1.15;
   color: var(--cor-texto);
+}
+
+/* O "&" fica na própria linha, entre os dois nomes. */
+.entrada__e {
+  display: block;
+  line-height: 1;
 }
 
 /* Área de toque da entrada: a tela inteira, e é um <button> (Enter e Espaço funcionam). */

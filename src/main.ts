@@ -121,7 +121,7 @@ const carregamento = criarCarregamento({
   imagens: criarCarregadorDeImagens(),
   temporizador: criarTemporizador(),
   config,
-  fotos: content.baloes.map((balao) => balao.foto),
+  fotos: content.baloes.map((balao) => balao.foto).filter((foto) => foto !== ''),
 });
 
 const cartaEConvite = criarCartaEConvite({ raiz, conteudo: content, config, estado, eventos });

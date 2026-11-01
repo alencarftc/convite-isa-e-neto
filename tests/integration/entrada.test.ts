@@ -11,7 +11,7 @@ import { criarCarregamentoFalso } from './suporte/carregamento-falso';
 import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
 import { montarIndexHtml, textoDoIndexHtml } from './suporte/index-html';
 
-function montar(opcoes: OpcoesDoEstadoFalso = {}) {
+function montar(opcoes: OpcoesDoEstadoFalso = {}, conteudo: typeof content = content) {
   montarIndexHtml();
   const raiz = document.querySelector<HTMLElement>('#app');
   if (!raiz) throw new Error('index.html sem #app');
@@ -21,7 +21,7 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}) {
   const eventos = criarBarramento<EventosConvite>();
   const aoTocar = vi.fn();
   eventos.on('entrada:tocou', aoTocar);
-  const cena = criarCenaEntrada({ raiz, conteudo: content, config, estado, eventos, carregamento });
+  const cena = criarCenaEntrada({ raiz, conteudo, config, estado, eventos, carregamento });
 
   const el = (seletor: string) => {
     const elemento = document.querySelector<HTMLElement>(seletor);
@@ -64,6 +64,29 @@ describe('cena de entrada (SPEC-02)', () => {
       cena.init();
 
       expect(el('.entrada__nomes').textContent).toBe(content.entrada.nomes);
+    });
+
+    it('o "&" dos nomes tem o próprio elemento (a CSS o põe numa linha), antes e depois do init; o texto não muda (31/10/2026)', () => {
+      const { cena, el } = montar();
+      expect(el('.entrada__nomes .entrada__e').textContent).toBe('&'); // o primeiro quadro, do index.html
+
+      el('.entrada__nomes').textContent = 'texto antigo';
+      cena.init();
+
+      expect(el('.entrada__nomes .entrada__e').textContent).toBe('&');
+      expect(el('.entrada__nomes').textContent).toBe('Isabella & David');
+    });
+
+    it('nome sem "&" no content é escrito como está, sem quebrar', () => {
+      const { cena, el } = montar(
+        {},
+        { ...content, entrada: { ...content.entrada, nomes: 'Isabella' } },
+      );
+
+      cena.init();
+
+      expect(el('.entrada__nomes').textContent).toBe('Isabella');
+      expect(el('.entrada__nomes').querySelector('.entrada__e')).toBeNull();
     });
 
     it('sem a seção .entrada no HTML, falha com mensagem clara', () => {
@@ -125,21 +148,18 @@ describe('cena de entrada (SPEC-02)', () => {
       expect(selo?.nextElementSibling?.className).toBe('entrada__nomes');
     });
 
-    it('init monta o selo em duas metades com a imagem de config.imagens.selo, decorativas e sem texto (RF-16.5)', () => {
+    it('init monta o selo inteiro (uma imagem só) com a imagem de config.imagens.selo, decorativa e sem texto (RF-16.5)', () => {
       const { cena } = montar();
 
       cena.init();
 
       const imagens = [
-        ...document.querySelectorAll<HTMLImageElement>(
-          '.entrada__selo .selo__metade .selo__imagem',
-        ),
+        ...document.querySelectorAll<HTMLImageElement>('.entrada__selo .selo__imagem'),
       ];
-      expect(imagens).toHaveLength(2);
-      for (const imagem of imagens) {
-        expect(imagem.getAttribute('src')).toBe(config.imagens.selo);
-        expect(imagem.getAttribute('alt')).toBe('');
-      }
+      expect(imagens).toHaveLength(1);
+      expect(imagens[0]?.getAttribute('src')).toBe(config.imagens.selo);
+      expect(imagens[0]?.getAttribute('alt')).toBe('');
+      expect(document.querySelector('.selo__metade')).toBeNull(); // o selo não se parte (31/10/2026)
       expect(document.querySelector('.entrada__iniciais')).toBeNull(); // as siglas vêm na arte
       expect(document.querySelector('.entrada__selo')?.textContent).toBe('');
     });
@@ -219,7 +239,7 @@ describe('cena de entrada (SPEC-02)', () => {
       expect(tocar.disabled).toBe(true);
     });
 
-    it('ao tocar, o selo estala em duas metades, um clarão acende e os nomes se desfazem (ADR-0012)', async () => {
+    it('ao tocar, o selo se solta inteiro (levanta, cresce e some), um clarão acende e os nomes se desfazem (ADR-0012)', async () => {
       const { botao, el, execucao, concluirImagens } = await ateOToque();
       let brilhoMaximo = 0;
       const olhar = setInterval(() => {
@@ -234,8 +254,7 @@ describe('cena de entrada (SPEC-02)', () => {
       await execucao;
       await vi.waitFor(
         () => {
-          expect(Number(gsap.getProperty(el('.selo__metade--esquerda'), 'opacity'))).toBe(0);
-          expect(Number(gsap.getProperty(el('.selo__metade--direita'), 'opacity'))).toBe(0);
+          expect(Number(gsap.getProperty(el('.entrada__selo .selo__imagem'), 'opacity'))).toBe(0);
           expect(Number(gsap.getProperty(el('.entrada__nomes'), 'opacity'))).toBe(0);
         },
         { timeout: 4000 },
@@ -244,9 +263,16 @@ describe('cena de entrada (SPEC-02)', () => {
 
       expect(brilhoMaximo).toBeGreaterThan(0.3);
       expect(Number(gsap.getProperty(el('.entrada__nomes'), 'y'))).toBeLessThan(0); // os nomes subiram
+      // O selo subiu e cresceu ao se soltar, mas nunca foi partido nem girou além do giro configurado.
+      const imagem = el('.entrada__selo .selo__imagem');
+      expect(Number(gsap.getProperty(imagem, 'y'))).toBeLessThan(0);
+      expect(Number(gsap.getProperty(imagem, 'scale'))).toBeGreaterThan(1);
+      expect(Math.abs(Number(gsap.getProperty(imagem, 'rotation')))).toBeLessThanOrEqual(
+        config.entrada.saida.solta.giro + 1e-6,
+      );
     });
 
-    it('a névoa só pode abrir quando o selo estala: o run espera config.entrada.saida.nevoaEm', async () => {
+    it('a névoa só pode abrir quando o selo se solta: o run espera config.entrada.saida.nevoaEm', async () => {
       const { botao, execucao, concluirImagens } = await ateOToque();
       const inicio = performance.now();
 
@@ -259,14 +285,14 @@ describe('cena de entrada (SPEC-02)', () => {
       );
     });
 
-    it('com animação reduzida, o toque só esmaece: o selo não estala nem o clarão acende', async () => {
+    it('com animação reduzida, o toque só esmaece: o selo não se solta nem o clarão acende', async () => {
       const { botao, el, execucao } = await ateOToque({ reduzido: true });
 
       botao('.entrada__tocar').click();
       await execucao;
 
       expect(gsap.getTweensOf(el('.selo__brilho'))).toHaveLength(0);
-      expect(gsap.getTweensOf(el('.selo__metade--esquerda'))).toHaveLength(0);
+      expect(gsap.getTweensOf(el('.entrada__selo .selo__imagem'))).toHaveLength(0);
     });
 
     it('com animação reduzida, o toque não espera o bosque', async () => {

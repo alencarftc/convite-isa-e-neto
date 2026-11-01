@@ -31,11 +31,13 @@ export const LIMITE_DAS_IMAGENS: Readonly<Record<ChaveDeImagem, number>> = {
   envelopeFechado: 120 * KB, // 12
   envelopeAberto: 120 * KB, // 13
   papelCarta: 150 * KB, // 14
+  papelMiolo: 60 * KB, // 14 · ladrilho do meio do papel, repetido na vertical sob o texto
+  chao: 5 * KB, // continuação da borda do primeiro plano sob a carta (imagem minúscula, ampliada pelo navegador)
   selo: 60 * KB, // 15 · aparece grande na entrada e no envelope
   petalaA: 15 * KB, // 16a
   petalaB: 15 * KB,
   petalaC: 15 * KB,
-  casal: 150 * KB, // 17 na main; 19 (sentado) na cena viva
+  casal: 150 * KB, // 17
   folhaA: 15 * KB, // 20a
   folhaB: 15 * KB,
   folhaC: 15 * KB,
@@ -108,7 +110,8 @@ export function validarPeso(
     }
   }
   conteudo.baloes.forEach((balao, indice) => {
-    conferir(`content.baloes[${String(indice)}].foto`, balao.foto, LIMITE_DE_FOTO);
+    if (balao.foto !== '')
+      conferir(`content.baloes[${String(indice)}].foto`, balao.foto, LIMITE_DE_FOTO);
   });
   conferir('config.publicacao.imagemDaPrevia', config.publicacao.imagemDaPrevia, LIMITE_DA_PREVIA);
   for (const fonte of fontes) conferir('fonte', fonte, LIMITE_DE_FONTE);

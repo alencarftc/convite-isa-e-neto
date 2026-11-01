@@ -5,6 +5,21 @@ import { describe, expect, it } from 'vitest';
 
 import { config } from '../../src/config/config';
 import { content } from '../../src/config/content';
+
+/**
+ * O conteúdo com as fotos dos balões preenchidas: as do casal ainda não chegaram (as provisórias saíram em
+ * 31/10/2026), e estes testes cobrem o tratamento da foto para quando chegarem.
+ */
+const comFotos = {
+  ...content,
+  baloes: content.baloes.map((balao, indice) => ({
+    ...balao,
+    foto: `photos/foto-${String(indice + 1)}.jpg`,
+    alt: `Descrição da foto ${String(indice + 1)}`,
+    foco: '50% 35%',
+  })),
+};
+
 import { PLANO_B } from '../../src/domain/plano-b/plano-b';
 import { gerarNoscript } from './noscript';
 import {
@@ -92,9 +107,11 @@ describe('texto do plano B (SPEC-15, RF-15.7)', () => {
   });
 
   it('as fotos do plano B esperam em data-src: escondido, o navegador baixaria um <img loading="lazy"> mesmo assim (SPEC-13, RF-13.5)', () => {
-    const fotos = [...texto.matchAll(/<img [^>]*>/g)].map(([tag]) => tag);
+    const fotos = [...gerarTextoDoPlanoB(comFotos, config).matchAll(/<img [^>]*>/g)].map(
+      ([tag]) => tag,
+    );
 
-    expect(fotos).toHaveLength(content.baloes.length);
+    expect(fotos).toHaveLength(comFotos.baloes.length);
     for (const tag of fotos) {
       expect(tag).toContain('data-src="');
       expect(tag).not.toMatch(/ssrc="/);
@@ -102,7 +119,7 @@ describe('texto do plano B (SPEC-15, RF-15.7)', () => {
   });
 
   it('já as do <noscript>, que só existe sem JavaScript, usam src direto', () => {
-    const noscript = gerarNoscript(content, config);
+    const noscript = gerarNoscript(comFotos, config);
 
     expect(noscript).toMatch(/<img src="/);
     expect(noscript).not.toContain('data-src');

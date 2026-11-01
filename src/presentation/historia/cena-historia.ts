@@ -32,15 +32,17 @@ interface Partes {
 }
 
 /**
- * História em balões (SPEC-05): cinco balões saem do baú, um a cada `duracoes.balao`, cada um com
- * foto e frase; a luz caminha ao pôr do sol na mesma linha do tempo (`tlHistoria`). Nada na tela
+ * História em balões (SPEC-05): cinco balões saem do baú em cascata, um a cada `duracoes.balao`, e se
+ * ajeitam num cacho, cada um com a sua frase (dentro da nuvem; com foto, num cartão embaixo); a luz caminha ao pôr do sol na mesma linha do tempo (`tlHistoria`). Nada na tela
  * acelera nem pula a história: quem não quer vê-la inteira usa "Pular para o convite" (ADR-0012). A
  * região `aria-live` anuncia cada frase uma vez (RF-05.8).
  */
 export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
   const { raiz, conteudo, config, eventos } = dependencias;
   const { duracoes, curvas, historia: parametros } = config;
-  const total = duracoes.balao * conteudo.baloes.length;
+  /** O ciclo de um balão, da saída da boca do baú até sair pelo alto. */
+  const ciclo = parametros.subidaFinalEm + parametros.subidaFinal;
+  const total = duracoes.balao * (conteudo.baloes.length - 1) + ciclo;
 
   let partes: Partes | undefined;
   let linhaDoTempo: gsap.core.Timeline | undefined;
@@ -53,7 +55,9 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
 
     const baloes = conteudo.baloes.map((balao, indice) => {
       const variacao = VARIACOES[indice % VARIACOES.length] ?? 'a';
-      const elemento = criar('div', `balao balao--${variacao}`);
+      // Sem foto (as do casal ainda não chegaram), a frase fica dentro da nuvem, que é o balão.
+      const semFoto = balao.foto === '';
+      const elemento = criar('div', `balao balao--${variacao}${semFoto ? ' balao--sem-foto' : ''}`);
       // O corpo (nuvem e foto) balança; a frase fica de fora, parada e na horizontal.
       const corpo = criar('div', 'balao__corpo');
       const nuvem = document.createElement('img');
@@ -66,7 +70,12 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
       if (foto) corpo.append(foto);
       const frase = criar('p', 'balao__frase');
       frase.textContent = balao.frase;
-      elemento.append(corpo, frase);
+      if (semFoto) {
+        corpo.append(frase);
+        elemento.append(corpo);
+      } else {
+        elemento.append(corpo, frase);
+      }
       gsap.set(elemento, { opacity: 0, xPercent: -50, yPercent: -50 });
       gsap.set(frase, { opacity: 0 });
       return elemento;
@@ -98,14 +107,15 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
         alturaDaTela: window.innerHeight,
         alturaDoBalao: balao.offsetHeight,
         fracaoDaSaida:
-          window.innerWidth > window.innerHeight
-            ? parametros.alturaDaSaidaNaHorizontal
-            : parametros.alturaDaSaida,
+          (window.innerWidth > window.innerHeight
+            ? parametros.alturasNaHorizontal
+            : parametros.alturas)[indice % parametros.alturas.length] ?? 0.6,
         fracaoDaLeitura: parametros.subidaDaLeitura,
         margem: parametros.margemSuperior,
       });
     const desvio = parametros.desvios[indice % parametros.desvios.length] ?? 0;
-    // A frase fica no centro da tela mesmo que o balão se desvie para um lado: a CSS lê este recuo.
+    // Com o cartão de frase embaixo (balão com foto), ele fica no centro da tela mesmo que o balão se desvie
+    // para um lado: a CSS lê este recuo.
     balao.style.setProperty('--desvio-x', `${String(-desvio * window.innerWidth)}px`);
     const linha = gsap.timeline();
     linha

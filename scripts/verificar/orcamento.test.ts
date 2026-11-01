@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { config } from '../../src/config/config';
-import { content } from '../../src/config/content';
+import { content as conteudoReal } from '../../src/config/content';
 import { urlsDaImagem } from '../../src/domain/imagens/catalogo-de-imagens';
 import {
   encontrarArquivosCitados,
@@ -13,10 +13,19 @@ import {
 } from './orcamento';
 
 const KB = 1024;
+
+/** O conteúdo com as fotos dos balões preenchidas: as do casal ainda não chegaram (31/10/2026). */
+const content = {
+  ...conteudoReal,
+  baloes: conteudoReal.baloes.map((balao, indice) => ({
+    ...balao,
+    foto: `photos/foto-${String(indice + 1)}.jpg`,
+  })),
+};
 const AUDIOS = ['audio/ambiente.mp3', 'audio/musica-2.mp3'];
 
-/** Tamanho falso: tudo pequeno, a não ser o que o teste pedir. */
-function tamanhos(especiais: Record<string, number> = {}, padrao = 10 * KB) {
+/** Tamanho falso: tudo pequeno (abaixo do menor limite, o do chão, de 5 KB), a não ser o que o teste pedir. */
+function tamanhos(especiais: Record<string, number> = {}, padrao = 4 * KB) {
   return (caminho: string) => especiais[caminho] ?? padrao;
 }
 

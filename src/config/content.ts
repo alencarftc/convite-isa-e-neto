@@ -61,36 +61,38 @@ export const content: ConteudoConvite = {
   },
   // Fotos e descrições dependem do casal (SPEC-05, "Questões em aberto"): os colchetes impedem a
   // publicação (`pnpm verificar`) e as fotos apontam para arte provisória.
+  // Fotos dos balões: pendentes (as do casal ainda não chegaram; as provisórias saíram em 31/10/2026). Sem foto
+  // (`foto: ''`), a frase vive dentro da nuvem. Quando chegarem, preencha `foto`, `alt` (descrição) e `foco`.
   baloes: [
     {
       frase: 'Tudo começou de um jeito simples.',
-      foto: 'assets/provisorio/foto-1.svg',
-      alt: '[descrever a foto 1]',
-      foco: '50% 35%',
+      foto: '',
+      alt: '',
+      foco: '',
     },
     {
       frase: 'Viramos amigos, parceiros e um só time.',
-      foto: 'assets/provisorio/foto-2.svg',
-      alt: '[descrever a foto 2]',
-      foco: '50% 35%',
+      foto: '',
+      alt: '',
+      foco: '',
     },
     {
       frase: 'Entre risadas e orações, o amor cresceu.',
-      foto: 'assets/provisorio/foto-3.svg',
-      alt: '[descrever a foto 3]',
-      foco: '50% 35%',
+      foto: '',
+      alt: '',
+      foco: '',
     },
     {
       frase: 'Em Salinas, à beira-mar, veio o pedido.',
-      foto: 'assets/provisorio/foto-4.svg',
-      alt: '[descrever a foto 4]',
-      foco: '50% 35%',
+      foto: '',
+      alt: '',
+      foco: '',
     },
     {
       frase: 'E o nosso sonho ganhou um sim.',
-      foto: 'assets/provisorio/foto-5.svg',
-      alt: '[descrever a foto 5]',
-      foco: '50% 35%',
+      foto: '',
+      alt: '',
+      foco: '',
     },
   ],
   contagem: {

@@ -27,6 +27,8 @@ const config = {
     envelopeAberto: 'envelope-aberto',
     selo: 'selo',
     papelCarta: 'papel-carta',
+    papelMiolo: 'papel-miolo',
+    chao: { vertical: 'chao-v', horizontal: 'chao-h' },
     casal: 'casal',
     folhaA: 'folha-a',
     folhaB: 'folha-b',
@@ -244,7 +246,14 @@ describe('criarCarregamento', () => {
       };
       await aposOGrupo(['folha-a', 'folha-b', 'folha-c', 'esquilo-encolhido', 'esquilo-esticado']);
       await aposOGrupo(['sol-h']);
-      await aposOGrupo(['envelope-fechado', 'envelope-aberto', 'selo', 'papel-carta']);
+      await aposOGrupo([
+        'envelope-fechado',
+        'envelope-aberto',
+        'selo',
+        'papel-carta',
+        'papel-miolo',
+        'chao-h',
+      ]);
       await aposOGrupo(['casal']);
     });
 

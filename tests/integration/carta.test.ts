@@ -6,6 +6,7 @@ import { registrarVisita } from '@/application/use-cases/registrar-visita';
 import { config as configReal } from '@/config/config';
 import { content } from '@/config/content';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
+import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 import { criarCenaBosque } from '@/presentation/bosque/cena-bosque';
 import { criarCartaEConvite } from '@/presentation/carta/cena-carta';
 import { montarCarta } from '@/presentation/carta/montar-carta';
@@ -56,18 +57,16 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}) {
   };
   const opacidade = (seletor: string) => Number(gsap.getProperty(el(seletor), 'opacity'));
 
-  /** Percorre a etapa do envelope e a da abertura, devolvendo as duas promessas. */
-  function abrirTudo(como: 'toque' | 'tempo') {
+  /** Percorre a etapa do envelope e a da abertura com um toque no selo, devolvendo a promessa das duas. */
+  function abrirTudo() {
     const aEtapaDaCarta = carta.run();
-    if (como === 'toque') {
-      void vi
-        .waitFor(() => {
-          expect(botao().disabled).toBe(false);
-        })
-        .then(() => {
-          botao().click();
-        });
-    }
+    void vi
+      .waitFor(() => {
+        expect(botao().disabled).toBe(false);
+      })
+      .then(() => {
+        botao().click();
+      });
     return aEtapaDaCarta.then(() => convite.run());
   }
 
@@ -83,7 +82,12 @@ afterEach(() => {
 });
 
 describe('montarCarta (SPEC-06, "Layout da carta")', () => {
-  const papel = { url: 'papel.svg', proporcao: 1.5, corte: { de: 0.4, ate: 0.6 }, margem: 0.1 };
+  const papel = {
+    url: 'papel.svg',
+    urlDoMiolo: 'miolo.svg',
+    proporcao: 1.5,
+    corte: { de: 0.4, ate: 0.6 },
+  };
   const artigo = () => montarCarta(content.carta, papel);
 
   it('tem os quatorze blocos, na ordem aprovada, com o texto de content.carta (CT-06.5)', () => {
@@ -117,6 +121,13 @@ describe('montarCarta (SPEC-06, "Layout da carta")', () => {
     expect(titulo?.querySelector('.carta__e')?.textContent).toBe('&');
   });
 
+  it('o título mantém os espaços em volta do "&": a CSS o põe na própria linha e o nome acessível não muda (31/10/2026)', () => {
+    const titulo = artigo().querySelector<HTMLElement>('#carta-titulo');
+    const n = content.carta.nomes;
+
+    expect(titulo?.textContent).toBe(`${n.noiva} ${n.e} ${n.noivo}`);
+  });
+
   it('os pais da noiva vêm primeiro e depois os do noivo, um nome por linha (CT-06.6)', () => {
     const colunas = [...artigo().querySelectorAll('.carta__coluna')];
 
@@ -138,14 +149,25 @@ describe('montarCarta (SPEC-06, "Layout da carta")', () => {
     }
   });
 
-  it('entrega o papel à CSS por variáveis: a arte, a proporção e a faixa do meio que se estica (ADR-0012)', () => {
+  it('entrega o papel à CSS por variáveis: a arte, o ladrilho do miolo, a proporção e a faixa do meio (ADR-0014)', () => {
     const a = artigo();
 
     expect(a.style.getPropertyValue('--papel')).toContain('papel.svg');
+    expect(a.style.getPropertyValue('--papel-miolo')).toContain('miolo.svg');
     expect(a.style.getPropertyValue('--papel-proporcao')).toBe('1.5');
     expect(a.style.getPropertyValue('--papel-corte-de')).toBe('0.4');
     expect(a.style.getPropertyValue('--papel-corte-ate')).toBe('0.6');
-    expect(a.style.getPropertyValue('--papel-margem')).toBe('0.1');
+    expect(a.style.getPropertyValue('--papel-margem')).toBe('');
+  });
+
+  it('o miolo do papel é um elemento decorativo, o primeiro da carta, e não é um bloco de texto (ADR-0014)', () => {
+    const a = artigo();
+
+    const miolo = a.firstElementChild;
+    expect(miolo?.classList.contains('carta__miolo')).toBe(true);
+    expect(miolo?.getAttribute('aria-hidden')).toBe('true');
+    expect(miolo?.classList.contains('carta__bloco')).toBe(false);
+    expect(miolo?.textContent).toBe('');
   });
 });
 
@@ -173,7 +195,7 @@ describe('envelope e carta (SPEC-06)', () => {
       const criadas = espionarImagens();
       montar();
 
-      expect(imagensDoEnvelope()).toHaveLength(4); // fechado, aberto e as duas metades do selo
+      expect(imagensDoEnvelope()).toHaveLength(3); // fechado, aberto e o selo inteiro
       expect(imagensDoEnvelope().every((imagem) => !imagem.hasAttribute('src'))).toBe(true);
       expect(criadas).toHaveLength(0);
     });
@@ -186,6 +208,7 @@ describe('envelope e carta (SPEC-06)', () => {
       );
       const carta = document.querySelector<HTMLElement>('.carta');
       expect(carta?.style.getPropertyValue('--papel')).toContain(config.imagens.papelCarta);
+      expect(carta?.style.getPropertyValue('--papel-miolo')).toContain(config.imagens.papelMiolo);
       expect(carta?.style.getPropertyValue('--papel-proporcao')).toBe(
         String(config.carta.papel.proporcao),
       );
@@ -218,13 +241,14 @@ describe('envelope e carta (SPEC-06)', () => {
   });
 
   describe('estrutura (init)', () => {
-    it('monta o envelope sem texto escrito, o selo em duas metades (as siglas vêm na arte) e o botão (RF-06.1 a 06.3)', () => {
+    it('monta o envelope sem texto escrito, o selo inteiro (as siglas vêm na arte) e o botão (RF-06.1 a 06.3)', () => {
       const { el, botao } = montar();
 
       expect(document.querySelector('.envelope__para')).toBeNull();
       expect(el('.envelope').textContent.trim()).toBe('');
       expect(document.querySelector('.selo__iniciais')).toBeNull();
-      expect(document.querySelectorAll('.selo__metade')).toHaveLength(2);
+      expect(document.querySelectorAll('.envelope .selo__imagem')).toHaveLength(1);
+      expect(document.querySelector('.selo__metade')).toBeNull(); // o selo não se parte (31/10/2026)
       expect(botao().getAttribute('aria-label')).toBe('Abrir o envelope');
       expect(botao().disabled).toBe(true);
     });
@@ -247,24 +271,27 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(raiz.querySelector(':scope > .convite__rolar')).toBeNull();
     });
 
-    it('o chão sob a cena é o primeiro plano espelhado (uma cópia da camada), e não uma cor lisa (ADR-0012)', () => {
+    it('o chão sob a cena é uma faixa de imagem minúscula, escondida até a cena subir, e não um espelho do primeiro plano (31/10/2026)', () => {
       const { el } = montar();
 
-      const espelho = el('.convite__chao .camada--frente');
-      const original = el('.cena .camada--frente');
-      expect(espelho).not.toBe(original);
-      expect(espelho.querySelector('img')?.getAttribute('src')).toBe(
-        original.querySelector('img')?.getAttribute('src'),
-      );
-      expect(espelho.hasAttribute('data-prof')).toBe(false); // não entra na profundidade do mouse
+      expect(document.querySelector('.convite__chao .camada--frente')).toBeNull(); // sem espelho duplicado
+      const imagem = el('.convite__chao .convite__chao-imagem');
+      expect(imagem.getAttribute('data-src')).toBe(urlDaImagem(config.imagens.chao, 'vertical'));
       expect(el('.convite__chao').getAttribute('aria-hidden')).toBe('true');
+      expect(Number(gsap.getProperty(el('.convite__chao'), 'opacity'))).toBe(0);
+    });
+
+    it('a faixa de chão só é pedida quando a etapa começa, não no init', () => {
+      const { el } = montar();
+
+      expect(el('.convite__chao .convite__chao-imagem').hasAttribute('src')).toBe(false);
     });
 
     it('o chão sobe junto com a cena: o mesmo deslocamento no fim da abertura e no estado final', async () => {
       const { abrirTudo, el, carta } = montar();
       Object.assign(window, { innerHeight: 800 });
 
-      await abrirTudo('toque');
+      await abrirTudo();
 
       const esperado = -800 * config.convite.cenaSobeFracao;
       expect(Number(gsap.getProperty(el('.convite__chao'), 'y'))).toBeCloseTo(esperado);
@@ -322,15 +349,33 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(registro.filter((r) => r.startsWith('abrindo'))).toEqual(['abrindo:toque']);
     });
 
-    it('sem toque, abre sozinho depois da espera do selo, com origem "tempo" (CA-06.3.1, CT-06.3)', async () => {
-      const { registro, abrirTudo } = montar();
+    it('não abre sozinho: sem toque nem arrasto o envelope fica esperando no selo (31/10/2026)', async () => {
+      const { carta, registro, botao, estado, el } = montar();
+      void carta.run();
+      await vi.waitFor(() => {
+        expect(botao().disabled).toBe(false);
+      });
 
-      await abrirTudo('tempo');
+      // Bem mais que os 4 s de antes (a configuração dos testes encolhe os tempos).
+      await new Promise((resolver) => setTimeout(resolver, 400));
 
-      expect(registro).toEqual(['pousou', 'abrindo:tempo', 'aberto']);
+      expect(registro).toEqual(['pousou']);
+      expect(estado.fase).toBe('aguardando-selo');
+      expect(botao().disabled).toBe(false);
+      expect(Number(gsap.getProperty(el('.envelope'), 'opacity'))).toBeGreaterThan(0);
     });
 
-    it('toque e fim da espera ao mesmo tempo: só a primeira origem vale (casos de borda)', async () => {
+    it('a carta dobrada fica escondida até a aba abrir: não aparece por trás do envelope fechado (31/10/2026)', async () => {
+      const { carta, botao, opacidade } = montar();
+      void carta.run();
+      await vi.waitFor(() => {
+        expect(botao().disabled).toBe(false);
+      });
+
+      expect(opacidade('.envelope__dobrada')).toBe(0);
+    });
+
+    it('dois toques seguidos: só a primeira origem vale (casos de borda)', async () => {
       const { carta, convite, registro, botao } = montar();
       const etapa = carta.run();
       await vi.waitFor(() => {
@@ -340,7 +385,6 @@ describe('envelope e carta (SPEC-06)', () => {
       botao().click();
       botao().click();
       await etapa;
-      await new Promise((resolver) => setTimeout(resolver, config.duracoes.esperaSelo * 1000 + 40));
       await convite.run();
 
       expect(registro.filter((r) => r.startsWith('abrindo'))).toEqual(['abrindo:toque']);
@@ -409,7 +453,7 @@ describe('envelope e carta (SPEC-06)', () => {
         expect(registro.filter((r) => r.startsWith('abrindo'))).toEqual(['abrindo:toque']);
       });
 
-      it('toque, espera e arrasto levam à mesma abertura: só a primeira origem vale (CT-16.2)', async () => {
+      it('toque e arrasto levam à mesma abertura: só a primeira origem vale (CT-16.2)', async () => {
         const { carta, convite, registro, botao } = montar();
         const etapa = carta.run();
         await esperarOSelo(botao);
@@ -417,20 +461,19 @@ describe('envelope e carta (SPEC-06)', () => {
         botao().click();
         deslizar(botao(), config.carta.gesto.limiar + 20);
         await etapa;
-        await new Promise((resolver) =>
-          setTimeout(resolver, config.duracoes.esperaSelo * 1000 + 40),
-        );
         await convite.run();
 
         expect(registro.filter((r) => r.startsWith('abrindo'))).toEqual(['abrindo:toque']);
       });
 
-      it('a espera do selo continua abrindo sozinha quando ninguém desliza (CT-16.2)', async () => {
-        const { registro, abrirTudo } = montar();
+      it('sem arrasto nem toque o envelope segue esperando, sem abrir sozinho (CT-16.2)', async () => {
+        const { carta, registro, botao } = montar();
+        void carta.run();
+        await esperarOSelo(botao);
 
-        await abrirTudo('tempo');
+        await new Promise((resolver) => setTimeout(resolver, 300));
 
-        expect(registro).toEqual(['pousou', 'abrindo:tempo', 'aberto']);
+        expect(registro).toEqual(['pousou']);
       });
     });
 
@@ -449,7 +492,7 @@ describe('envelope e carta (SPEC-06)', () => {
     it('emite carta:abrindo e, no fim, convite:aberto, nessa ordem (CA-06.4.1)', async () => {
       const { registro, abrirTudo } = montar();
 
-      await abrirTudo('toque');
+      await abrirTudo();
 
       expect(registro).toEqual(['pousou', 'abrindo:toque', 'aberto']);
     });
@@ -458,7 +501,7 @@ describe('envelope e carta (SPEC-06)', () => {
       const { abrirTudo, opacidade, el } = montar();
       Object.assign(window, { innerHeight: 800 });
 
-      await abrirTudo('toque');
+      await abrirTudo();
 
       expect(opacidade('.carta')).toBe(1);
       expect(Number(gsap.getProperty(el('.carta'), 'scaleY'))).toBe(1);
@@ -473,7 +516,7 @@ describe('envelope e carta (SPEC-06)', () => {
     it('libera a rolagem, tira o inert e leva o foco ao título (RF-06.9, RF-06.10)', async () => {
       const { abrirTudo, el } = montar();
 
-      await abrirTudo('toque');
+      await abrirTudo();
 
       expect(document.body.style.overflow).toBe('');
       expect(el('.conteudo').hasAttribute('inert')).toBe(false);
@@ -525,7 +568,7 @@ describe('envelope e carta (SPEC-06)', () => {
           });
         }, 2);
 
-        await abrirTudo('toque');
+        await abrirTudo();
         await vi.waitFor(() => {
           expect(blocos().every((bloco) => Number(gsap.getProperty(bloco, 'opacity')) === 1)).toBe(
             true,
@@ -540,7 +583,7 @@ describe('envelope e carta (SPEC-06)', () => {
         const { abrirTudo, opacidade } = montar();
         combinarCaixas(5000);
 
-        await abrirTudo('toque');
+        await abrirTudo();
         await vi.waitFor(() => {
           expect(blocos().every((bloco) => Number(gsap.getProperty(bloco, 'opacity')) === 1)).toBe(
             true,
@@ -554,7 +597,7 @@ describe('envelope e carta (SPEC-06)', () => {
         const { abrirTudo, opacidade, el } = montar();
         combinarCaixas(600); // dobra em 600 × (1 − folga): 528 px → só os blocos 0 a 3 cabem
 
-        await abrirTudo('toque');
+        await abrirTudo();
 
         await vi.waitFor(() => {
           expect(visivel(blocos()[3]!)).toBe(true);
@@ -571,7 +614,7 @@ describe('envelope e carta (SPEC-06)', () => {
       it('rolar faz a leitura andar, apaga "Role para ler" e ela nunca volta', async () => {
         const { abrirTudo, opacidade } = montar();
         const pagina = combinarCaixas(600);
-        await abrirTudo('toque');
+        await abrirTudo();
         await vi.waitFor(() => {
           expect(opacidade('.convite__rolar')).toBe(1);
         });
@@ -590,7 +633,7 @@ describe('envelope e carta (SPEC-06)', () => {
       it('o bloco que o convidado já deixou acima da tela aparece de uma vez, sem esperar', async () => {
         const { abrirTudo } = montar();
         const pagina = combinarCaixas(600);
-        await abrirTudo('toque');
+        await abrirTudo();
         await vi.waitFor(() => {
           expect(visivel(blocos()[3]!)).toBe(true);
         });
@@ -607,7 +650,7 @@ describe('envelope e carta (SPEC-06)', () => {
       it('tocar na tela não acelera nem pula a leitura (ADR-0012)', async () => {
         const { abrirTudo, el } = montar();
         combinarCaixas(600);
-        await abrirTudo('toque');
+        await abrirTudo();
         await vi.waitFor(() => {
           expect(visivel(blocos()[3]!)).toBe(true);
         });
@@ -624,7 +667,7 @@ describe('envelope e carta (SPEC-06)', () => {
     it('registra a visita no aparelho só ao terminar de abrir (RF-06.10)', async () => {
       const { abrirTudo, estado } = montar();
 
-      const termino = abrirTudo('toque');
+      const termino = abrirTudo();
       expect(estado.visitado).toBe(false);
       await termino;
 
@@ -651,7 +694,7 @@ describe('envelope e carta (SPEC-06)', () => {
     it('as pétalas da chuva não ficam no DOM depois (removidas ao terminar)', async () => {
       const { abrirTudo } = montar();
 
-      await abrirTudo('toque');
+      await abrirTudo();
 
       expect(document.querySelectorAll('.petala--chuva')).toHaveLength(0);
     });

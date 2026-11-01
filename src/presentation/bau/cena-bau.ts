@@ -24,12 +24,9 @@ export interface DependenciasDoBau {
 interface Partes {
   readonly bau: HTMLElement;
   readonly corpo: HTMLElement;
-  /** Aura que respira o tempo todo, o contorno dourado que a acompanha e o realce que o mouse acende. */
+  /** Aura amarela que respira o tempo todo e o realce que o mouse acende. */
   readonly aura: HTMLElement;
-  readonly contorno: HTMLElement;
   readonly realce: HTMLElement;
-  readonly onda: HTMLElement;
-  readonly brilhantes: readonly HTMLElement[];
   readonly aberto: HTMLElement;
   readonly luz: HTMLElement;
   /** O inventário (moldura e chave) fica na raiz, acima da cena: a chave sai dele e voa até o baú. */
@@ -51,8 +48,8 @@ function fracaoDe(valor: string, padrao: number): number {
  * Baú e chave (SPEC-04, ADR-0012): a chave espera no inventário, no pé da tela; um toque no baú (ou
  * na chave) a usa. Ela sai do inventário, voa até a fechadura, entra na horizontal, gira em torno do
  * próprio eixo e o baú abre com um pequeno salto, soltando a luz e as pétalas, tudo em `duracoes.bau`.
- * O baú tem sombra, aura que respira e pontos de luz. Dica após 1,5 s e reforço a cada 8 s sem
- * interação (até 3).
+ * O baú tem sombra no chão e uma aura amarela que respira (mais forte sob o mouse). Dica após 1,5 s e
+ * reforço a cada 8 s sem interação (até 3).
  */
 export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
   const { raiz, conteudo, config, estado, eventos } = dependencias;
@@ -83,18 +80,6 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     const sombra = decorativo('bau__sombra');
     const aura = decorativo('bau__aura');
     const realce = decorativo('bau__aura bau__aura--realce');
-    // Cópia do baú atrás dele, só para o seu brilho de contorno aparecer (a CSS põe o `drop-shadow`).
-    const contorno = criarImagem(
-      'bau__contorno',
-      urlDaImagem(config.imagens.bauFechado, 'vertical'),
-    );
-    contorno.setAttribute('aria-hidden', 'true');
-    const onda = decorativo('bau__onda');
-    const brilhantes = Array.from({ length: parametros.brilhantes.quantidade }, () =>
-      decorativo('bau__brilhante', 'span'),
-    );
-    const caixaDosBrilhantes = decorativo('bau__brilhantes');
-    caixaDosBrilhantes.append(...brilhantes);
     const luz = decorativo('bau__luz');
     // A tampa aberta e as pétalas só são pedidas quando o baú passa a aceitar o toque (`run`).
     const aberta = criarImagem(
@@ -110,17 +95,14 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     const dica = criar('p', 'bau__dica');
     dica.setAttribute('aria-live', 'polite');
 
-    // A sombra fica sobre a aura e o contorno (ou a luz os apagaria) e sob o baú.
+    // A sombra fica sobre a aura (ou a luz a apagaria) e sob o baú.
     corpo.append(
       aura,
       realce,
-      onda,
-      contorno,
       sombra,
       criarImagem('bau__fechado', urlDaImagem(config.imagens.bauFechado, 'vertical')),
       aberta,
       luz,
-      caixaDosBrilhantes,
       botao,
       dica,
     );
@@ -140,9 +122,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     inventario.append(moldura, chave);
     raiz.append(inventario);
 
-    gsap.set([aberta, luz, aura, contorno, realce, onda, dica, inventario, ...brilhantes], {
-      opacity: 0,
-    });
+    gsap.set([aberta, luz, aura, realce, dica, inventario], { opacity: 0 });
     // A arte vem inclinada: a imagem gira dentro da caixa até a chave ficar na horizontal (ponta à
     // esquerda, argola à direita); a caixa guarda a inclinação do inventário e depois a desfaz.
     gsap.set(imagemDaChave, { rotation: medidas.giroDaArte });
@@ -155,10 +135,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
       bau,
       corpo,
       aura,
-      contorno,
       realce,
-      onda,
-      brilhantes,
       aberto: aberta,
       luz,
       inventario,
@@ -181,29 +158,17 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     ociosas = [];
   }
 
-  /** A chave pulsa e uma onda sai do baú: o aviso para quem tocou fora ou ficou parado. */
+  /** A chave pulsa: o aviso para quem tocou fora do baú ou ficou parado. */
   function pulsar(escala: number, duracao: number, repeticoes = 1): void {
-    const { chave, onda } = montar();
-    const meio = duracao / (repeticoes * 2);
+    const { chave } = montar();
     ociosas.push(
       gsap.to(chave, {
         scale: escala,
-        duration: meio,
+        duration: duracao / (repeticoes * 2),
         ease: curvas.suave,
         yoyo: true,
         repeat: repeticoes * 2 - 1,
       }),
-      gsap.fromTo(
-        onda,
-        { opacity: parametros.onda.opacidade, scale: parametros.onda.inicio },
-        {
-          opacity: 0,
-          scale: parametros.onda.fim,
-          duration: meio * 2,
-          ease: curvas.saida,
-          repeat: repeticoes - 1,
-        },
-      ),
     );
   }
 
@@ -279,26 +244,14 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
 
   function abrir(): Promise<void> {
     const p = montar();
-    const {
-      corpo,
-      aura,
-      contorno,
-      realce,
-      brilhantes,
-      aberto: tampa,
-      luz,
-      moldura,
-      chave,
-      botao,
-      dica,
-    } = p;
+    const { corpo, aura, realce, aberto: tampa, luz, moldura, chave, botao, dica } = p;
     aberto = true;
     botao.disabled = true;
     estado.definirFase('bau');
     limparAgendamentos();
     pararOciosas();
     ouvintes?.abort();
-    gsap.killTweensOf([aura, contorno, realce]);
+    gsap.killTweensOf([aura, realce]);
 
     const { partida, aproximada, encaixada, escala } = mirarNaFechadura(p);
     const x0 = Number(gsap.getProperty(chave, 'x'));
@@ -316,11 +269,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
         .timeline({ onComplete: resolver })
         // 0 s: a dica e a aura somem; o inventário fica vazio assim que a chave sai.
         .to(dica, { opacity: 0, duration: parametros.dicaSome, ease: curvas.saida }, 0)
-        .to(
-          [aura, contorno, realce, ...brilhantes],
-          { opacity: 0, duration: parametros.dicaSome, ease: curvas.saida },
-          0,
-        )
+        .to([aura, realce], { opacity: 0, duration: parametros.dicaSome, ease: curvas.saida }, 0)
         .to(
           moldura,
           { opacity: 0, duration: parametros.inventarioSome, ease: curvas.saida },
@@ -460,8 +409,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     },
 
     run() {
-      const { bau, botao, aura, contorno, realce, brilhantes, inventario, chave, brilho } =
-        montar();
+      const { bau, botao, aura, realce, inventario, chave, brilho } = montar();
       carregarImagensTardias(bau);
       // Pede as pétalas agora, para estarem prontas quando a tampa abrir (RF-04.9), e não no `init`.
       petalas = (['petalaA', 'petalaB', 'petalaC'] as const).map((chavePetala) => {
@@ -473,8 +421,8 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
         ouvintes = new AbortController();
         const { signal } = ouvintes;
 
-        // O inventário sobe até a tela com a chave balançando e brilhando; o baú respira a aura e
-        // cintila (RF-04.3, ADR-0012). Só `transform` e `opacity`.
+        // O inventário sobe até a tela com a chave balançando e brilhando; o baú respira a aura amarela
+        // (RF-04.3, ADR-0012). Só `transform` e `opacity`.
         const base = parametros.chave.inclinacaoNoInventario;
         const balanco = parametros.balancoNoInventario;
         gsap.fromTo(
@@ -518,37 +466,6 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
             },
           ),
         );
-        // O contorno dourado respira junto com a aura (só a opacidade: a escala o descolaria do baú).
-        ociosas.push(
-          gsap.fromTo(
-            contorno,
-            { opacity: parametros.aura.minimo },
-            {
-              opacity: parametros.aura.maximo,
-              duration: parametros.aura.periodo / 2,
-              ease: curvas.suave,
-              yoyo: true,
-              repeat: -1,
-            },
-          ),
-        );
-        brilhantes.forEach((brilhante, indice) => {
-          ociosas.push(
-            gsap.fromTo(
-              brilhante,
-              { opacity: 0, scale: 0.2 },
-              {
-                opacity: 1,
-                scale: 1,
-                duration: parametros.brilhantes.periodo / 2,
-                delay: indice * parametros.brilhantes.intervalo,
-                ease: curvas.suave,
-                yoyo: true,
-                repeat: -1,
-              },
-            ),
-          );
-        });
         reiniciarReforco();
         botao.disabled = false;
         // O foco vai para o baú quando ele passa a aceitar o toque (SPEC-09, RF-09.6).
@@ -571,7 +488,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
             { signal },
           );
         }
-        // Toque fora do baú: a chave e a onda pulsam uma vez; qualquer interação adia o reforço.
+        // Toque fora do baú: a chave pulsa uma vez; qualquer interação adia o reforço.
         window.addEventListener(
           'pointerdown',
           (evento) => {
@@ -595,31 +512,19 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     },
 
     skip() {
-      const {
-        aberto: tampa,
-        luz,
-        aura,
-        contorno,
-        realce,
-        brilhantes,
-        inventario,
-        chave,
-        dica,
-        botao,
-        corpo,
-      } = montar();
+      const { aberto: tampa, luz, aura, realce, inventario, chave, dica, botao, corpo } = montar();
       aberto = true;
       linhaDoTempo?.kill();
       limparAgendamentos();
       pararOciosas();
       ouvintes?.abort();
-      gsap.killTweensOf([aura, contorno, realce, inventario]);
+      gsap.killTweensOf([aura, realce, inventario]);
       botao.disabled = true;
       // Baú aberto, luz assentada e sem chave, inventário, aura nem dica (RF-04.8).
       removerPetalas(corpo);
       gsap.set(tampa, { opacity: 1 });
       gsap.set(luz, { opacity: parametros.opacidadeFinalDaLuz });
-      gsap.set([chave, aura, contorno, realce, dica, inventario, ...brilhantes], { opacity: 0 });
+      gsap.set([chave, aura, realce, dica, inventario], { opacity: 0 });
     },
 
     destroy() {

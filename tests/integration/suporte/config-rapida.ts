@@ -16,7 +16,6 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
       balao: esc(original.duracoes.balao),
       carta: esc(original.duracoes.carta),
       convite: esc(original.duracoes.convite),
-      esperaSelo: esc(original.duracoes.esperaSelo),
       dicaChave: 0.05,
       reforcoDica: 0.15,
       esmaecimentoReduzido: 0.02,
@@ -29,9 +28,9 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
           ...original.entrada.saida.aperto,
           duracao: esc(original.entrada.saida.aperto.duracao),
         },
-        rompe: {
-          ...original.entrada.saida.rompe,
-          duracao: esc(original.entrada.saida.rompe.duracao),
+        solta: {
+          ...original.entrada.saida.solta,
+          duracao: esc(original.entrada.saida.solta.duracao),
         },
         brilho: {
           ...original.entrada.saida.brilho,
@@ -72,9 +71,9 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
         ...original.convite.seloCresce,
         duracao: esc(original.convite.seloCresce.duracao),
       },
-      seloParte: {
-        ...original.convite.seloParte,
-        duracao: esc(original.convite.seloParte.duracao),
+      seloSolta: {
+        ...original.convite.seloSolta,
+        duracao: esc(original.convite.seloSolta.duracao),
       },
       abaEm: esc(original.convite.abaEm),
       aba: esc(original.convite.aba),
@@ -137,11 +136,6 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
       chaveSome: esc(b.chaveSome),
       auraAparece: esc(b.auraAparece),
       aura: { ...b.aura, periodo: esc(b.aura.periodo) },
-      brilhantes: {
-        ...b.brilhantes,
-        periodo: esc(b.brilhantes.periodo),
-        intervalo: esc(b.brilhantes.intervalo),
-      },
       inventarioAparece: esc(b.inventarioAparece),
       inventarioSome: esc(b.inventarioSome),
       balancoNoInventario: {
