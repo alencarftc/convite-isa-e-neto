@@ -69,6 +69,41 @@
  * Esquilo (SPEC-21): duas imagens empilhadas (encolhido e esticado no pulo), trocadas por `opacity`; a largura e a
  * altura do chão vêm da configuração. Posicionado pela base, que é onde ele pousa e se achata.
  */
+
+/*
+ * A passagem do esquilo: uma faixa de lado a lado em que as bordas esmaecem (`--borda-da-passagem`), onde ficam os
+ * arbustos da pintura. Ele surge e some ali, como se viesse de trás deles, e não por cima.
+ */
+.esquilo__passagem {
+  --borda-da-passagem: 20%;
+
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  /* stylelint-disable-next-line property-no-vendor-prefix -- o Chrome 90 e o Safari 15 só entendem a versão com prefixo */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black var(--borda-da-passagem),
+    black calc(100% - var(--borda-da-passagem)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black var(--borda-da-passagem),
+    black calc(100% - var(--borda-da-passagem)),
+    transparent
+  );
+}
+
+@media (orientation: landscape) {
+  .esquilo__passagem {
+    --borda-da-passagem: 16%;
+  }
+}
+
 .esquilo {
   position: absolute;
   bottom: 0;

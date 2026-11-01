@@ -1,25 +1,35 @@
 import { describe, expect, it } from 'vitest';
 
-import { type ParametrosDoEsquilo, planejarVisita, visitaPermitida } from './esquilo';
+import {
+  type ParametrosDoEsquilo,
+  type PassoDoEsquilo,
+  planejarVisita,
+  type PuloDoEsquilo,
+} from './esquilo';
 import type { Aleatorio } from './sorteio';
 
 const PARAMETROS: ParametrosDoEsquilo = {
   primeiroEm: 6,
-  intervalo: [20, 35],
-  largura: { vertical: 0.07, horizontal: 0.035 },
-  chao: { vertical: 0.12, horizontal: 0.09 },
-  pulos: [3, 6],
+  intervalo: [12, 28],
+  largura: { vertical: 0.17, horizontal: 0.04 },
+  chao: { vertical: 0.22, horizontal: 0.16 },
+  paradas: [1, 3],
+  centro: [0.3, 0.7],
   pulo: {
-    distancia: [0.04, 0.06],
+    distancia: [0.06, 0.09],
     altura: [12, 18],
     voo: 0.28,
     pouso: 0.08,
     achatamento: 0.92,
-    respiro: [0.05, 0.2],
+    respiro: [0.05, 0.25],
   },
-  folgaDoBau: 0.1,
-  parada: [1.2, 2.4],
-  sacudidasDoRabo: 2,
+  corrida: { distancia: [0.1, 0.15], altura: [6, 10], voo: 0.18, respiro: [0, 0.04] },
+  chanceDeCorrida: 0.35,
+  chanceDeEspiar: 0.15,
+  chanceDeSairPeloOutroLado: 0.4,
+  parada: [1, 2.8],
+  sacudidasDoRabo: [0, 3],
+  olhadas: [0, 2],
   inclinacaoDaSacudida: 3,
 };
 
@@ -31,111 +41,195 @@ function congruente(semente: number): Aleatorio {
   };
 }
 
-const soma = (pulos: readonly { distancia: number }[]) =>
-  pulos.reduce((total, pulo) => total + pulo.distancia, 0);
+/** Uma tela de celular de 390 px e um esquilo de 17%, como na vertical. */
+const CELULAR = { larguraDaTela: 390, larguraDoEsquilo: 0.17 * 390 };
 
-/** O cenário do CT-21.1: tela de 390 px e o baú entre 120 e 270 px. */
-const CELULAR = { larguraDaTela: 390, bau: { esquerda: 120, direita: 270 } };
+const ehPulo = (passo: PassoDoEsquilo): passo is PuloDoEsquilo => passo.tipo === 'pulo';
+
+/** Percorre o plano e devolve a posição (borda esquerda do esquilo) depois de cada passo. */
+function posicoes(
+  lado: 'esquerda' | 'direita',
+  passos: readonly PassoDoEsquilo[],
+  cenario = CELULAR,
+): number[] {
+  let x = lado === 'esquerda' ? -cenario.larguraDoEsquilo : cenario.larguraDaTela;
+  return passos.map((passo) => {
+    if (passo.tipo === 'pulo') x += passo.sentido * passo.distancia;
+    return x;
+  });
+}
 
 describe('planejarVisita (SPEC-21)', () => {
-  it('em 390 px com o baú entre 120 e 270 px, a parada deixa 39 px de folga do baú, de 3 a 6 pulos de 4% a 6% (CT-21.1)', () => {
+  it('entra inteiro fora da tela, por um lado, e sai inteiro fora dela, pelo mesmo ou pelo outro', () => {
     const aleatorio = congruente(13);
     for (let i = 0; i < 300; i += 1) {
       const visita = planejarVisita(aleatorio, PARAMETROS, CELULAR);
-      if (!visita) throw new Error('a visita devia caber');
-      const andado = soma(visita.pulosDeIda);
-      // Ele parte encostado na borda, inteiro fora da tela: o lado voltado para o baú para a 39 px dele.
-      if (visita.lado === 'esquerda') expect(andado).toBeLessThanOrEqual(120 - 39 + 1e-9);
-      else expect(390 - andado).toBeGreaterThanOrEqual(270 + 39 - 1e-9);
-      expect(andado).toBeGreaterThan(0);
-      expect(visita.pulosDeIda.length).toBeGreaterThanOrEqual(3);
-      expect(visita.pulosDeIda.length).toBeLessThanOrEqual(6);
-      for (const pulo of [...visita.pulosDeIda, ...visita.pulosDeVolta]) {
-        expect(pulo.distancia).toBeGreaterThanOrEqual(0.04 * 390 - 1e-9);
-        expect(pulo.distancia).toBeLessThanOrEqual(0.06 * 390 + 1e-9);
-        expect(pulo.altura).toBeGreaterThanOrEqual(12);
-        expect(pulo.altura).toBeLessThanOrEqual(18);
-        expect(pulo.respiro).toBeGreaterThanOrEqual(0.05);
-        expect(pulo.respiro).toBeLessThanOrEqual(0.2);
+      const fim = posicoes(visita.lado, visita.passos).at(-1) ?? Number.NaN;
+
+      const esperado =
+        visita.ladoDaSaida === 'esquerda' ? -CELULAR.larguraDoEsquilo : CELULAR.larguraDaTela;
+      expect(fim).toBeCloseTo(esperado, 6);
+      // O primeiro pulo parte da borda de entrada, para dentro da tela.
+      const primeiro = visita.passos[0];
+      expect(primeiro && ehPulo(primeiro) ? primeiro.sentido : 0).toBe(
+        visita.lado === 'esquerda' ? 1 : -1,
+      );
+    }
+  });
+
+  it('as paradas ficam ao centro da tela: o centro do corpo cai entre 30% e 70% da largura (de 1 a 3 paradas)', () => {
+    const aleatorio = congruente(21);
+    const quantidades = new Set<number>();
+    for (let i = 0; i < 400; i += 1) {
+      const visita = planejarVisita(aleatorio, PARAMETROS, CELULAR);
+      const pontos = posicoes(visita.lado, visita.passos);
+      const paradas = visita.passos.flatMap((passo, indice) =>
+        passo.tipo === 'parada' ? [pontos[indice] ?? Number.NaN] : [],
+      );
+      if (paradas.length === 0) throw new Error('toda visita tem pelo menos uma parada');
+      quantidades.add(paradas.length);
+      expect(paradas.length).toBeLessThanOrEqual(3);
+
+      // Espiadas (uma parada, perto da borda) não passam do centro; as outras param todas ao centro.
+      const espiada = paradas.length === 1 && (paradas[0] ?? 0) < 0.13 * 390 - 1;
+      const espiadaDireita =
+        paradas.length === 1 && (paradas[0] ?? 0) > 390 - 0.13 * 390 - CELULAR.larguraDoEsquilo;
+      if (espiada || espiadaDireita) continue;
+      for (const esquerda of paradas) {
+        const centro = (esquerda + CELULAR.larguraDoEsquilo / 2) / 390;
+        expect(centro).toBeGreaterThanOrEqual(0.3 - 1e-9);
+        expect(centro).toBeLessThanOrEqual(0.7 + 1e-9);
+      }
+    }
+
+    expect(quantidades).toEqual(new Set([1, 2, 3]));
+  });
+
+  it('os pulinhos e as corridas respeitam o estilo de cada um; o último pulo de um trecho cobre o que falta', () => {
+    const aleatorio = congruente(5);
+    let corridas = 0;
+    let pulinhos = 0;
+    for (let i = 0; i < 300; i += 1) {
+      const visita = planejarVisita(aleatorio, PARAMETROS, CELULAR);
+      for (const passo of visita.passos.filter(ehPulo)) {
+        const estilo = passo.corrida ? PARAMETROS.corrida : PARAMETROS.pulo;
+        if (passo.corrida) corridas += 1;
+        else pulinhos += 1;
+        // O último pulo de um trecho pode ser mais curto (cobre o que falta) ou mais longo (absorve uma sobra).
+        expect(passo.distancia).toBeLessThanOrEqual(estilo.distancia[1] * 390 * 1.5 + 1e-9);
+        expect(passo.distancia).toBeGreaterThan(0);
+        expect(passo.altura).toBeGreaterThanOrEqual(estilo.altura[0]);
+        expect(passo.altura).toBeLessThanOrEqual(estilo.altura[1]);
+        expect(passo.voo).toBe(estilo.voo);
+        expect(passo.respiro).toBeGreaterThanOrEqual(estilo.respiro[0]);
+        expect(passo.respiro).toBeLessThanOrEqual(estilo.respiro[1]);
+      }
+    }
+
+    expect(corridas).toBeGreaterThan(0);
+    expect(pulinhos).toBeGreaterThan(corridas); // a corrida é a exceção (35% dos trechos)
+  });
+
+  it('cada parada dura de 1 a 2,8 s, sacode o rabo de 0 a 3 vezes e olha em volta de 0 a 2', () => {
+    const aleatorio = congruente(2);
+    const sacudidas = new Set<number>();
+    const olhadas = new Set<number>();
+    for (let i = 0; i < 300; i += 1) {
+      for (const passo of planejarVisita(aleatorio, PARAMETROS, CELULAR).passos) {
+        if (passo.tipo !== 'parada') continue;
+        expect(passo.duracao).toBeGreaterThanOrEqual(1);
+        expect(passo.duracao).toBeLessThanOrEqual(2.8);
+        sacudidas.add(passo.sacudidas);
+        olhadas.add(passo.olhadas);
+      }
+    }
+
+    expect(sacudidas).toEqual(new Set([0, 1, 2, 3]));
+    expect(olhadas).toEqual(new Set([0, 1, 2]));
+  });
+
+  it('é imprevisível: sorteia os dois lados de entrada e de saída, espiadas e travessias', () => {
+    const aleatorio = congruente(8);
+    const entradas = new Set<string>();
+    const saidas = new Set<string>();
+    let travessias = 0;
+    let espiadas = 0;
+    const formas = new Set<string>();
+    for (let i = 0; i < 400; i += 1) {
+      const visita = planejarVisita(aleatorio, PARAMETROS, CELULAR);
+      entradas.add(visita.lado);
+      saidas.add(visita.ladoDaSaida);
+      if (visita.ladoDaSaida !== visita.lado) travessias += 1;
+      const paradas = visita.passos.filter((passo) => passo.tipo === 'parada').length;
+      if (paradas === 1 && visita.ladoDaSaida === visita.lado) {
+        const pontos = posicoes(visita.lado, visita.passos);
+        const quando = visita.passos.findIndex((passo) => passo.tipo === 'parada');
+        const parada = pontos[quando] ?? 0;
+        if (parada < 0.13 * 390 || parada > 390 - 0.13 * 390 - CELULAR.larguraDoEsquilo) {
+          espiadas += 1;
+        }
+      }
+      // p = pulinho, c = pulo de corrida, P = parada: o desenho da visita.
+      formas.add(
+        visita.passos
+          .map((passo) => (passo.tipo === 'parada' ? 'P' : passo.corrida ? 'c' : 'p'))
+          .join(''),
+      );
+    }
+
+    expect(entradas).toEqual(new Set(['esquerda', 'direita']));
+    expect(saidas).toEqual(new Set(['esquerda', 'direita']));
+    expect(travessias).toBeGreaterThan(80); // cerca de 40% de 85% das visitas
+    expect(espiadas).toBeGreaterThan(20); // cerca de 15% das visitas
+    expect(formas.size).toBeGreaterThan(40); // quase nenhuma visita é igual à outra
+  });
+
+  it('a espiada mostra o esquilo perto da borda por onde entrou, e ele volta pelo mesmo lado', () => {
+    const espiar: ParametrosDoEsquilo = { ...PARAMETROS, chanceDeEspiar: 1 };
+    const aleatorio = congruente(3);
+    for (let i = 0; i < 100; i += 1) {
+      const visita = planejarVisita(aleatorio, espiar, CELULAR);
+      const pontos = posicoes(visita.lado, visita.passos);
+      const quando = visita.passos.findIndex((passo) => passo.tipo === 'parada');
+      const parada = pontos[quando] ?? Number.NaN;
+
+      expect(visita.ladoDaSaida).toBe(visita.lado);
+      expect(visita.passos.filter((passo) => passo.tipo === 'parada')).toHaveLength(1);
+      if (visita.lado === 'esquerda') {
+        expect(parada).toBeGreaterThanOrEqual(0.02 * 390 - 1e-9);
+        expect(parada).toBeLessThanOrEqual(0.12 * 390 + 1e-9);
+      } else {
+        expect(parada + CELULAR.larguraDoEsquilo).toBeLessThanOrEqual(390 - 0.02 * 390 + 1e-9);
+        expect(parada + CELULAR.larguraDoEsquilo).toBeGreaterThanOrEqual(390 - 0.12 * 390 - 1e-9);
       }
     }
   });
 
-  it('a volta cobre tudo o que foi andado, até sair da tela pelo mesmo lado', () => {
-    const aleatorio = congruente(21);
-    for (let i = 0; i < 100; i += 1) {
-      const visita = planejarVisita(aleatorio, PARAMETROS, CELULAR);
-      if (!visita) throw new Error('a visita devia caber');
-
-      expect(soma(visita.pulosDeVolta)).toBeGreaterThanOrEqual(soma(visita.pulosDeIda));
-    }
-  });
-
-  it('para de 1,2 a 2,4 s e se vira duas vezes (para o outro lado e de volta)', () => {
-    const visita = planejarVisita(congruente(2), PARAMETROS, CELULAR);
-
-    expect(visita?.parada).toBeGreaterThanOrEqual(1.2);
-    expect(visita?.parada).toBeLessThanOrEqual(2.4);
-    expect(visita?.olhadas).toBe(2);
-  });
-
-  it('sorteia os dois lados', () => {
-    const aleatorio = congruente(5);
-    const lados = new Set<string>();
-    for (let i = 0; i < 100; i += 1) {
-      const visita = planejarVisita(aleatorio, PARAMETROS, CELULAR);
-      if (visita) lados.add(visita.lado);
-    }
-
-    expect(lados).toEqual(new Set(['esquerda', 'direita']));
-  });
-
-  it('sem espaço para dois pulos entre a borda e a folga do baú, cancela a visita (CT-21.2)', () => {
-    // Tela de 320 px: a folga é 32 px e cada lado fica com 18 px, menos que dois pulos de 4% (2 × 12,8 px).
-    const apertada = {
-      larguraDaTela: 320,
-      bau: { esquerda: 50, direita: 270 },
+  it('sem sorteio de outro lado e sem espiada, sai por onde entrou só quando o sorteio manda', () => {
+    const sempreVoltar: ParametrosDoEsquilo = {
+      ...PARAMETROS,
+      chanceDeEspiar: 0,
+      chanceDeSairPeloOutroLado: 0,
     };
-
-    expect(planejarVisita(congruente(1), PARAMETROS, apertada)).toBeNull();
-  });
-
-  it('se só um lado tem espaço, a visita vem por ele', () => {
-    // O baú encostado na direita: sobra espaço só à esquerda.
-    const cenario = {
-      larguraDaTela: 390,
-      bau: { esquerda: 200, direita: 380 },
+    const sempreAtravessar: ParametrosDoEsquilo = {
+      ...PARAMETROS,
+      chanceDeEspiar: 0,
+      chanceDeSairPeloOutroLado: 1,
     };
-    const aleatorio = congruente(8);
+    const aleatorio = congruente(11);
     for (let i = 0; i < 50; i += 1) {
-      expect(planejarVisita(aleatorio, PARAMETROS, cenario)?.lado).toBe('esquerda');
-    }
-  });
-});
+      const voltou = planejarVisita(aleatorio, sempreVoltar, CELULAR);
+      const atravessou = planejarVisita(aleatorio, sempreAtravessar, CELULAR);
 
-describe('visitaPermitida (SPEC-21, CA-13.4.3)', () => {
-  it('há visitas da entrada até a história', () => {
-    for (const fase of [
-      'carregando',
-      'aguardando-entrada',
-      'bosque',
-      'aguardando-bau',
-      'bau',
-      'historia',
-    ] as const) {
-      expect(visitaPermitida(fase), fase).toBe(true);
+      expect(voltou.ladoDaSaida).toBe(voltou.lado);
+      expect(atravessou.ladoDaSaida).not.toBe(atravessou.lado);
     }
   });
 
-  it('quando o envelope pousa (fase carta) e depois, não há mais', () => {
-    for (const fase of [
-      'carta',
-      'aguardando-selo',
-      'convite',
-      'informacoes',
-      'seguranca',
-    ] as const) {
-      expect(visitaPermitida(fase), fase).toBe(false);
-    }
+  it('a mesma sequência de sorteios dá o mesmo plano (o domínio não tem Math.random)', () => {
+    const a = planejarVisita(congruente(77), PARAMETROS, CELULAR);
+    const b = planejarVisita(congruente(77), PARAMETROS, CELULAR);
+
+    expect(a).toEqual(b);
   });
 });

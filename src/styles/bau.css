@@ -9,7 +9,7 @@
   --fechadura-y: 60%;
 
   position: absolute;
-  inset: auto 0 15%;
+  inset: auto 0 11%;
   z-index: var(--z-bau);
   width: clamp(150px, 46vw, 290px);
   margin-inline: auto;
@@ -17,7 +17,7 @@
 
 @media (orientation: landscape) {
   .bau {
-    bottom: 20%;
+    bottom: 16%;
     width: clamp(170px, 17vw, 280px);
   }
 }
@@ -34,10 +34,14 @@
   user-select: none;
 }
 
-/* O contorno do baú ganha uma sombra projetada para a esquerda e para baixo (o sol está à direita, ao fundo). */
+/*
+ * Só um fiapo de sombra no contorno do baú, para a esquerda (o sol está à direita, ao fundo): a sombra projetada
+ * maior, deslocada 5 px para baixo e para a esquerda, parecia um segundo baú atrás dele, e a que tocava o chão
+ * ficava ao lado e não embaixo (01/11/2026). O contato com o chão é a `.bau__sombra`, logo abaixo.
+ */
 .bau__fechado,
 .bau__aberto {
-  filter: drop-shadow(-5px 6px 5px var(--cor-sombra-35));
+  filter: drop-shadow(-1px 2px 2px var(--cor-sombra-35));
 }
 
 .bau__aberto,
@@ -55,17 +59,19 @@
 }
 
 /*
- * Sombra no chão: o sol está à direita e ao fundo, então ela cai para a esquerda, sobre o chão dourado ao lado
- * do baú (a grama do primeiro plano esconde o que fica embaixo dele). A base do baú, escurecida na própria
- * imagem (`pnpm arte`), completa o contato.
+ * Sombra no chão, logo embaixo do baú: uma elipse um pouco mais larga que ele, com o miolo escuro sob a base e a
+ * borda esmaecendo na grama, um pouco deslocada para a esquerda (o sol está à direita). Antes ela caía 40% ao
+ * lado do baú e, sem sombra embaixo, ele parecia flutuar sobre a grama (01/11/2026). A base do baú, escurecida na
+ * própria imagem (`pnpm arte`), completa o contato.
  */
 .bau__sombra {
-  inset: auto 8% -4% -40%;
-  height: 20%;
+  inset: auto -6% -13% -14%;
+  height: 38%;
   background: radial-gradient(
     closest-side,
     var(--cor-sombra-70),
-    var(--cor-sombra-35) 58%,
+    var(--cor-sombra-70) 42%,
+    var(--cor-sombra-35) 74%,
     transparent
   );
 }

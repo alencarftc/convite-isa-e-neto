@@ -1,4 +1,3 @@
-import { type Fase, FASES } from '../fase/fase';
 import {
   type Aleatorio,
   escolherLado,
@@ -8,6 +7,18 @@ import {
   sortearEntre,
   sortearInteiro,
 } from './sorteio';
+
+/** Como ele se move: pulinhos de sempre, ou aos disparos (pulos longos, baixos e quase sem respiro). */
+interface EstiloDePulo {
+  /** Quanto cada pulo avança, como fração da largura da tela. */
+  readonly distancia: Intervalo;
+  /** Altura do pulo, em pixels. */
+  readonly altura: Intervalo;
+  /** Duração do voo, em segundos. */
+  readonly voo: number;
+  /** Tempo parado entre um pulo e outro, em segundos. */
+  readonly respiro: Intervalo;
+}
 
 /** Parâmetros do esquilo que visita a grama (SPEC-21). Posições em frações da tela, salvo onde diz pixels. */
 export interface ParametrosDoEsquilo {
@@ -19,127 +30,152 @@ export interface ParametrosDoEsquilo {
   readonly largura: { readonly vertical: number; readonly horizontal: number };
   /** Distância da base da tela até as patas, como fração da altura da tela, por orientação. */
   readonly chao: { readonly vertical: number; readonly horizontal: number };
-  /** Quantos pulos até o ponto de parada. */
-  readonly pulos: Intervalo;
-  readonly pulo: {
-    /** Quanto cada pulo avança, como fração da largura da tela. */
-    readonly distancia: Intervalo;
-    /** Altura do pulo, em pixels. */
-    readonly altura: Intervalo;
-    /** Duração do voo e do pouso, em segundos. */
-    readonly voo: number;
+  /** Quantas paradas ele faz dentro da tela, entre a entrada e a saída (inteiros). */
+  readonly paradas: Intervalo;
+  /** Onde ele para, como fração da largura da tela: o centro do corpo cai nesta faixa ("ao centro"). */
+  readonly centro: Intervalo;
+  readonly pulo: EstiloDePulo & {
+    /** Duração do pouso, em segundos. */
     readonly pouso: number;
     /** O esquilo achata assim ao pousar (`scaleY`) e volta a 1. */
     readonly achatamento: number;
-    /** Tempo parado entre um pulo e outro, em segundos. */
-    readonly respiro: Intervalo;
   };
-  /** Distância que o esquilo respeita do baú, como fração da largura da tela. */
-  readonly folgaDoBau: number;
-  /** Quanto ele fica parado olhando em volta, em segundos. */
+  readonly corrida: EstiloDePulo;
+  /** A chance de cada trecho do caminho ser aos disparos, de 0 a 1. */
+  readonly chanceDeCorrida: number;
+  /** A chance de a visita ser só uma espiada: entra pouco, olha e volta por onde veio, de 0 a 1. */
+  readonly chanceDeEspiar: number;
+  /** A chance de sair pelo lado oposto ao da entrada, de 0 a 1. */
+  readonly chanceDeSairPeloOutroLado: number;
+  /** Quanto fica parado em cada parada, em segundos. */
   readonly parada: Intervalo;
-  readonly sacudidasDoRabo: number;
+  /** Quantas vezes o rabo sacode em cada parada (inteiros). */
+  readonly sacudidasDoRabo: Intervalo;
+  /** Quantas vezes se vira para olhar o outro lado e voltar, em cada parada (inteiros). */
+  readonly olhadas: Intervalo;
   /** Inclinação do corpo em cada sacudida do rabo, em graus. */
   readonly inclinacaoDaSacudida: number;
 }
 
 export interface PuloDoEsquilo {
+  readonly tipo: 'pulo';
+  /** Para onde pula: 1 vai para a direita da tela, -1 para a esquerda. */
+  readonly sentido: 1 | -1;
   /** Quanto avança, em pixels. */
   readonly distancia: number;
   /** Quanto sobe e desce, em pixels. */
   readonly altura: number;
+  /** Duração do voo, em segundos. */
+  readonly voo: number;
   /** Tempo parado depois do pouso, em segundos. */
   readonly respiro: number;
+  /** Foi um pulo de corrida. */
+  readonly corrida: boolean;
 }
 
-export interface PlanoDaVisita {
-  /** O lado da tela por onde entra (e por onde volta). */
-  readonly lado: Lado;
-  readonly pulosDeIda: readonly PuloDoEsquilo[];
-  /** Quanto fica parado, em segundos. */
-  readonly parada: number;
-  /** Quantas vezes se vira nessa parada (para o outro lado e de volta). */
+export interface ParadaDoEsquilo {
+  readonly tipo: 'parada';
+  readonly duracao: number;
+  /** Quantas vezes o rabo sacode. */
+  readonly sacudidas: number;
+  /** Quantas vezes se vira para o outro lado e volta. */
   readonly olhadas: number;
-  readonly pulosDeVolta: readonly PuloDoEsquilo[];
+}
+
+export type PassoDoEsquilo = PuloDoEsquilo | ParadaDoEsquilo;
+
+export interface PlanoDaVisita {
+  /** O lado da tela por onde entra. */
+  readonly lado: Lado;
+  /** O lado por onde sai: o mesmo da entrada, ou o oposto. */
+  readonly ladoDaSaida: Lado;
+  /** Do primeiro pulo, de fora da tela, ao último, também para fora dela. */
+  readonly passos: readonly PassoDoEsquilo[];
 }
 
 export interface CenarioDaVisita {
   readonly larguraDaTela: number;
-  /** As bordas do baú na tela, em pixels. */
-  readonly bau: { readonly esquerda: number; readonly direita: number };
+  readonly larguraDoEsquilo: number;
 }
 
-/** Ele se vira para o outro lado e volta a se virar. */
-const OLHADAS = 2;
-/** Menos pulos que isto não é uma visita (RF-21.2). */
-const MINIMO_DE_PULOS = 2;
-
-function sortearPulo(
-  aleatorio: Aleatorio,
-  parametros: ParametrosDoEsquilo,
-  larguraDaTela: number,
-): PuloDoEsquilo {
-  const { distancia, altura, respiro } = parametros.pulo;
-  return {
-    distancia: sortearEntre(distancia, aleatorio) * larguraDaTela,
-    altura: sortearEntre(altura, aleatorio),
-    respiro: sortearEntre(respiro, aleatorio),
-  };
-}
+/** Uma espiada mostra o esquilo inteiro a esta faixa da largura da tela, a partir da borda por onde entra. */
+const FAIXA_DA_ESPIADA: Intervalo = [0.02, 0.12];
+/** Sobra menor que isto, em fração do menor pulo, é absorvida pelo último pulo, em vez de virar um pulinho à parte. */
+const SOBRA_ABSORVIDA = 0.5;
 
 /**
- * Planeja uma visita: o esquilo entra por um lado, avança aos pulos até um ponto de parada que deixa folga antes
- * do baú, olha em volta e volta por onde veio (SPEC-21). Devolve `null` se não houver espaço para pelo menos dois
- * pulos entre a borda e a folga do baú (telas estreitas): a visita é cancelada e a próxima se agenda normalmente.
- * Se um lado não tem espaço, tenta o outro. CT-21.1 e CT-21.2.
+ * Planeja uma visita (SPEC-21): o esquilo entra por um lado, pula até algumas paradas ao centro da tela (de onde vem
+ * a graça: o número delas, o ponto de cada uma, o jeito de ir, se é aos pulinhos ou aos disparos, o que faz em cada
+ * parada e por onde sai são sorteados), e sai da tela. Com `chanceDeEspiar` a visita é só uma espiada: ele aparece
+ * perto da borda, olha e volta por onde veio. Nada aqui depende do baú: ele passa por trás do baú, no desenho.
+ * Devolve sempre um plano; `aleatorio` é injetado para o teste fixar a sequência.
  */
 export function planejarVisita(
   aleatorio: Aleatorio,
   parametros: ParametrosDoEsquilo,
   cenario: CenarioDaVisita,
-): PlanoDaVisita | null {
-  const { larguraDaTela, bau } = cenario;
-  const folga = parametros.folgaDoBau * larguraDaTela;
-  const primeiro = escolherLado(aleatorio);
-  for (const lado of [primeiro, ladoOposto(primeiro)]) {
-    // O esquilo parte inteiro fora da tela, encostado na borda: andar `espaco` o leva até a folga antes do baú, com o
-    // lado voltado para o baú (a direita, se vem da esquerda) a essa distância dele.
-    const espaco =
-      lado === 'esquerda' ? bau.esquerda - folga : larguraDaTela - (bau.direita + folga);
-    const menorPulo = parametros.pulo.distancia[0] * larguraDaTela;
-    if (espaco < MINIMO_DE_PULOS * menorPulo) continue;
+): PlanoDaVisita {
+  const { larguraDaTela, larguraDoEsquilo } = cenario;
+  const lado = escolherLado(aleatorio);
+  const espiar = aleatorio() < parametros.chanceDeEspiar;
+  const sairPeloOutro = aleatorio() < parametros.chanceDeSairPeloOutroLado;
+  const ladoDaSaida = !espiar && sairPeloOutro ? ladoOposto(lado) : lado;
 
-    const quantos = sortearInteiro(parametros.pulos, aleatorio);
-    const ida: PuloDoEsquilo[] = [];
-    let andado = 0;
-    for (let i = 0; i < quantos; i += 1) {
-      const pulo = sortearPulo(aleatorio, parametros, larguraDaTela);
-      if (andado + pulo.distancia > espaco) break;
-      ida.push(pulo);
-      andado += pulo.distancia;
-    }
-    if (ida.length < MINIMO_DE_PULOS) continue;
+  // `x` é a borda esquerda do esquilo: ele parte e chega inteiro fora da tela.
+  const foraEsquerda = -larguraDoEsquilo;
+  const foraDireita = larguraDaTela;
+  let x = lado === 'esquerda' ? foraEsquerda : foraDireita;
 
-    // A volta cobre o que foi andado até sair da tela, em pulos como os da ida.
-    const volta: PuloDoEsquilo[] = [];
-    let voltado = 0;
-    while (voltado < andado) {
-      const pulo = sortearPulo(aleatorio, parametros, larguraDaTela);
-      volta.push(pulo);
-      voltado += pulo.distancia;
+  const alvos: number[] = [];
+  if (espiar) {
+    const folga = sortearEntre(FAIXA_DA_ESPIADA, aleatorio) * larguraDaTela;
+    alvos.push(lado === 'esquerda' ? folga : larguraDaTela - larguraDoEsquilo - folga);
+  } else {
+    const quantas = sortearInteiro(parametros.paradas, aleatorio);
+    for (let i = 0; i < quantas; i += 1) {
+      alvos.push(sortearEntre(parametros.centro, aleatorio) * larguraDaTela - larguraDoEsquilo / 2);
     }
-    return {
-      lado,
-      pulosDeIda: ida,
-      parada: sortearEntre(parametros.parada, aleatorio),
-      olhadas: OLHADAS,
-      pulosDeVolta: volta,
-    };
   }
-  return null;
-}
+  const saida = ladoDaSaida === 'esquerda' ? foraEsquerda : foraDireita;
 
-/** O esquilo só visita antes de o envelope pousar: da entrada até a história (SPEC-21, RF-21.x). */
-export function visitaPermitida(fase: Fase): boolean {
-  return FASES.indexOf(fase) < FASES.indexOf('carta');
+  const passos: PassoDoEsquilo[] = [];
+
+  /** Vai de `x` até `alvo` em pulos, todos do mesmo estilo; o último cobre o que falta. */
+  function andarAte(alvo: number): void {
+    const corrida = aleatorio() < parametros.chanceDeCorrida;
+    const estilo = corrida ? parametros.corrida : parametros.pulo;
+    const sentido = alvo >= x ? 1 : -1;
+    const menor = estilo.distancia[0] * larguraDaTela;
+    let restante = Math.abs(alvo - x);
+    while (restante > 1e-6) {
+      let distancia = sortearEntre(estilo.distancia, aleatorio) * larguraDaTela;
+      if (distancia > restante || restante - distancia < menor * SOBRA_ABSORVIDA) {
+        distancia = restante;
+      }
+      passos.push({
+        tipo: 'pulo',
+        sentido,
+        distancia,
+        altura: sortearEntre(estilo.altura, aleatorio),
+        voo: estilo.voo,
+        respiro: sortearEntre(estilo.respiro, aleatorio),
+        corrida,
+      });
+      restante -= distancia;
+      x += sentido * distancia;
+    }
+  }
+
+  for (const alvo of alvos) {
+    andarAte(alvo);
+    passos.push({
+      tipo: 'parada',
+      duracao: sortearEntre(parametros.parada, aleatorio),
+      sacudidas: sortearInteiro(parametros.sacudidasDoRabo, aleatorio),
+      olhadas: sortearInteiro(parametros.olhadas, aleatorio),
+    });
+  }
+  andarAte(saida);
+
+  return { lado, ladoDaSaida, passos };
 }
