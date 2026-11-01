@@ -7,6 +7,14 @@
   --cor-dourado: #b18e4a; /* só decoração: 2,8:1 sobre marfim */
   --cor-texto: #3a2e22; /* tinta marrom-escura: 11,9:1 sobre marfim; 8,4:1 sobre bege */
   --cor-texto-suave: #4d3e30; /* 9,2:1 sobre marfim; 6,6:1 sobre bege: rótulos finos da carta pedem contraste folgado */
+
+  /*
+   * A tinta da carta, para o texto sobre o papel. Os navegadores que escurecem as páginas por conta própria invertem
+   * o texto escuro (claro sobre o papel, que é imagem e não muda), mesmo com `color-scheme`. Estes cinzas claros eles
+   * não invertem, e `mix-blend-mode: difference` sobre o papel creme devolve a tinta: |papel - cinza| = tinta.
+   */
+  --cor-tinta-sobre-papel: #bcbcb5; /* |#f6ead7 - #bcbcb5| = #3a2e22, a tinta marrom (--cor-texto) */
+  --cor-tinta-suave-sobre-papel: #a9aca7; /* |#f6ead7 - #a9aca7| = #4d3e30 (--cor-texto-suave) */
   --cor-luz: #e5aa6e; /* luz quente do pôr do sol sobre o bosque (SPEC-03) */
   --cor-passaro: #4a4038; /* pássaros no céu: cinza-castanho escuro, funciona sobre o céu baunilha e o pôr do sol (SPEC-20) */
 

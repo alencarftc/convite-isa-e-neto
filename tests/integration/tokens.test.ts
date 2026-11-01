@@ -43,6 +43,43 @@ describe('tokens.css (SPEC-09, SPEC-01)', () => {
     expect(vermelho).toBeGreaterThan(azul ?? 0);
   });
 
+  it('a tinta da carta é um cinza claro cuja diferença para o papel dá a tinta marrom, e o cinza passa do limite de inversão (ADR-0016)', () => {
+    const canais = (hex: string) => [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
+    const diferenca = (a: string, b: string) =>
+      canais(a).map((valor, indice) => Math.abs(valor - (canais(b)[indice] ?? 0)));
+    const brilho = (hex: string) => {
+      const [r = 0, g = 0, b = 0] = canais(hex);
+      return 0.299 * r + 0.587 * g + 0.114 * b;
+    };
+
+    for (const [tinta, resultado] of [
+      ['cor-tinta-sobre-papel', 'cor-texto'],
+      ['cor-tinta-suave-sobre-papel', 'cor-texto-suave'],
+    ] as const) {
+      const esperado = canais(cor(resultado));
+      diferenca(cor('cor-papel'), cor(tinta)).forEach((valor, indice) => {
+        expect(
+          Math.abs(valor - (esperado[indice] ?? 0)),
+          `${tinta} canal ${String(indice)}`,
+        ).toBeLessThanOrEqual(1);
+      });
+      // Os navegadores que escurecem a página invertem o texto com brilho abaixo de 150 (e só ele).
+      expect(brilho(cor(tinta)), tinta).toBeGreaterThan(160);
+    }
+  });
+
+  it('a carta mistura o texto por diferença com o papel, sem tocar nos filetes dourados (ADR-0016)', () => {
+    const carta = readFileSync(
+      join(import.meta.dirname, '..', '..', 'src', 'styles', 'carta.css'),
+      'utf8',
+    );
+
+    expect(carta).toMatch(
+      /\.carta__bloco:not\(\.carta__filete\)\s*\{[^}]*color:\s*var\(--cor-tinta-sobre-papel\);[^}]*mix-blend-mode:\s*difference/,
+    );
+    expect(carta).toMatch(/forced-colors:\s*active/);
+  });
+
   it('dourado e serenidade são decoração: abaixo de 3:1 sobre marfim, nunca em texto de leitura', () => {
     expect(razaoDeContraste(cor('cor-dourado'), cor('cor-marfim'))).toBeLessThan(3.5);
     expect(razaoDeContraste(cor('cor-serenidade'), cor('cor-marfim'))).toBeLessThan(3);

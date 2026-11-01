@@ -381,6 +381,40 @@
   font-size: 32px;
 }
 
+/*
+ * O texto da carta é um cinza claro misturado por diferença ao papel, o que dá a tinta marrom (tokens.css). Assim ele
+ * continua escuro mesmo quando o navegador escurece a página por conta própria e inverte as cores do texto, o que
+ * deixava a carta ilegível no celular (ADR-0016). Cada bloco leva a sua mistura (a opacidade da revelação fica no
+ * mesmo elemento); os filetes dourados ficam de fora, e o "&" e o separador, que estão dentro de um bloco, usam a tinta.
+ */
+.carta__bloco:not(.carta__filete) {
+  color: var(--cor-tinta-sobre-papel);
+  mix-blend-mode: difference;
+}
+
+.carta__bloco.carta__rotulo,
+.carta > .convite__rolar {
+  color: var(--cor-tinta-suave-sobre-papel);
+  mix-blend-mode: difference;
+}
+
+.carta__bloco .carta__e {
+  color: var(--cor-tinta-sobre-papel);
+}
+
+.carta__bloco .carta__separador {
+  border-top-color: var(--cor-tinta-suave-sobre-papel);
+}
+
+/* Com as cores forçadas do sistema (alto contraste) vale a cor do sistema, sem mistura. */
+@media (forced-colors: active) {
+  .carta__bloco:not(.carta__filete),
+  .carta > .convite__rolar {
+    color: canvastext;
+    mix-blend-mode: normal;
+  }
+}
+
 /* Modo de segurança: só a carta e as informações, sobre marfim, sem a margem reservada à cena. */
 body[data-fase='seguranca'] .entrada,
 body[data-fase='seguranca'] .envelope,
