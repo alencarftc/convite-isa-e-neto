@@ -1,6 +1,6 @@
 /*
- * Baú e chave (SPEC-04, ADR-0012). O baú fica centralizado, com a base a 16% da altura na vertical e 25%
- * na horizontal; a largura acompanha a tela. A posição da fechadura é uma variável relativa ao baú
+ * Baú e chave (SPEC-04, ADR-0012). O baú fica centralizado, na grama, com a base a 15% da altura na vertical
+ * (a grama começa a cerca de 18%) e 25% na horizontal; a largura acompanha a tela. A posição da fechadura é uma variável relativa ao baú
  * (`--fechadura-x/y`), medida na imagem 08 (o buraco da fechadura). A chave espera no inventário, no pé
  * da tela, e voa até a fechadura quando é usada. Só `transform` e `opacity` se animam.
  */
@@ -9,7 +9,7 @@
   --fechadura-y: 60%;
 
   position: absolute;
-  inset: auto 0 16%;
+  inset: auto 0 15%;
   z-index: var(--z-bau);
   width: clamp(150px, 46vw, 290px);
   margin-inline: auto;
@@ -42,11 +42,8 @@
 
 .bau__aberto,
 .bau__luz,
-.bau__contorno,
 .bau__aura,
-.bau__onda,
-.bau__sombra,
-.bau__brilhantes {
+.bau__sombra {
   position: absolute;
   pointer-events: none;
 }
@@ -74,108 +71,29 @@
 }
 
 /*
- * Aura atrás do baú: ouro vivo e saturado, que se destaca do azul do lago e do verde (o dourado
- * apagado sumia sobre o bege), cercado por uma penumbra leve. Respira o tempo todo; o realce, mais
- * forte e mais perto, acende quando o mouse passa por cima. Só opacidade e escala se animam (RNF-04.1).
+ * Aura atrás do baú: um clarão amarelo radiante, discreto, que respira o tempo todo; o realce, mais perto e mais
+ * forte, acende quando o mouse passa por cima. É o único efeito em volta do baú. Só opacidade e escala se animam
+ * (RNF-04.1).
  */
 .bau__aura {
   inset: -46% -38%;
   background: radial-gradient(
     closest-side,
-    var(--cor-aura-90),
-    var(--cor-aura-55) 40%,
-    var(--cor-aura-25) 66%,
-    var(--cor-aura-12) 84%,
+    var(--cor-aura-55),
+    var(--cor-aura-25) 46%,
+    var(--cor-aura-12) 72%,
     transparent
   );
 }
 
-/*
- * O brilho de contorno: uma cópia do baú atrás dele, cujo `drop-shadow` dourado desenha um halo na forma exata
- * do baú, forte contra o lago e o verde. A cópia fica coberta pelo baú; só o brilho aparece.
- */
-.bau__contorno {
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 0 5px var(--cor-aura)) drop-shadow(0 0 16px var(--cor-aura))
-    drop-shadow(0 0 34px var(--cor-aura-90));
-}
-
-/* Uma penumbra em volta da aura: a luz clara, sobre um fundo um pouco mais escuro, ganha contraste. */
-.bau__aura::before {
-  position: absolute;
-  inset: -34%;
-  content: '';
-  background: radial-gradient(closest-side, transparent 58%, var(--cor-sombra-35) 82%, transparent);
-}
-
 .bau__aura--realce {
   inset: -30% -22%;
-  background: radial-gradient(closest-side, var(--cor-aura), var(--cor-aura-55) 48%, transparent);
-}
-
-/* Anel de luz que sai do baú a cada pulso. */
-.bau__onda {
-  inset: -8% -4%;
-  border: 3px solid var(--cor-aura);
-  border-radius: 50%;
-  box-shadow: 0 0 18px var(--cor-aura-55);
-}
-
-/* Pontos de luz que cintilam ao redor do baú. */
-.bau__brilhantes {
-  inset: -24% -14% -2%;
-}
-
-.bau__brilhante {
-  --tamanho: 14px;
-
-  position: absolute;
-  width: var(--tamanho);
-  height: var(--tamanho);
-  background: var(--cor-brilho);
-  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
-}
-
-.bau__brilhante:nth-child(1) {
-  top: 34%;
-  left: 6%;
-}
-
-.bau__brilhante:nth-child(2) {
-  --tamanho: 18px;
-
-  top: 20%;
-  left: 86%;
-}
-
-.bau__brilhante:nth-child(3) {
-  --tamanho: 11px;
-
-  top: 8%;
-  left: 24%;
-}
-
-.bau__brilhante:nth-child(4) {
-  --tamanho: 16px;
-
-  top: 4%;
-  left: 66%;
-}
-
-.bau__brilhante:nth-child(5) {
-  --tamanho: 12px;
-
-  top: 62%;
-  left: 94%;
-}
-
-.bau__brilhante:nth-child(6) {
-  --tamanho: 13px;
-
-  top: 66%;
-  left: 2%;
+  background: radial-gradient(
+    closest-side,
+    var(--cor-aura-90),
+    var(--cor-aura-45) 48%,
+    transparent
+  );
 }
 
 /* Luz de dentro do baú, que sobe da boca quando a tampa abre. */
@@ -198,7 +116,7 @@
   --chave: 54px;
 
   position: fixed;
-  bottom: calc(var(--espaco-5) + env(safe-area-inset-bottom));
+  bottom: calc(var(--espaco-3) + env(safe-area-inset-bottom));
   left: 50%;
   z-index: var(--z-inventario);
   width: var(--moldura);

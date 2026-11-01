@@ -13,7 +13,7 @@ import { criar, criarImagem } from '../dom';
 import { carregarImagensTardias } from '../imagens/imagens-tardias';
 import { chuvaDePetalas } from '../petalas/chuva-de-petalas';
 import { removerPetalas } from '../petalas/petalas';
-import { montarMetadesDoSelo, romperSelo } from '../selo/selo-rompivel';
+import { montarImagemDoSelo, soltarSelo } from '../selo/selo';
 import { ligarGestoDoSelo } from './gesto-do-selo';
 import { montarCarta } from './montar-carta';
 import { type Revelacao, revelarEmSequencia } from './revelacao-da-carta';
@@ -26,7 +26,7 @@ export interface DependenciasDaCarta {
   readonly eventos: BarramentoEventos<EventosConvite>;
 }
 
-type OrigemDaAbertura = 'toque' | 'tempo' | 'gesto';
+type OrigemDaAbertura = 'toque' | 'gesto';
 
 interface Elementos {
   readonly envelope: HTMLElement;
@@ -36,7 +36,7 @@ interface Elementos {
   readonly aberto: HTMLElement;
   readonly selo: HTMLElement;
   readonly brilho: HTMLElement;
-  readonly metades: { readonly esquerda: HTMLElement; readonly direita: HTMLElement };
+  readonly imagemDoSelo: HTMLImageElement;
   readonly botao: HTMLButtonElement;
   readonly dica: HTMLElement;
   readonly conteudo: HTMLElement;
@@ -46,10 +46,7 @@ interface Elementos {
   readonly chao: HTMLElement;
   readonly rolar: HTMLElement;
   readonly seta: SVGSVGElement;
-  /** A figura do casal (`.casal__figura`): é nela que a abertura anima `opacity` e `y`; a vida anima os de dentro. */
   readonly casal: HTMLElement | null;
-  /** O halo atrás do casal (`.casal__brilho`); a cena viva o acende (SPEC-22). */
-  readonly brilhoDoCasal: HTMLElement | null;
   /** Preenchida em `carta.run`: as variações da chuva de pétalas, já pedidas ao navegador. */
   readonly petalas: HTMLImageElement[];
 }
@@ -57,9 +54,9 @@ interface Elementos {
 /**
  * Envelope e carta (SPEC-06). Devolve as duas etapas do caminho, que dividem o mesmo DOM e estado:
  *
- * - `carta` (`tlCarta`, 3 s): o envelope pousa sobre o baú e espera o toque no selo, ou
- *   `duracoes.esperaSelo` depois do pouso, o que vier primeiro (`carta:pousou`).
- * - `convite` (`tlConvite`, 7 s): o selo se parte, a carta sai do envelope, a cena sobe, o casal
+ * - `carta` (`tlCarta`, 3 s): o envelope pousa sobre o baú e espera o toque (ou o arrasto) no selo, o
+ *   tempo que for: não abre sozinho (`carta:pousou`).
+ * - `convite` (`tlConvite`, 7 s): o selo se solta, a carta sai do envelope, a cena sobe, o casal
  *   surge, a carta se desdobra, a rolagem é liberada, os blocos começam a aparecer um a um e caem as
  *   pétalas (`carta:abrindo`, `convite:aberto`). A leitura segue sozinha depois dos 7 s (ADR-0012).
  *
@@ -76,7 +73,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
   let elementos: Elementos | undefined;
   let linhaDaCarta: gsap.core.Timeline | undefined;
   let linhaDoConvite: gsap.core.Timeline | undefined;
-  let espera: gsap.core.Tween | undefined;
   let pulso: gsap.core.Tween | undefined;
   let balancoDaSeta: gsap.core.Tween | undefined;
   let leitura: Revelacao | undefined;
@@ -91,7 +87,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
   function montar(): Elementos {
     if (elementos) return elementos;
 
-    // Envelope: sombra, carta dobrada (atrás), as duas imagens, selo (em duas metades, com as siglas na
+    // Envelope: sombra, carta dobrada (atrás), as duas imagens, selo (inteiro, com as siglas na
     // arte), botão e dica. Não há texto escrito no envelope.
     const envelope = criar('div', 'envelope');
     const sombra = criar('div', 'envelope__sombra');
@@ -113,8 +109,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     const selo = criar('div', 'selo');
     const brilho = criar('span', 'selo__brilho');
     brilho.setAttribute('aria-hidden', 'true');
-    const metades = montarMetadesDoSelo(urlDaImagem(config.imagens.selo, 'vertical'), true);
-    selo.append(brilho, metades.esquerda, metades.direita);
+    const imagemDoSelo = montarImagemDoSelo(urlDaImagem(config.imagens.selo, 'vertical'), true);
+    selo.append(brilho, imagemDoSelo);
     const botao = document.createElement('button');
     botao.type = 'button';
     botao.className = 'carta__abrir';
@@ -122,14 +118,18 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     botao.disabled = true;
     const dica = criar('p', 'carta__dica');
     dica.setAttribute('aria-live', 'polite');
-    envelope.append(sombra, dobrada, fechado, aberto, selo, botao, dica);
+    // O botão vem antes do selo: o foco do teclado acende o selo (`.carta__abrir:focus-visible + .selo`), no lugar de
+    // um retângulo em volta do envelope inteiro.
+    envelope.append(sombra, dobrada, fechado, aberto, botao, selo, dica);
     gsap.set(envelope, { opacity: 0, xPercent: -50, yPercent: -50 });
-    gsap.set([sombra, aberto, dica, brilho], { opacity: 0 });
+    // A carta dobrada só aparece quando a aba abre: antes, as pontas do papel apareciam por trás do envelope fechado.
+    gsap.set([sombra, aberto, dica, brilho, dobrada], { opacity: 0 });
 
     // Carta e informações: já no DOM, inertes e invisíveis até a abertura terminar.
     const { papel } = tempoDaCarta;
     const cartaEl = montarCarta(conteudo.carta, {
       url: urlDaImagem(config.imagens.papelCarta, 'vertical'),
+      urlDoMiolo: urlDaImagem(config.imagens.papelMiolo, 'vertical'),
       ...papel,
     });
     const caixa = criar('main', 'conteudo');
@@ -145,16 +145,19 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     });
     gsap.set(blocos, { opacity: 0 });
 
-    // O chão é o primeiro plano espelhado: uma cópia da camada, que a CSS vira de cabeça para baixo e a
-    // timeline sobe junto com a cena.
+    // O chão é a faixa que continua as cores da borda de baixo do primeiro plano (uma imagem minúscula,
+    // ampliada pelo navegador): a base que a cena deixa à mostra ao subir. A timeline a sobe junto com a cena.
     const chao = criar('div', 'convite__chao');
     chao.setAttribute('aria-hidden', 'true');
-    const frente = raiz.querySelector<HTMLElement>('.camada--frente');
-    if (frente) {
-      const espelho = frente.cloneNode(true) as HTMLElement;
-      espelho.removeAttribute('data-prof');
-      chao.append(espelho);
-    }
+    chao.append(
+      criarImagem(
+        'convite__chao-imagem',
+        urlDaImagem(config.imagens.chao, estado.orientacao),
+        true,
+      ),
+    );
+    // Só aparece quando a cena sobe: antes disso a faixa ficaria à mostra na base da tela.
+    gsap.set(chao, { opacity: 0 });
     // "Role para ler" vive dentro do conteúdo, ancorada ao topo da carta (na margem do papel, onde não há
     // texto), e rola junto com ela: nunca cobre o texto (SPEC-14, RF-14.4). Só aparece quando a leitura
     // para esperando a rolagem; quem usa leitor de tela já navega, então ela é só um aviso visual.
@@ -165,19 +168,13 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     gsap.set(rolar, { opacity: 0 });
     cartaEl.append(rolar);
 
-    // O casal vive no espaço `.casal` da cena do bosque: sobe junto com ela. A abertura anima a figura; a cena
-    // viva anima a respiração (`.casal__respiro`) e o halo (`.casal__brilho`), cada uma no seu elemento, para
-    // nenhuma brigar pelo `transform` da outra (SPEC-22, RF-22.1).
+    // O casal vive no espaço `.casal` da cena do bosque: sobe junto com ela.
     const espacoDoCasal = raiz.querySelector<HTMLElement>('.casal');
-    let casal: HTMLElement | null = null;
-    let brilhoDoCasal: HTMLElement | null = null;
-    if (espacoDoCasal) {
-      brilhoDoCasal = criar('span', 'casal__brilho');
-      casal = criar('span', 'casal__figura');
-      const respiro = criar('span', 'casal__respiro');
-      respiro.append(criarImagem('casal__imagem', urlDaImagem(config.imagens.casal, 'vertical')));
-      casal.append(respiro);
-      espacoDoCasal.append(brilhoDoCasal, casal);
+    const casal = espacoDoCasal
+      ? criarImagem('casal__imagem', urlDaImagem(config.imagens.casal, 'vertical'))
+      : null;
+    if (espacoDoCasal && casal) {
+      espacoDoCasal.append(casal);
       gsap.set(casal, { opacity: 0 });
     }
 
@@ -200,7 +197,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
       aberto,
       selo,
       brilho,
-      metades,
+      imagemDoSelo,
       botao,
       dica,
       conteudo: caixa,
@@ -211,7 +208,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
       rolar,
       seta,
       casal,
-      brilhoDoCasal,
       petalas,
     };
     return elementos;
@@ -300,7 +296,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
   function parar(): void {
     linhaDaCarta?.kill();
     linhaDoConvite?.kill();
-    espera?.kill();
     pulso?.kill();
     balancoDaSeta?.kill();
     leitura?.parar();
@@ -324,7 +319,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     if (cena) gsap.set(cena, { y: -window.innerHeight * tempoDoConvite.cenaSobeFracao });
     const bau = raiz.querySelector<HTMLElement>('.bau');
     if (bau) gsap.set(bau, { opacity: 0 });
-    gsap.set(e.chao, { y: -window.innerHeight * tempoDoConvite.cenaSobeFracao });
+    carregarImagensTardias(e.chao);
+    gsap.set(e.chao, { opacity: 1, y: -window.innerHeight * tempoDoConvite.cenaSobeFracao });
     if (e.casal) gsap.set(e.casal, { opacity: 1, y: 0 });
     gsap.set(e.carta, { opacity: 1, scaleY: 1 });
     gsap.set(e.blocos, { opacity: 1, y: 0 });
@@ -343,8 +339,9 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     run() {
       const e = montar();
       const t = tempoDaCarta;
-      // O envelope, o selo e as pétalas só são pedidos agora (SPEC-02, RF-02.7).
+      // O envelope, o selo, o chão e as pétalas só são pedidos agora (SPEC-02, RF-02.7).
       carregarImagensTardias(e.envelope);
+      carregarImagensTardias(e.chao);
       if (e.petalas.length === 0) {
         for (const chave of ['petalaA', 'petalaB', 'petalaC'] as const) {
           const petala = new Image();
@@ -358,7 +355,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
           aberta = true;
           origem = como;
           e.botao.disabled = true;
-          espera?.kill();
           pulso?.kill();
           linhaDaCarta?.kill();
           resolver();
@@ -370,10 +366,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
           e.botao.disabled = false;
           // O foco vai para o envelope quando ele pousa (SPEC-09, RF-09.6).
           e.botao.focus({ preventScroll: true });
-          // A espera de 4 s conta a partir do pouso; o primeiro dos dois gatilhos vale (RF-06.4).
-          espera = gsap.delayedCall(duracoes.esperaSelo, () => {
-            abrir('tempo');
-          });
         };
 
         ouvintes = new AbortController();
@@ -453,7 +445,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
           parte.remove();
         }
         elementos.casal?.remove();
-        elementos.brilhoDoCasal?.remove();
         elementos = undefined;
       }
       pararDeOuvirSeguranca?.();
@@ -494,8 +485,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
             0,
           )
           .to(e.dica, { opacity: 0, duration: t.dicaSome, ease: curvas.saida }, 0)
-          // O selo cresce, solta um clarão e se parte em duas metades que giram e caem, sumindo; as
-          // siglas, que são da arte, partem com ele.
+          // O selo cresce, solta um clarão e se solta inteiro (levanta, gira de leve e se desfaz em luz); as
+          // siglas, que são da arte, vão com ele.
           .to(
             e.selo,
             { scale: t.seloCresce.escala, duration: t.seloCresce.duracao, ease: curvas.saida },
@@ -523,14 +514,15 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
             t.seloCresce.duracao + t.seloBrilho.duracao * 0.4,
           )
           .add(
-            romperSelo(e.metades, { ...t.seloParte, curva: curvas.entrada }),
+            soltarSelo(e.imagemDoSelo, { ...t.seloSolta, curva: curvas.saida }),
             t.seloCresce.duracao,
           )
           // A aba abre: o envelope fechado dá lugar ao aberto, com leve aumento.
           .to(e.fechado, { opacity: 0, duration: t.aba, ease: curvas.leve }, t.abaEm)
           .to(e.aberto, { opacity: 1, duration: t.aba, ease: curvas.leve }, t.abaEm)
           .to(e.envelope, { scale: t.abaEscala, duration: t.aba, ease: curvas.leve }, t.abaEm)
-          // A carta dobrada, atrás do envelope, sobe e sai pela abertura.
+          // A carta dobrada, atrás do envelope, aparece com a aba aberta e sai pela abertura.
+          .set(e.dobrada, { opacity: 1 }, t.cartaSobeEm)
           .to(
             e.dobrada,
             { yPercent: -70, duration: t.cartaSobe, ease: curvas.saida },
@@ -558,11 +550,13 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
         }
         if (bau)
           linha.to(bau, { opacity: 0, duration: t.bauSome, ease: curvas.saida }, t.cenaSobeEm);
-        linha.to(
-          e.chao,
-          { y: -altura * t.cenaSobeFracao, duration: t.cenaSobe, ease: curvas.viaDupla },
-          t.cenaSobeEm,
-        );
+        linha
+          .set(e.chao, { opacity: 1 }, t.cenaSobeEm)
+          .to(
+            e.chao,
+            { y: -altura * t.cenaSobeFracao, duration: t.cenaSobe, ease: curvas.viaDupla },
+            t.cenaSobeEm,
+          );
         // O casal surge de costas, na margem do lago.
         if (e.casal) {
           linha.fromTo(

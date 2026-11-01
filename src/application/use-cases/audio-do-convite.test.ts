@@ -136,7 +136,7 @@ describe('conectarAudio', () => {
         throw new Error('selo');
       });
 
-      eventos.emit('carta:abrindo', { origem: 'tempo' });
+      eventos.emit('carta:abrindo', { origem: 'gesto' });
 
       expect(audio.musica2).toHaveBeenCalledOnce();
       expect(avisar).toHaveBeenCalledOnce();

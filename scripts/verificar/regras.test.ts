@@ -216,7 +216,9 @@ describe('validarArteDefinitiva', () => {
       imagens: { ...config.imagens, bauFechado: 'assets/provisorio/bau-fechado.svg' },
     };
 
-    const problemas = validarArteDefinitiva(comProvisoria, content);
+    const problemas = validarArteDefinitiva(comProvisoria, content).filter(
+      (p) => p.regra !== 'foto-pendente',
+    );
 
     expect(problemas.length).toBeGreaterThan(0);
     expect(problemas.every((p) => p.regra === 'arte-provisoria')).toBe(true);
@@ -225,37 +227,42 @@ describe('validarArteDefinitiva', () => {
     );
   });
 
-  it('a arte gerada já não é acusada: restam as fotos dos balões e a arte da cena viva, ainda provisórias', () => {
+  it('a arte gerada já não é acusada: restam as fotos dos balões, pendentes, e a arte da cena viva, ainda provisória', () => {
     const problemas = validarArteDefinitiva(config, content);
 
     const naoEsperados = problemas.filter(
       (p) =>
-        !p.mensagem.startsWith('content.baloes[') &&
-        !/^config.imagens.(casal|folha[ABC]|esquilo(Encolhido|Esticado)) /.test(p.mensagem),
+        p.regra !== 'foto-pendente' &&
+        !/^config.imagens.(folha[ABC]|esquilo(Encolhido|Esticado)) /.test(p.mensagem),
     );
     expect(problemas.length).toBeGreaterThan(0);
     expect(naoEsperados).toEqual([]);
   });
 
-  it('acusa a arte provisória da cena viva (folhas, esquilo e casal sentado) até as imagens 19, 20 e 21 chegarem', () => {
+  it('acusa a arte provisória da cena viva (folhas e esquilo) até as imagens 20 e 21 chegarem', () => {
     const mensagens = validarArteDefinitiva(config, content).map((p) => p.mensagem);
 
-    for (const chave of [
-      'casal',
-      'folhaA',
-      'folhaB',
-      'folhaC',
-      'esquiloEncolhido',
-      'esquiloEsticado',
-    ]) {
+    for (const chave of ['folhaA', 'folhaB', 'folhaC', 'esquiloEncolhido', 'esquiloEsticado']) {
       expect(mensagens, chave).toContainEqual(expect.stringContaining(`config.imagens.${chave} `));
     }
   });
 
-  it('acusa também as fotos dos balões que apontam para a arte provisória', () => {
-    const problemas = validarArteDefinitiva(config, content);
+  it('acusa as fotos dos balões que ainda não chegaram (vazias) e as que apontam para a arte provisória', () => {
+    const vazias = validarArteDefinitiva(config, content).filter(
+      (p) => p.regra === 'foto-pendente',
+    );
+    expect(vazias).toHaveLength(content.baloes.length);
+    expect(vazias.map((p) => p.mensagem)).toContainEqual(
+      expect.stringContaining('content.baloes[0].foto'),
+    );
 
-    expect(problemas.map((p) => p.mensagem)).toContainEqual(
+    const provisorias = validarArteDefinitiva(config, {
+      baloes: content.baloes.map((balao, indice) => ({
+        ...balao,
+        foto: `assets/provisorio/foto-${String(indice + 1)}.svg`,
+      })),
+    }).filter((p) => p.regra === 'arte-provisoria');
+    expect(provisorias.map((p) => p.mensagem)).toContainEqual(
       expect.stringContaining('content.baloes[0].foto'),
     );
   });
@@ -323,17 +330,38 @@ describe('validarArquivos', () => {
     ]);
   });
 
-  it('confere também os arquivos das fotos dos balões', () => {
+  it('confere também os arquivos das fotos dos balões que já chegaram', () => {
+    const comFotos = {
+      ...content,
+      baloes: content.baloes.map((balao, indice) => ({
+        ...balao,
+        foto: `photos/foto-${String(indice + 1)}.jpg`,
+      })),
+    };
+
     const problemas = validarArquivos(
       config,
-      content,
+      comFotos,
       [],
       (caminho) => !caminho.includes('foto-3'),
     );
 
     expect(problemas.map((p) => p.mensagem)).toEqual([
-      'content.baloes[2].foto: "public/assets/provisorio/foto-3.svg" não existe',
+      'content.baloes[2].foto: "public/photos/foto-3.jpg" não existe',
     ]);
+  });
+
+  it('balão sem foto (as do casal ainda não chegaram) não cita arquivo: quem acusa é a arte definitiva', () => {
+    const visitados: string[] = [];
+
+    validarArquivos(config, content, [], (caminho) => {
+      visitados.push(caminho);
+      return true;
+    });
+
+    expect(visitados.filter((caminho) => caminho === '' || caminho.includes('photos/'))).toEqual(
+      [],
+    );
   });
 });
 
@@ -348,8 +376,8 @@ describe('verificarTudo', () => {
   it('o conteúdo e as datas atuais passam nas regras de texto, data e link', () => {
     const regras = new Set(verificarTudo(entradas).map((p) => p.regra));
 
-    // Resta a arte provisória e o texto pendente (a descrição das fotos, entre colchetes).
-    expect(regras).toEqual(new Set(['arte-provisoria', 'texto-pendente']));
+    // Restam a arte provisória, as fotos que o casal ainda não mandou e o texto pendente (entre colchetes).
+    expect(regras).toEqual(new Set(['arte-provisoria', 'foto-pendente', 'texto-pendente']));
   });
 
   it('o endereço do Google Agenda é permitido, e outro serviço de agenda não (SPEC-17, RF-17.3)', () => {
@@ -374,7 +402,7 @@ describe('verificarTudo', () => {
     });
 
     expect(new Set(problemas.map((p) => p.regra))).toEqual(
-      new Set(['datas', 'texto-pendente', 'arte-provisoria', 'arquivo-ausente']),
+      new Set(['datas', 'texto-pendente', 'arte-provisoria', 'foto-pendente', 'arquivo-ausente']),
     );
   });
 });

@@ -84,10 +84,20 @@ async function abrirOBau(): Promise<void> {
   document.querySelector<HTMLButtonElement>('.bau__botao')?.click();
 }
 
-/** Percorre a entrada e o baú, até as informações. */
+/** Espera o envelope pousar e toca no selo: ele não abre sozinho (31/10/2026). */
+async function abrirOEnvelope(): Promise<void> {
+  await vi.waitFor(() => {
+    expect(document.querySelector<HTMLButtonElement>('.carta__abrir')?.disabled).toBe(false);
+  });
+  expect(fase()).toBe('aguardando-selo');
+  document.querySelector<HTMLButtonElement>('.carta__abrir')?.click();
+}
+
+/** Percorre a entrada, o baú e o envelope, até as informações. */
 async function ateAsInformacoes(): Promise<void> {
   await abrirEntrando();
   await abrirOBau();
+  await abrirOEnvelope();
   await vi.waitFor(() => {
     expect(fase()).toBe('informacoes');
   });
@@ -112,6 +122,8 @@ describe('src/main.ts', () => {
     vi.unstubAllGlobals();
   });
 
+  // É o primeiro a importar o main.ts: com a cobertura ligada e o conjunto inteiro rodando junto, só a
+  // transformação do código passa de 5 s, então este teste leva um prazo maior.
   it('abre na entrada: nomes do casal, botão de som e "Toque para entrar" (SPEC-02, SPEC-08)', async () => {
     await import('@/main');
 
@@ -122,7 +134,7 @@ describe('src/main.ts', () => {
     });
     expect(fase()).toBe('aguardando-entrada');
     expect(document.querySelector('.cartao--contagem')).toBeNull();
-  });
+  }, 20_000);
 
   it('deixa a marca de que o pacote iniciou e desfaz o plano B (SPEC-15, RF-15.6)', async () => {
     document.documentElement.classList.add(PLANO_B.classe);
@@ -142,19 +154,20 @@ describe('src/main.ts', () => {
 
     // Críticas (bosque, baú fechado, chave), o céu do pôr do sol e o casal, que o estado final mostra,
     // e o selo da entrada: nada de balões, fotos, tampa aberta, envelope nem pétalas.
-    for (const adiada of ['foto-', 'balao-', 'bau-aberto', 'envelope-', 'petala-']) {
+    for (const adiada of ['foto-', 'balao-', 'bau-aberto', 'envelope-', 'petala-', '06-chao']) {
       expect(
         pedidas.filter((nome) => nome?.includes(adiada)),
         adiada,
       ).toEqual([]);
     }
-    expect(document.querySelectorAll('img[data-src]').length).toBeGreaterThan(10);
-    // O selo da entrada (duas metades) é pedido; o do envelope só depois, quando a etapa começa.
-    expect(document.querySelectorAll('.entrada__selo .selo__imagem[src]')).toHaveLength(2);
+    // Nuvens, tampa aberta, envelope, selo, pétalas e chão ficam em data-src (as fotos dos balões ainda não existem).
+    expect(document.querySelectorAll('img[data-src]').length).toBeGreaterThanOrEqual(10);
+    // O selo da entrada é pedido; o do envelope só depois, quando a etapa começa.
+    expect(document.querySelectorAll('.entrada__selo .selo__imagem[src]')).toHaveLength(1);
     expect(document.querySelectorAll('.envelope .selo__imagem[src]')).toHaveLength(0);
   });
 
-  it('depois do toque e do baú, percorre o orquestrador até as informações (CA-01.4.1)', async () => {
+  it('depois do toque, do baú e do selo, percorre o orquestrador até as informações; sem tocar no selo, espera nele (CA-01.4.1)', async () => {
     await ateAsInformacoes();
 
     const contagem = document.querySelector('#app .cartao--contagem');
@@ -192,6 +205,7 @@ describe('src/main.ts', () => {
     expect(focaveisInalcancaveis(), 'baú').toEqual([]);
     document.querySelector<HTMLButtonElement>('.bau__botao')?.click();
 
+    await abrirOEnvelope();
     await vi.waitFor(() => {
       expect(fase()).toBe('informacoes');
     });
@@ -385,6 +399,7 @@ describe('src/main.ts', () => {
 
     await abrirEntrando();
     await abrirOBau();
+    await abrirOEnvelope();
 
     await vi.waitFor(() => {
       expect(erro).toHaveBeenCalled();

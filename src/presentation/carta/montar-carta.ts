@@ -34,33 +34,36 @@ function criarColuna(nomes: readonly string[]): HTMLElement {
   return coluna;
 }
 
-/** O papel da carta (imagem 14): a arte e as medidas com que a CSS a estica em três partes. */
+/** O papel da carta (imagem 14): a arte e as medidas com que a CSS o monta em três partes. */
 export interface PapelDaCarta {
   readonly url: string;
+  /** O ladrilho do miolo: a faixa do meio da arte e o espelho dela, repetidos na vertical sob o texto. */
+  readonly urlDoMiolo: string;
   /** Altura / largura da arte. */
   readonly proporcao: number;
-  /** Faixa do meio, sem rosas, em frações da altura da arte: é a que se estica quando o texto é longo. */
+  /** Faixa do meio, sem rosas, em frações da altura da arte: é o que o ladrilho repete quando o texto é longo. */
   readonly corte: { readonly de: number; readonly ate: number };
-  /** Largura de cada borda, em fração da largura: só elas se esticam, o miolo é liso. */
-  readonly margem: number;
 }
 
 /**
  * A carta (SPEC-06, "Layout da carta"): catorze blocos em HTML real, na ordem aprovada. Cada bloco
  * tem a classe `carta__bloco`, para a abertura os revelar um a um. O título é o `h2` com
  * `tabindex="-1"`, para onde o foco vai quando a carta termina de abrir (RF-06.10). O papel (14) é o
- * fundo, em três partes (topo, meio esticado, base), e a CSS lê a arte e as medidas de variáveis
- * (`--papel`, `--papel-proporcao`, `--papel-corte-de`, `--papel-corte-ate`, `--papel-margem`); se a imagem
- * faltar, vale o marfim da CSS (RNF-06.1).
+ * fundo, em três partes (topo, miolo ladrilhado, base), e a CSS lê a arte e as medidas de variáveis
+ * (`--papel`, `--papel-miolo`, `--papel-proporcao`, `--papel-corte-de`, `--papel-corte-ate`); o miolo é
+ * um elemento decorativo à parte, atrás do texto. Se a imagem faltar, vale o marfim da CSS (RNF-06.1).
  */
 export function montarCarta(carta: CartaDoConvite, papel: PapelDaCarta): HTMLElement {
   const artigo = criar('article', 'carta');
   artigo.setAttribute('aria-labelledby', 'carta-titulo');
   artigo.style.setProperty('--papel', `url('${papel.url}')`);
+  artigo.style.setProperty('--papel-miolo', `url('${papel.urlDoMiolo}')`);
   artigo.style.setProperty('--papel-proporcao', String(papel.proporcao));
   artigo.style.setProperty('--papel-corte-de', String(papel.corte.de));
   artigo.style.setProperty('--papel-corte-ate', String(papel.corte.ate));
-  artigo.style.setProperty('--papel-margem', String(papel.margem));
+
+  const miolo = criar('span', 'carta__miolo');
+  miolo.setAttribute('aria-hidden', 'true');
 
   const pais = criar('div', 'carta__bloco carta__pais');
   pais.append(
@@ -86,6 +89,7 @@ export function montarCarta(carta: CartaDoConvite, papel: PapelDaCarta): HTMLEle
   );
 
   artigo.append(
+    miolo,
     criar('p', 'carta__bloco carta__versiculo', carta.versiculo),
     criar('p', 'carta__bloco carta__rotulo', carta.referencia),
     criarFilete(),

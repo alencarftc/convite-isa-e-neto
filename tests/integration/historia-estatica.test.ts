@@ -8,14 +8,28 @@ import { criarFotoEmCirculo } from '@/presentation/historia/foto-em-circulo';
 import { montarHistoriaEstatica } from '@/presentation/informacoes/cartoes-da-historia';
 import { criarCenaInformacoes } from '@/presentation/informacoes/cena-informacoes';
 
+/**
+ * O conteúdo com as fotos dos balões preenchidas: as do casal ainda não chegaram (as provisórias saíram em
+ * 31/10/2026), e estes testes cobrem o tratamento da foto para quando chegarem.
+ */
+const comFotos = {
+  ...content,
+  baloes: content.baloes.map((balao, indice) => ({
+    ...balao,
+    foto: `photos/foto-${String(indice + 1)}.jpg`,
+    alt: `Descrição da foto ${String(indice + 1)}`,
+    foco: '50% 35%',
+  })),
+};
+
 beforeEach(() => {
   document.body.innerHTML = '';
 });
 
-function montar() {
+function montar(conteudo: typeof content = comFotos) {
   const raiz = document.createElement('div');
   document.body.append(raiz);
-  const montada = montarHistoriaEstatica({ raiz, conteudo: content });
+  const montada = montarHistoriaEstatica({ raiz, conteudo });
   return { raiz, montada };
 }
 
@@ -49,9 +63,9 @@ describe('história estática (SPEC-13)', () => {
     const { raiz } = montar();
 
     const cartoes = [...raiz.querySelectorAll('.historia-estatica__cartao')];
-    expect(cartoes).toHaveLength(content.baloes.length);
+    expect(cartoes).toHaveLength(comFotos.baloes.length);
     cartoes.forEach((cartao, indice) => {
-      const balao = content.baloes[indice];
+      const balao = comFotos.baloes[indice];
       expect(cartao.querySelector('.historia-estatica__frase')?.textContent).toBe(balao?.frase);
       const foto = cartao.querySelector<HTMLImageElement>('.historia-estatica__foto img');
       expect(foto?.getAttribute('alt')).toBe(balao?.alt);
@@ -89,7 +103,7 @@ describe('história estática (SPEC-13)', () => {
   });
 
   it('as fotos dos balões continuam sem carregamento tardio: já foram pré-carregadas (RF-13.5)', () => {
-    const balao = content.baloes[0]!;
+    const balao = comFotos.baloes[0]!;
 
     const imagem = criarFotoEmCirculo(balao, { classe: 'balao__foto' })?.querySelector('img');
 
@@ -111,6 +125,17 @@ describe('história estática (SPEC-13)', () => {
 
   it('sem foto no conteúdo, o cartão nasce só com a frase', () => {
     expect(criarFotoEmCirculo({ ...content.baloes[0]!, foto: '' }, { classe: 'x' })).toBeNull();
+  });
+
+  it('sem as fotos do casal (31/10/2026), os cinco cartões trazem só a frase, sem círculo vazio', () => {
+    const { raiz } = montar(content);
+
+    const cartoes = [...raiz.querySelectorAll('.historia-estatica__cartao')];
+    expect(cartoes).toHaveLength(content.baloes.length);
+    for (const [indice, cartao] of cartoes.entries()) {
+      expect(cartao.querySelector('img')).toBeNull();
+      expect(cartao.textContent).toBe(content.baloes[indice]?.frase);
+    }
   });
 
   it('as fotos têm o mesmo tratamento fixo dos balões: a classe foto-em-circulo (RF-13.4)', () => {

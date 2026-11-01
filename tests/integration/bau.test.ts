@@ -61,7 +61,7 @@ afterEach(() => {
 
 describe('baú e chave (SPEC-04)', () => {
   describe('estrutura', () => {
-    it('monta sombra, aura, onda, brilhos, baú fechado e aberto, luz, botão e dica dentro do espaço do bosque', () => {
+    it('monta sombra, aura e realce, baú fechado e aberto, luz, botão e dica dentro do espaço do bosque, sem contorno, anel nem pontos de luz', () => {
       const { el } = montar();
 
       expect(el('.cena .bau .bau__corpo')).toBeTruthy();
@@ -69,8 +69,6 @@ describe('baú e chave (SPEC-04)', () => {
         '.bau__sombra',
         '.bau__aura',
         '.bau__aura--realce',
-        '.bau__contorno',
-        '.bau__onda',
         '.bau__fechado',
         '.bau__aberto',
         '.bau__luz',
@@ -79,9 +77,15 @@ describe('baú e chave (SPEC-04)', () => {
       ]) {
         expect(el(`.bau ${seletor}`)).toBeTruthy();
       }
-      expect(document.querySelectorAll('.bau .bau__brilhantes .bau__brilhante')).toHaveLength(
-        config.bau.brilhantes.quantidade,
-      );
+      // Só a aura amarela e o realce do mouse ficam em volta do baú (31/10/2026).
+      for (const removido of [
+        '.bau__contorno',
+        '.bau__onda',
+        '.bau__brilhantes',
+        '.bau__brilhante',
+      ]) {
+        expect(document.querySelector(removido), removido).toBeNull();
+      }
     });
 
     it('a chave mora no inventário, na raiz, fora da cena e do baú, escondido dos leitores de tela (ADR-0012)', () => {
@@ -209,17 +213,14 @@ describe('baú e chave (SPEC-04)', () => {
       expect(config.imagens).not.toHaveProperty('cursorChave');
     });
 
-    it('a aura respira e os pontos de luz cintilam enquanto o baú espera', async () => {
+    it('a aura amarela respira entre o mínimo e o máximo enquanto o baú espera', async () => {
       const { cena, opacidade } = montar({ toque: true });
       void cena.run();
 
       await vi.waitFor(() => {
-        expect(opacidade('.bau__aura')).toBeGreaterThan(0);
+        expect(opacidade('.bau__aura')).toBeGreaterThanOrEqual(config.bau.aura.minimo - 1e-6);
       });
-      const brilhantes = [...document.querySelectorAll<HTMLElement>('.bau__brilhante')];
-      await vi.waitFor(() => {
-        expect(brilhantes.some((b) => Number(gsap.getProperty(b, 'opacity')) > 0)).toBe(true);
-      });
+      expect(opacidade('.bau__aura')).toBeLessThanOrEqual(config.bau.aura.maximo + 1e-6);
     });
 
     it('a dica diz para usar a chave no baú, com o texto do computador ou do celular (RF-04.5)', async () => {
@@ -319,7 +320,6 @@ describe('baú e chave (SPEC-04)', () => {
       expect(opacidade('.bau__dica')).toBe(0);
       expect(opacidade('.inventario__moldura')).toBe(0);
       expect(opacidade('.bau__aura')).toBe(0);
-      expect(opacidade('.bau__contorno')).toBe(0);
       const chave = document.querySelector('.bau__chave');
       expect(Number(gsap.getProperty(chave, 'rotationX'))).toBe(config.bau.grausDoGiro);
       expect(Number(gsap.getProperty(chave, 'rotation'))).toBe(0); // na horizontal
@@ -424,7 +424,6 @@ describe('baú e chave (SPEC-04)', () => {
       expect(opacidade('.bau__chave')).toBe(0);
       expect(opacidade('.inventario')).toBe(0);
       expect(opacidade('.bau__aura')).toBe(0);
-      expect(opacidade('.bau__contorno')).toBe(0);
       expect(opacidade('.bau__dica')).toBe(0);
       expect(botao().disabled).toBe(true);
     });

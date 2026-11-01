@@ -6,18 +6,18 @@ o Claude Docs, e é o que humanos e LLMs devem carregar antes de mexer no códig
 
 ## Mapa
 
-| Arquivo                                            | Origem         | Use para                                                                                                     |
-| -------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------ |
-| [requisitos.md](./requisitos.md)                   | espelho        | briefing, decisões (27), roteiro aprovado, **textos do convite**, prompts de imagem, script do formulário    |
-| [documentacao.md](./documentacao.md)               | espelho        | stack, pastas originais, animações, assets, integrações, testes, pendências                                  |
-| [epicos-e-historias.md](./epicos-e-historias.md)   | espelho        | 12 épicos, 52 histórias, critérios de aceite (CA-xx.y.z), plano de entrega                                   |
-| [specs/](./specs/README.md)                        | espelho        | uma spec por épico: comportamento, RF/RNF, desenho técnico, casos de teste                                   |
-| [arquitetura.md](./arquitetura.md)                 | **neste repo** | camadas, regras de dependência, onde cada spec vai, receitas                                                 |
-| [qualidade.md](./qualidade.md)                     | **neste repo** | gates, testes, dev server, commits, changesets, ignores                                                      |
-| [operacao/](./operacao/confirmacao-de-presenca.md) | **neste repo** | passos que dependem de uma pessoa (formulário, planilha, acionadores): lista de conferência                  |
-| [specs-adicionais/](./specs-adicionais/README.md)  | **neste repo** | revisão de consistência com o briefing e as SPEC-13 a SPEC-17 (aprovadas em 26/10/2026)                      |
-| [decisions/](./decisions)                          | **neste repo** | ADRs: o que mudou em relação à documentação original e por quê                                               |
-| [specs-cena-viva/](./specs-cena-viva/README.md)    | **neste repo** | épico 13 em teste na branch `feat/cena-viva`: água, folhas, pássaros, esquilo e casal sentado (SPEC-18 a 22) |
+| Arquivo                                            | Origem         | Use para                                                                                                          |
+| -------------------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------- |
+| [requisitos.md](./requisitos.md)                   | espelho        | briefing, decisões (27), roteiro aprovado, **textos do convite**, prompts de imagem, script do formulário         |
+| [documentacao.md](./documentacao.md)               | espelho        | stack, pastas originais, animações, assets, integrações, testes, pendências                                       |
+| [epicos-e-historias.md](./epicos-e-historias.md)   | espelho        | 12 épicos, 52 histórias, critérios de aceite (CA-xx.y.z), plano de entrega                                        |
+| [specs/](./specs/README.md)                        | espelho        | uma spec por épico: comportamento, RF/RNF, desenho técnico, casos de teste                                        |
+| [arquitetura.md](./arquitetura.md)                 | **neste repo** | camadas, regras de dependência, onde cada spec vai, receitas                                                      |
+| [qualidade.md](./qualidade.md)                     | **neste repo** | gates, testes, dev server, commits, changesets, ignores                                                           |
+| [operacao/](./operacao/confirmacao-de-presenca.md) | **neste repo** | passos que dependem de uma pessoa (formulário, planilha, acionadores): lista de conferência                       |
+| [specs-adicionais/](./specs-adicionais/README.md)  | **neste repo** | revisão de consistência com o briefing e as SPEC-13 a SPEC-17 (aprovadas em 26/10/2026)                           |
+| [decisions/](./decisions)                          | **neste repo** | ADRs: o que mudou em relação à documentação original e por quê                                                    |
+| [specs-cena-viva/](./specs-cena-viva/README.md)    | **neste repo** | épico 13 em teste na branch `feat/cena-viva`: água, folhas, pássaros e esquilo (SPEC-18 a 21; a 22 foi revertida) |
 
 **Espelho** = cópia do Claude Docs exportada em 2026-10-26; a fonte da verdade continua lá:
 
@@ -75,6 +75,7 @@ nas tabelas das SPEC-01 e do roteiro (requisitos).
   **revisão do código** ([ADR-0010](./decisions/0010-revisao-do-codigo.md)): 14 defeitos corrigidos (baú e botões alcançáveis por leitor de tela, foco, pétalas, selo no Chrome 90, plano B, imagens só depois do toque…), com guardas de teste e lint para não voltarem.
 - **Arte final** ([ADR-0011](./decisions/0011-arte-final-e-pipeline-de-imagens.md), 2026-10-27): as imagens geradas entraram (`pnpm arte` as prepara a partir de `arte/originais/`, dentro do orçamento de peso), com a imagem de prévia e os ícones; o `pnpm verificar` caiu de 45 para 17 pendências.
 - **Ajustes depois dos testes no celular** ([ADR-0012](./decisions/0012-ajustes-de-experiencia-apos-testes-no-celular.md), 2026-10-27): tema só claro, selo com siglas na arte e transição ao tocar, baú com sombra e aura, chave no inventário entrando na horizontal, árvores menores, legenda dos balões, nada acelera por toque e "Pular" desde a primeira visita, casal maior na margem, papel em três partes, texto em tinta marrom, "Role para ler" animado e carta revelada bloco a bloco. Os espelhos das specs 04, 05, 06 e 14 e os dois Claude Docs ainda descrevem o comportamento antigo.
+- **Teste da cena viva no celular** ([ADR-0014](./decisions/0014-ajustes-da-cena-viva-no-celular.md), 2026-10-31, só na branch `feat/cena-viva`): selo inteiro (não parte ao meio), envelope que espera o toque, papel da carta só ao abrir e com textura do início ao fim, balões em cascata de cerca de 5 s sem as fotos provisórias (frase dentro da nuvem), cena vertical com árvores, lago e rosas próprios, baú na grama, casal em pé de volta (SPEC-22 revertida) e o "&" dos nomes em linha própria.
 - **Próximo:** o que depende do casal e de aparelhos reais: fotos dos balões (e as descrições), MP3, verso do louvor, matriz de testes ([lançamento](./operacao/lancamento.md)).
 - **Pendências de conteúdo** (bloqueiam `pnpm verificar` e o envio): fotos dos balões, imagens geradas,
   músicas licenciadas e os 6 MP3 em `public/audio/`, **fotos dos balões** (hoje `assets/provisorio/foto-*.svg`) **e suas descrições**, **verso do louvor** (entre colchetes em `content.mensagem`), URL publicada. Lista completa no fim de [documentacao.md](./documentacao.md).

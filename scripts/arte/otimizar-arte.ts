@@ -178,85 +178,64 @@ async function objetos(
   }
 }
 
-/** Quanto da largura vertical cada lado da moldura de árvores cobre: um terço, para o lago e o céu aparecerem. */
-const COBERTURA_DA_MOLDURA_VERTICAL = 0.33;
-/**
- * Quanto da altura vertical a moldura cobre, contada do alto: as copas ficam no alto e os troncos descem até
- * aqui, onde o primeiro plano (grama e rosas, na base da tela) os esconde. Em escala cheia (1,0) os troncos
- * ocupavam quase metade da largura do celular.
- */
-const ALTURA_DA_MOLDURA_VERTICAL = 0.9;
-/**
- * Fração da fatia, do lado voltado ao centro, que esmaece até sumir. Embaixo, onde está o tronco, o
- * esmaecimento é curto (o tronco fica inteiro); no alto, onde a copa é cortada pela fatia, é longo, para a
- * folhagem se desfazer aos poucos em vez de terminar numa parede vertical.
- */
-const ESMAECIMENTO_DO_TRONCO = 0.15;
-const ESMAECIMENTO_DA_COPA = 0.7;
-/** A copa vai do alto até esta fração da altura; o tronco começa a esta outra (transição suave entre as duas). */
-const COPA_ATE = 0.28;
-const TRONCO_DESDE = 0.55;
+/** Tamanho das artes de retrato (9:16) das camadas do cenário, em pixels da arte. */
+const LARGURA_DO_RETRATO = 941;
+const ALTURA_DO_RETRATO = 1672;
 
 /**
- * A moldura de árvores só veio em 16:9. No celular (retrato) o `object-fit: cover` mostraria apenas o
- * meio vazio dela, sem nenhum tronco, então o 9:16 é montado com as duas laterais da mesma arte, em escala
- * menor que a da altura inteira (as árvores tomavam quase metade da tela): cada tronco no seu canto, a copa
- * no alto, os galhos esmaecendo em direção ao centro.
+ * A moldura de árvores só veio em 16:9. No celular (retrato) o `object-fit: cover` mostraria apenas o meio
+ * vazio dela, sem tronco nem copa. O 9:16 é montado com os DOIS lados da mesma arte, cada um do seu canto, com a
+ * arte esticada na vertical (`ESCALA_X` menor que `ESCALA_Y`): os troncos ficam finos e altos, com a copa caída
+ * sobre o céu, como numa moldura de retrato, e nenhuma fatia é apagada: a arte aparece inteira em vez de
+ * esmaecer (o esmaecimento dos troncos os fazia "sumir"). A base da arte (as moitas) esmaece embaixo, onde o
+ * primeiro plano a esconde.
  */
+const ESCALA_X_DA_MOLDURA = 0.65;
+const ESCALA_Y_DA_MOLDURA = 1.55;
+const ESMAECIMENTO_DA_BASE = 0.05;
+
 async function molduraVertical(): Promise<void> {
-  const largura = 941;
-  const altura = 1672;
   const limite = LIMITE_DAS_IMAGENS.arvores;
   const quadro = await lerQuadro(join(originais, '05-arvores-16x9.png'));
   limparRecorte(quadro, 2, { bordaAberta: true });
-  const escala = (altura * ALTURA_DA_MOLDURA_VERTICAL) / quadro.altura;
-  const fatia = Math.round((largura * COBERTURA_DA_MOLDURA_VERTICAL) / escala);
+  const largura = Math.round(quadro.largura * ESCALA_X_DA_MOLDURA);
+  const altura = Math.round(quadro.altura * ESCALA_Y_DA_MOLDURA);
+  const esticada = await paraSharp(quadro)
+    .resize(largura, altura, { fit: 'fill' })
+    .png()
+    .toBuffer();
 
-  const lado = async (esquerda: number, paraADireita: boolean) => {
-    const { data, info } = await paraSharp(quadro)
-      .extract({ left: esquerda, top: 0, width: fatia, height: quadro.altura })
-      .resize({ height: Math.round(quadro.altura * escala) })
+  const lado = async (esquerda: number) => {
+    const { data, info } = await sharp(esticada)
+      .extract({ left: esquerda, top: 0, width: LARGURA_DO_RETRATO, height: altura })
+      .ensureAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true });
-    const suave = (t: number) => t * t * (3 - 2 * t);
-    for (let y = 0; y < info.height; y++) {
-      // 0 na copa, 1 no tronco: a largura do esmaecimento passa de um valor ao outro sem degrau
-      const altura = y / info.height;
-      const tronco = suave(
-        Math.min(1, Math.max(0, (altura - COPA_ATE) / (TRONCO_DESDE - COPA_ATE))),
-      );
-      const faixa = Math.round(
-        info.width *
-          (ESMAECIMENTO_DA_COPA + (ESMAECIMENTO_DO_TRONCO - ESMAECIMENTO_DA_COPA) * tronco),
-      );
-      for (let x = 0; x < faixa; x++) {
-        // 0 na ponta voltada ao centro, 1 onde o esmaecimento termina (curva suave, sem degrau)
-        const peso = suave(x / faixa);
-        const coluna = paraADireita ? info.width - 1 - x : x;
-        const indice = (y * info.width + coluna) * 4 + 3;
+    // A base esmaece em linha reta, de cheia a nada, nas últimas linhas.
+    const faixa = Math.round(info.height * ESMAECIMENTO_DA_BASE);
+    for (let y = info.height - faixa; y < info.height; y++) {
+      const peso = (info.height - 1 - y) / faixa;
+      for (let x = 0; x < info.width; x++) {
+        const indice = (y * info.width + x) * 4 + 3;
         data[indice] = Math.round((data[indice] ?? 0) * peso);
       }
     }
     return { data, info };
   };
-
-  const [esquerdo, direito] = await Promise.all([
-    lado(0, true),
-    lado(quadro.largura - fatia, false),
-  ]);
+  const [esquerdo, direito] = await Promise.all([lado(0), lado(largura - LARGURA_DO_RETRATO)]);
   const montada = await sharp({
     create: {
-      width: largura,
-      height: altura,
+      width: LARGURA_DO_RETRATO,
+      height: ALTURA_DO_RETRATO,
       channels: 4,
       background: { r: 0, g: 0, b: 0, alpha: 0 },
     },
   })
     .composite(
-      [esquerdo, direito].map(({ data, info }, indice) => ({
+      [esquerdo, direito].map(({ data, info }) => ({
         input: data,
         raw: { width: info.width, height: info.height, channels: 4 as const },
-        left: indice === 0 ? 0 : largura - info.width,
+        left: 0,
         top: 0,
       })),
     )
@@ -265,10 +244,212 @@ async function molduraVertical(): Promise<void> {
   const base = sharp(montada.data, {
     raw: { width: montada.info.width, height: montada.info.height, channels: 4 },
   });
-  const codificada = await codificarNoLimite(base, largura, limite);
+  const codificada = await codificarNoLimite(base, LARGURA_DO_RETRATO, limite);
   const destino = 'assets/scene/05-arvores-9x16.webp';
   escrever(join(publico, destino), codificada.buffer);
   relatar(`${destino} (montada)`, codificada, limite);
+}
+
+/**
+ * O lago em retrato: a mesma arte, com a água prolongada para baixo pelo espelho das últimas linhas, na mesma
+ * escala. Na vertical a camada do lago termina acima da grama e o que ficava entre os dois mostrava o céu por trás
+ * das flores ("céu no mar"); com a água continuando até a grama, o buraco some. O espelho é contínuo na emenda.
+ */
+const LINHAS_DE_AGUA_A_MAIS = 300;
+const LARGURA_DO_LAGO_VERTICAL = 1280;
+
+async function lagoVertical(): Promise<void> {
+  const limite = LIMITE_DAS_IMAGENS.lago;
+  const quadro = await lerQuadro(join(originais, '04-lago.png'));
+  normalizarAlfa(quadro);
+  const { largura, altura } = quadro;
+  const extensao = await paraSharp(quadro)
+    .extract({
+      left: 0,
+      top: altura - LINHAS_DE_AGUA_A_MAIS,
+      width: largura,
+      height: LINHAS_DE_AGUA_A_MAIS,
+    })
+    .flip()
+    .png()
+    .toBuffer();
+  const inteiro = await paraSharp(quadro).png().toBuffer();
+  const montada = await sharp({
+    create: {
+      width: largura,
+      height: altura + LINHAS_DE_AGUA_A_MAIS,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([
+      { input: inteiro, left: 0, top: 0 },
+      { input: extensao, left: 0, top: altura },
+    ])
+    .png()
+    .toBuffer();
+  const codificada = await codificarNoLimite(sharp(montada), LARGURA_DO_LAGO_VERTICAL, limite);
+  const destino = 'assets/scene/04-lago-9x16.webp';
+  escrever(join(publico, destino), codificada.buffer);
+  relatar(`${destino} (água prolongada)`, codificada, limite);
+}
+
+/**
+ * O primeiro plano em retrato: o recorte cheio só mostrava o meio, com pouca flor. Aqui é um mosaico dos dois
+ * cantos da arte (os maciços de rosas), com uma emenda esmaecida no meio, como no computador. `ESCALA_DO_MOSAICO`
+ * é a razão entre a arte e o mosaico (maior = rosas maiores).
+ */
+const LARGURA_DO_MOSAICO = 1100;
+const ALTURA_DO_MOSAICO = 683;
+const ESCALA_DO_MOSAICO = 1.3;
+const EMENDA_DO_MOSAICO = 140;
+
+async function primeiroPlanoVertical(): Promise<Quadro4> {
+  const limite = LIMITE_DAS_IMAGENS.primeiroPlano;
+  const quadro = await lerQuadro(join(originais, '06-primeiro-plano.png'));
+  normalizarAlfa(quadro);
+  const caixa = caixaDoObjeto(quadro);
+  if (!caixa) throw new RangeError('Primeiro plano sem nenhum pixel visível');
+  const recorte = await paraSharp(quadro)
+    .extract({
+      left: 0,
+      top: caixa.topo,
+      width: quadro.largura,
+      height: quadro.altura - caixa.topo,
+    })
+    .resize({
+      height: ALTURA_DO_MOSAICO,
+      fit: 'fill',
+      width: Math.round(quadro.largura * ESCALA_DO_MOSAICO),
+    })
+    .png()
+    .toBuffer();
+  const meta = await sharp(recorte).metadata();
+  const larguraDaArte = meta.width;
+  const metade = LARGURA_DO_MOSAICO / 2 + EMENDA_DO_MOSAICO / 2;
+
+  const lado = async (esquerda: number, esmaece: boolean) => {
+    const { data, info } = await sharp(recorte)
+      .extract({ left: esquerda, top: 0, width: metade, height: ALTURA_DO_MOSAICO })
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    // Só o lado direito esmaece, na borda voltada ao centro, em curva suave: o esquerdo fica inteiro por baixo,
+    // então a emenda mistura as cores sem abrir um buraco de transparência no meio.
+    if (esmaece) {
+      for (let x = 0; x < EMENDA_DO_MOSAICO; x++) {
+        const u = x / EMENDA_DO_MOSAICO;
+        const peso = u * u * (3 - 2 * u);
+        for (let y = 0; y < info.height; y++) {
+          const indice = (y * info.width + x) * 4 + 3;
+          data[indice] = Math.round((data[indice] ?? 0) * peso);
+        }
+      }
+    }
+    return { data, info };
+  };
+  const [esquerdo, direito] = await Promise.all([
+    lado(0, false),
+    lado(larguraDaArte - metade, true),
+  ]);
+  const montado = await sharp({
+    create: {
+      width: LARGURA_DO_MOSAICO,
+      height: ALTURA_DO_MOSAICO,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([
+      {
+        input: esquerdo.data,
+        raw: { width: esquerdo.info.width, height: esquerdo.info.height, channels: 4 },
+        left: 0,
+        top: 0,
+      },
+      {
+        input: direito.data,
+        raw: { width: direito.info.width, height: direito.info.height, channels: 4 },
+        left: LARGURA_DO_MOSAICO - direito.info.width,
+        top: 0,
+      },
+    ])
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const codificada = await codificarNoLimite(
+    sharp(montado.data, {
+      raw: { width: LARGURA_DO_MOSAICO, height: ALTURA_DO_MOSAICO, channels: 4 },
+    }),
+    LARGURA_DO_MOSAICO,
+    limite,
+  );
+  const destino = 'assets/scene/06-primeiro-plano-9x16.webp';
+  escrever(join(publico, destino), codificada.buffer);
+  relatar(`${destino} (mosaico)`, codificada, limite);
+  return {
+    largura: LARGURA_DO_MOSAICO,
+    altura: ALTURA_DO_MOSAICO,
+    dados: new Uint8Array(montado.data.buffer, montado.data.byteOffset, montado.data.byteLength),
+    canais: 4,
+  };
+}
+
+/**
+ * O chão sob o convite: quando a cena sobe (a carta abre), a base da tela fica sem arte. Em vez de um espelho do
+ * primeiro plano (que aparecia como uma imagem duplicada), a faixa continua as cores da borda de baixo dele, em
+ * degradê para um tom médio mais escuro: uma imagem minúscula, ampliada pelo navegador, que vira um borrão
+ * suave de grama fora de foco. As primeiras linhas são transparentes e ganham corpo aos poucos: a faixa começa
+ * um pouco acima da borda do primeiro plano e se mistura com ele, sem deixar uma linha de emenda.
+ */
+const COLUNAS_DO_CHAO = 12;
+/** Linhas da faixa e quantas delas, no alto, entram em degradê de transparência (a emenda com o primeiro plano). */
+const LINHAS_DO_CHAO = 48;
+const LINHAS_DA_EMENDA = 6;
+
+async function chao(quadro: Quadro, destino: string): Promise<void> {
+  const limite = LIMITE_DAS_IMAGENS.chao;
+  const faixa = Math.max(1, Math.round(quadro.altura * 0.04));
+  const medias: number[][] = [];
+  for (let c = 0; c < COLUNAS_DO_CHAO; c++) {
+    const x0 = Math.floor((c * quadro.largura) / COLUNAS_DO_CHAO);
+    const x1 = Math.floor(((c + 1) * quadro.largura) / COLUNAS_DO_CHAO);
+    const soma = [0, 0, 0];
+    let peso = 0;
+    for (let y = quadro.altura - faixa; y < quadro.altura; y++) {
+      for (let x = x0; x < x1; x++) {
+        const i = (y * quadro.largura + x) * 4;
+        const a = (quadro.dados[i + 3] ?? 0) / 255;
+        soma[0] = (soma[0] ?? 0) + (quadro.dados[i] ?? 0) * a;
+        soma[1] = (soma[1] ?? 0) + (quadro.dados[i + 1] ?? 0) * a;
+        soma[2] = (soma[2] ?? 0) + (quadro.dados[i + 2] ?? 0) * a;
+        peso += a;
+      }
+    }
+    medias.push(peso > 0 ? soma.map((s) => s / peso) : [90, 100, 60]);
+  }
+  const geral = [0, 1, 2].map(
+    (canal) => medias.reduce((s, m) => s + (m[canal] ?? 0), 0) / medias.length,
+  );
+  const dados = Buffer.alloc(COLUNAS_DO_CHAO * LINHAS_DO_CHAO * 4);
+  for (let l = 0; l < LINHAS_DO_CHAO; l++) {
+    const t = Math.max(0, l - LINHAS_DA_EMENDA) / (LINHAS_DO_CHAO - 1 - LINHAS_DA_EMENDA);
+    const emenda = Math.min(1, l / LINHAS_DA_EMENDA);
+    for (let c = 0; c < COLUNAS_DO_CHAO; c++) {
+      const origem = (l * COLUNAS_DO_CHAO + c) * 4;
+      for (let canal = 0; canal < 3; canal++) {
+        const cor = (medias[c]?.[canal] ?? 0) * (1 - 0.8 * t) + (geral[canal] ?? 0) * 0.8 * t;
+        dados[origem + canal] = Math.round(cor * (1 - 0.12 * t));
+      }
+      dados[origem + 3] = Math.round(255 * emenda * emenda * (3 - 2 * emenda));
+    }
+  }
+  const buffer = await sharp(dados, {
+    raw: { width: COLUNAS_DO_CHAO, height: LINHAS_DO_CHAO, channels: 4 },
+  })
+    .webp({ quality: 80, alphaQuality: 100 })
+    .toBuffer();
+  escrever(join(publico, destino), buffer);
+  relatar(destino, { buffer, qualidade: 80, largura: COLUNAS_DO_CHAO }, limite);
 }
 
 /** O casal veio sem recorte, sobre um fundo cinza liso: o fundo sai a partir das bordas. */
@@ -297,10 +478,56 @@ async function casal(): Promise<void> {
 }
 
 /**
+ * A faixa do meio do papel, sem rosas (de `de` a `ate`, em frações da altura): é o que o miolo da carta
+ * repete quando o texto é longo. Tem de bater com `config.carta.papel.corte`.
+ */
+const CORTE_DO_PAPEL = { de: 0.43, ate: 0.56 } as const;
+
+/**
+ * O ladrilho do miolo da carta: a faixa do meio do papel seguida do próprio espelho. Espelhada, a faixa
+ * emenda consigo mesma em cima e embaixo (a borda irregular e o filete dourado continuam), e repetida na
+ * vertical dá o papel inteiro com a textura de verdade, sem as listras que esticar uma faixa fina deixava.
+ */
+async function miolo(base: Sharp, largura: number): Promise<void> {
+  const limite = LIMITE_DAS_IMAGENS.papelMiolo;
+  const { data, info } = await base
+    .clone()
+    .resize({ width: largura })
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const crua = { raw: { width: info.width, height: info.height, channels: info.channels } };
+  const topo = Math.round(info.height * CORTE_DO_PAPEL.de);
+  const altura = Math.round(info.height * CORTE_DO_PAPEL.ate) - topo;
+  const faixa = await sharp(data, crua)
+    .extract({ left: 0, top: topo, width: info.width, height: altura })
+    .png()
+    .toBuffer();
+  const espelho = await sharp(faixa).flip().png().toBuffer();
+  const ladrilho = await sharp({
+    create: {
+      width: info.width,
+      height: altura * 2,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  })
+    .composite([
+      { input: faixa, left: 0, top: 0 },
+      { input: espelho, left: 0, top: altura },
+    ])
+    .png()
+    .toBuffer();
+  const codificada = await codificarNoLimite(sharp(ladrilho), info.width, limite);
+  escrever(join(publico, 'assets/objects/14-papel-miolo.webp'), codificada.buffer);
+  relatar('assets/objects/14-papel-miolo.webp', codificada, limite);
+}
+
+/**
  * O papel da carta veio com uma moldura de mesa em volta (bege liso). Sai a moldura a partir das
  * bordas, de modo que a borda irregular do papel, com o filete dourado, vire o contorno da imagem; a
- * carta a estica em três partes (topo, meio, base) sem cortar nada, e a sombra dela segue o contorno.
- * Imprime a proporção (altura / largura) e a faixa do meio, que vão para `config.carta.papel`.
+ * carta o monta em três partes (topo, miolo, base) sem cortar nada, e a sombra dela segue o contorno.
+ * O miolo é um ladrilho espelhado da faixa do meio (`miolo`). Imprime a proporção (altura / largura),
+ * que vai para `config.carta.papel`.
  */
 async function papel(): Promise<void> {
   const quadro = await lerQuadro(join(originais, '14-papel-carta.png'));
@@ -318,13 +545,15 @@ async function papel(): Promise<void> {
     width: recorte.largura,
     height: recorte.altura,
   });
-  const codificada = await codificarNoLimite(base, Math.min(recorte.largura, 900), limite);
+  const largura = Math.min(recorte.largura, 900);
+  const codificada = await codificarNoLimite(base, largura, limite);
   escrever(join(publico, 'assets/objects/14-papel-carta.webp'), codificada.buffer);
   relatar(
     `assets/objects/14-papel-carta.webp (${String(fundo)} px de moldura)`,
     codificada,
     limite,
   );
+  await miolo(base, largura);
   console.log(
     `  papel: proporção ${(recorte.altura / recorte.largura).toFixed(3)} (altura / largura)  → config.carta.papel`,
   );
@@ -458,6 +687,7 @@ async function main(): Promise<void> {
     { limpar: true, bordaAberta: true },
   );
   await molduraVertical();
+  await lagoVertical();
   await objetos(
     [
       {
@@ -469,6 +699,12 @@ async function main(): Promise<void> {
     ],
     { limpar: false },
   );
+  const retrato = await primeiroPlanoVertical();
+  await chao(retrato, 'assets/scene/06-chao-9x16.webp');
+  // O chão do computador vem da borda de baixo do primeiro plano em 16:9.
+  const paisagem = await lerQuadro(join(originais, '06-primeiro-plano.png'));
+  normalizarAlfa(paisagem);
+  await chao(paisagem, 'assets/scene/06-chao-16x9.webp');
 
   console.log('Objetos');
   await objetos(

@@ -19,10 +19,9 @@ export const config: ConfigConvite = {
   duracoes: {
     nevoa: 3,
     bau: 2,
-    balao: 3,
+    balao: 0.55,
     carta: 3,
     convite: 7,
-    esperaSelo: 4,
     dicaChave: 1.5,
     reforcoDica: 8,
     limiteCritico: 8,
@@ -45,7 +44,7 @@ export const config: ConfigConvite = {
     seloEscala: 1.05,
     saida: {
       aperto: { escala: 0.9, duracao: 0.14 },
-      rompe: { giro: 24, queda: 90, afastamento: 18, duracao: 0.7 },
+      solta: { giro: 4, subida: 16, escala: 1.16, duracao: 0.9 },
       brilho: { escala: 3.4, duracao: 1.1, opacidade: 0.95 },
       nomes: { escala: 1.1, deslocamento: -18, duracao: 0.8 },
       nevoaEm: 0.28,
@@ -78,15 +77,16 @@ export const config: ConfigConvite = {
     dicaEm: 1.7,
     dicaAparece: 0.3,
     pulsoDoSelo: { escala: 1.06, periodo: 1 },
-    // Medidas do papel (`pnpm arte` imprime a proporção): a faixa do meio, sem rosas, é a que se estica.
-    papel: { proporcao: 1.483, corte: { de: 0.46, ate: 0.54 }, margem: 0.115 },
+    // Medidas do papel (`pnpm arte` imprime a proporção): a faixa do meio, sem rosas, vira o ladrilho que se repete
+    // sob o texto (`CORTE_DO_PAPEL`, em scripts/arte/otimizar-arte.ts, tem de bater com estes números).
+    papel: { proporcao: 1.483, corte: { de: 0.43, ate: 0.56 } },
     gesto: { limite: 120, limiar: 60, folga: 10, retorno: 0.5 },
   },
   convite: {
     dicaSome: 0.2,
     seloCresce: { escala: 1.12, duracao: 0.15 },
     seloBrilho: { escala: 2.4, duracao: 0.7, opacidade: 0.9 },
-    seloParte: { duracao: 0.25, giro: 20, queda: 40, afastamento: 10 },
+    seloSolta: { duracao: 0.7, giro: 3, subida: 12, escala: 1.14 },
     abaEm: 0.4,
     aba: 0.3,
     abaEscala: 1.02,
@@ -96,7 +96,7 @@ export const config: ConfigConvite = {
     envelopeDesce: 0.8,
     cenaSobeEm: 1.7,
     cenaSobe: 1.5,
-    cenaSobeFracao: 0.18,
+    cenaSobeFracao: 0.28,
     bauSome: 0.6,
     casalEm: 2,
     casalAparece: 1.5,
@@ -123,21 +123,22 @@ export const config: ConfigConvite = {
     rolar: { aparece: 0.5, periodo: 1.2, deslocamento: 9 },
   },
   historia: {
-    saida: 0.8,
+    saida: 0.7,
     escalaInicial: 0.4,
-    fraseEm: 0.4,
+    fraseEm: 0.35,
     fraseAparece: 0.2,
     fraseSome: 0.3,
-    leituraEm: 0.6,
-    leitura: 2,
+    leituraEm: 0.5,
+    leitura: 1.8,
     balanco: 3,
-    subidaFinalEm: 2.6,
+    subidaFinalEm: 2.3,
     subidaFinal: 0.4,
-    alturaDaSaida: 0.62,
-    alturaDaSaidaNaHorizontal: 0.72,
-    subidaDaLeitura: 0.08,
+    // Um cacho de cinco balões: cada um para numa altura e num lado, e cada frase vive dentro da sua nuvem.
+    alturas: [0.78, 0.7, 0.6, 0.52, 0.42],
+    alturasNaHorizontal: [0.9, 0.82, 0.74, 0.66, 0.58],
+    subidaDaLeitura: 0.04,
     margemSuperior: 16,
-    desvios: [-0.12, 0.1, -0.06, 0.12, 0],
+    desvios: [-0.22, 0.2, -0.2, 0.22, 0],
   },
   bau: {
     dicaSome: 0.2,
@@ -160,8 +161,7 @@ export const config: ConfigConvite = {
     instanteDaChaveSome: 1.3,
     chaveSome: 0.3,
     auraAparece: 0.3,
-    aura: { minimo: 0.55, maximo: 1, escala: 1.07, periodo: 2.6 },
-    brilhantes: { quantidade: 6, periodo: 1.6, intervalo: 0.45 },
+    aura: { minimo: 0.5, maximo: 0.85, escala: 1.05, periodo: 3.2 },
     inventarioAparece: 0.5,
     inventarioSome: 0.4,
     // Medidas da arte da chave (`pnpm arte` as imprime): ponta e comprimento com a arte girada em 45°.
@@ -176,7 +176,6 @@ export const config: ConfigConvite = {
     balancoNoInventario: { rotacao: 5, duracao: 1.8 },
     brilhoDaChave: { minimo: 0.4, maximo: 0.9, duracao: 1.2 },
     pulso: { escala: 1.15, duracao: 0.6 },
-    onda: { inicio: 0.7, fim: 1.35, opacidade: 0.9 },
     reforco: { escala: 1.15, pulsos: 3, duracao: 0.9, maximo: 3 },
     petalas: { minimo: 4, maximo: 6, subida: 220, deriva: 70, duracao: 1.8, largura: '12%' },
   },
@@ -185,14 +184,16 @@ export const config: ConfigConvite = {
     larguraParaCobrir: 0.8,
     desempenho: { janelaDeMedicao: 2, quadroLento: 0.025, fracaoDeQuadrosLentos: 0.5 },
     leve: { quadrosDaAgua: 30, resolucaoDaAgua: 1, maximoDeFolhas: 4 },
-    completo: { resolucaoDaAgua: 1.5, resolucaoDoVento: 1.5, maximoDeFolhas: 8 },
+    completo: { resolucaoDaAgua: 1.5, maximoDeFolhas: 8 },
     agua: {
       primeiroEm: 0,
       aparece: 0.8,
       // A água começa logo abaixo da margem da arte 04: a mata, a ilha e as pedras da margem (até 55% da
       // altura) ficam paradas.
       regiao: {
-        vertical: { tipo: 'faixa', inicio: 0.53, borda: 0.05 },
+        // Na vertical a arte do lago tem 300 linhas de água a mais embaixo (863 no total): a margem fica a
+        // 0,53 × 563 / 863 = 0,346 da altura dela.
+        vertical: { tipo: 'faixa', inicio: 0.346, borda: 0.033 },
         horizontal: { tipo: 'faixa', inicio: 0.53, borda: 0.05 },
       },
       onda: {
@@ -263,27 +264,6 @@ export const config: ConfigConvite = {
       sacudidasDoRabo: 2,
       inclinacaoDaSacudida: 3,
     },
-    casal: {
-      respiracao: { escala: 1.006, periodo: 4.5 },
-      brilho: { minimo: 0.5, maximo: 0.85, periodo: 6 },
-      vento: {
-        onda: {
-          amplitude: 1.5,
-          frequencia: 14,
-          velocidade: 0.35,
-          direcao: 'horizontal',
-          perspectiva: 0,
-        },
-        rajada: [8, 12],
-        // 0,55 ± 0,45 da spec: do quase calmo (0,1) ao vento inteiro.
-        forca: [0.1, 1],
-        regioes: [
-          // O cabelo dela e a barra do vestido; ajustar sobre a imagem 19 definitiva.
-          { tipo: 'elipse', centro: [0.62, 0.32], raio: [0.12, 0.2], borda: 0.5, intensidade: 1 },
-          { tipo: 'elipse', centro: [0.7, 0.86], raio: [0.22, 0.1], borda: 0.6, intensidade: 0.7 },
-        ],
-      },
-    },
   },
   // Arte gerada (docs/decisions/0011), preparada por `pnpm arte` a partir de `arte/originais/`.
   // Lago e primeiro plano valem nas duas orientações (o `cover` do CSS escolhe o recorte); o céu e a
@@ -297,12 +277,22 @@ export const config: ConfigConvite = {
       vertical: 'assets/scene/03-ceu-por-do-sol-9x16.webp',
       horizontal: 'assets/scene/03-ceu-por-do-sol-16x9.webp',
     },
-    lago: 'assets/scene/04-lago.webp',
+    lago: {
+      vertical: 'assets/scene/04-lago-9x16.webp',
+      horizontal: 'assets/scene/04-lago.webp',
+    },
     arvores: {
       vertical: 'assets/scene/05-arvores-9x16.webp',
       horizontal: 'assets/scene/05-arvores-16x9.webp',
     },
-    primeiroPlano: 'assets/scene/06-primeiro-plano.webp',
+    primeiroPlano: {
+      vertical: 'assets/scene/06-primeiro-plano-9x16.webp',
+      horizontal: 'assets/scene/06-primeiro-plano.webp',
+    },
+    chao: {
+      vertical: 'assets/scene/06-chao-9x16.webp',
+      horizontal: 'assets/scene/06-chao-16x9.webp',
+    },
     bauFechado: 'assets/objects/08-bau-fechado.webp',
     bauAberto: 'assets/objects/09-bau-aberto.webp',
     chave: 'assets/objects/10-chave.webp',
@@ -316,13 +306,14 @@ export const config: ConfigConvite = {
     envelopeAberto: 'assets/objects/13-envelope-aberto.webp',
     selo: 'assets/objects/15-selo.webp',
     papelCarta: 'assets/objects/14-papel-carta.webp',
-    // Cena viva (épico 13): arte provisória até chegarem as imagens 19 (casal sentado), 20a–c e 21a–b.
+    papelMiolo: 'assets/objects/14-papel-miolo.webp',
+    // Cena viva (épico 13): arte provisória até chegarem as imagens 20a–c e 21a–b.
     folhaA: 'assets/provisorio/folha-a.svg',
     folhaB: 'assets/provisorio/folha-b.svg',
     folhaC: 'assets/provisorio/folha-c.svg',
     esquiloEncolhido: 'assets/provisorio/esquilo-encolhido.svg',
     esquiloEsticado: 'assets/provisorio/esquilo-esticado.svg',
-    casal: 'assets/provisorio/casal.svg',
+    casal: 'assets/couple/17-casal-costas.webp',
   },
   curvas: {
     mola: 'elastic.out(1, 0.5)',

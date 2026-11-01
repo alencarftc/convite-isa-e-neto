@@ -146,7 +146,7 @@ describe('cena do bosque (SPEC-03)', () => {
       }
     });
 
-    it('lago e primeiro plano têm uma arte só: sem <source>, o recorte de cada orientação é do CSS', () => {
+    it('lago e primeiro plano têm uma arte de retrato (a água prolongada e o mosaico de rosas) e uma de paisagem', () => {
       const { cena, camada } = montar();
 
       cena.init();
@@ -154,8 +154,10 @@ describe('cena do bosque (SPEC-03)', () => {
       for (const nome of ['lago', 'frente']) {
         const quadro = camada(nome);
         expect(quadro.tagName).toBe('PICTURE');
-        expect(quadro.querySelector('source')).toBeNull();
+        expect(quadro.querySelector('source')?.media).toBe('(orientation: portrait)');
+        expect(quadro.querySelector('source')?.srcset).toMatch(/-9x16\.webp$/);
         expect(quadro.querySelector('img')?.getAttribute('src')).toMatch(/\.webp$/);
+        expect(quadro.querySelector('img')?.getAttribute('src')).not.toMatch(/-9x16/);
         expect(quadro.querySelector('img')?.alt).toBe('');
       }
     });

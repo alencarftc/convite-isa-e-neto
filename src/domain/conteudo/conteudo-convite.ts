@@ -8,7 +8,7 @@ import type { UnidadesDeTempo } from '../contagem/contagem-regressiva';
 /** Um balão da história (SPEC-05, RF-05.1): a frase e a foto que a acompanha. */
 export interface BalaoDoConvite {
   readonly frase: string;
-  /** Caminho da foto, relativo à página. */
+  /** Caminho da foto, relativo à página; vazio enquanto a foto não chega (a frase fica dentro da nuvem). */
   readonly foto: string;
   /** Texto alternativo da foto (RF-05.8); entre colchetes enquanto a foto não chega. */
   readonly alt: string;

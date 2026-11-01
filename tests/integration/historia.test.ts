@@ -17,7 +17,21 @@ import { criarRelogioManual } from './suporte/relogio-gsap';
 
 const config: ConfigConvite = configRapida(configReal);
 
-function montar(opcoes: OpcoesDoEstadoFalso = {}) {
+/**
+ * O conteúdo com as fotos dos balões preenchidas: as do casal ainda não chegaram (as provisórias saíram em
+ * 31/10/2026), e estes testes cobrem o tratamento da foto para quando chegarem.
+ */
+const comFotos = {
+  ...content,
+  baloes: content.baloes.map((balao, indice) => ({
+    ...balao,
+    foto: `photos/foto-${String(indice + 1)}.jpg`,
+    alt: `Descrição da foto ${String(indice + 1)}`,
+    foco: '50% 35%',
+  })),
+};
+
+function montar(opcoes: OpcoesDoEstadoFalso = {}, conteudo: typeof content = content) {
   montarIndexHtml();
   const raiz = document.querySelector<HTMLElement>('#app');
   if (!raiz) throw new Error('index.html sem #app');
@@ -36,7 +50,7 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}) {
 
   // O bosque cria as camadas do pôr do sol que a história anima (tlLuz).
   criarCenaBosque({ raiz, config, estado, eventos, carregamento }).init();
-  const cena = criarCenaHistoria({ raiz, conteudo: content, config, estado, eventos });
+  const cena = criarCenaHistoria({ raiz, conteudo, config, estado, eventos });
   cena.init();
 
   const el = (seletor: string) => {
@@ -58,14 +72,17 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}) {
   return { cena, estado, eventos, registro, frases, el, opacidade, linha };
 }
 
-const esperar = (ms: number) => new Promise<void>((resolver) => setTimeout(resolver, ms));
-
 beforeEach(() => {
   document.body.innerHTML = '';
 });
 afterEach(() => {
   vi.restoreAllMocks();
 });
+
+/** Os balões saem em cascata: um começa `balao` depois do anterior e o último ainda faz o seu ciclo todo. */
+const totalDaHistoria =
+  config.duracoes.balao * (content.baloes.length - 1) +
+  (config.historia.subidaFinalEm + config.historia.subidaFinal);
 
 describe('história em balões (SPEC-05)', () => {
   describe('estrutura', () => {
@@ -88,11 +105,11 @@ describe('história em balões (SPEC-05)', () => {
     });
 
     it('cada balão tem a frase aprovada, a foto com alt e o ponto de foco do conteúdo (RF-05.3)', () => {
-      montar();
+      montar({}, comFotos);
 
       const baloes = [...document.querySelectorAll<HTMLElement>('.balao')];
       baloes.forEach((balao, indice) => {
-        const esperado = content.baloes[indice];
+        const esperado = comFotos.baloes[indice];
         expect(balao.querySelector('.balao__frase')?.textContent).toBe(esperado?.frase);
         const foto = balao.querySelector<HTMLImageElement>('.balao__foto img');
         expect(foto?.alt).toBe(esperado?.alt);
@@ -100,8 +117,22 @@ describe('história em balões (SPEC-05)', () => {
       });
     });
 
-    it('foto que falha some e o balão fica só com a frase (RF-05.9, CT-05.7)', () => {
+    it('sem as fotos do casal (31/10/2026), a frase vive dentro da nuvem e não sobra círculo vazio', () => {
       montar();
+
+      const baloes = [...document.querySelectorAll<HTMLElement>('.balao')];
+      expect(baloes).toHaveLength(content.baloes.length);
+      baloes.forEach((balao, indice) => {
+        expect(balao.classList.contains('balao--sem-foto')).toBe(true);
+        expect(balao.querySelector('.balao__foto')).toBeNull();
+        const frase = balao.querySelector('.balao__frase');
+        expect(frase?.textContent).toBe(content.baloes[indice]?.frase);
+        expect(frase?.parentElement).toBe(balao.querySelector('.balao__corpo'));
+      });
+    });
+
+    it('foto que falha some e o balão fica só com a frase (RF-05.9, CT-05.7)', () => {
+      montar({}, comFotos);
       const primeiro = document.querySelector('.balao');
 
       primeiro?.querySelector('.balao__foto img')?.dispatchEvent(new Event('error'));
@@ -125,10 +156,10 @@ describe('história em balões (SPEC-05)', () => {
     });
 
     it('nuvens e fotos NÃO são pedidas no init, antes do toque de entrada: só quando a história começa (SPEC-02, RF-02.7)', () => {
-      const { cena } = montar();
+      const { cena } = montar({}, comFotos);
       const imagens = () => [...document.querySelectorAll<HTMLImageElement>('.historia img')];
 
-      expect(imagens()).toHaveLength(content.baloes.length * 2);
+      expect(imagens()).toHaveLength(comFotos.baloes.length * 2);
       expect(imagens().every((imagem) => !imagem.hasAttribute('src'))).toBe(true);
 
       void cena.run();
@@ -137,7 +168,7 @@ describe('história em balões (SPEC-05)', () => {
       const fotos = [...document.querySelectorAll('.balao__foto img')].map((i) =>
         i.getAttribute('src'),
       );
-      expect(fotos).toEqual(content.baloes.map((balao) => balao.foto));
+      expect(fotos).toEqual(comFotos.baloes.map((balao) => balao.foto));
     });
 
     it('um balão que nunca chega a rodar (Pular) não pede nenhuma imagem', () => {
@@ -156,7 +187,7 @@ describe('história em balões (SPEC-05)', () => {
       await cena.run();
 
       expect(registro).toEqual([
-        `inicio:${String(config.duracoes.balao * content.baloes.length)}`,
+        `inicio:${String(totalDaHistoria)}`,
         'balao:0',
         'balao:1',
         'balao:2',
@@ -165,6 +196,25 @@ describe('história em balões (SPEC-05)', () => {
         'fim',
       ]);
       expect(frases).toEqual(content.baloes.map((b) => b.frase));
+    });
+
+    it('os balões saem em cascata: o segundo é anunciado antes de o primeiro ir embora (31/10/2026)', () => {
+      const relogio = criarRelogioManual();
+      try {
+        const { cena, registro } = montar();
+        void cena.run();
+
+        for (let i = 0; i < 2000 && !registro.includes('balao:1'); i += 1) {
+          relogio.avancar(0.002, 0.002);
+        }
+
+        expect(registro).toContain('balao:0');
+        expect(registro).toContain('balao:1');
+        expect(registro).not.toContain('fim');
+        cena.skip();
+      } finally {
+        relogio.restaurar();
+      }
     });
 
     it('a região aria-live recebe cada frase uma vez, só em texto (RF-05.8, CT-05.6)', async () => {
@@ -267,24 +317,29 @@ describe('história em balões (SPEC-05)', () => {
       const xs = [...document.querySelectorAll<HTMLElement>('.balao')].map((b) =>
         Math.round(Number(gsap.getProperty(b, 'x'))),
       );
-      expect(xs).toEqual([380, 600, 440, 620, 500]); // 1000 × (0,5 + desvio)
+      expect(xs).toEqual([280, 700, 300, 720, 500]); // 1000 × (0,5 + desvio)
     });
   });
 
   describe('nada na tela acelera nem pula a história (ADR-0012)', () => {
-    it('tocar na região ou na tela não muda a velocidade da linha do tempo', async () => {
-      const { cena, el, linha } = montar();
-      const execucao = cena.run();
-      await vi.waitFor(() => {
+    it('tocar na região ou na tela não muda a velocidade da linha do tempo', () => {
+      // Relógio manual: a história inteira dura uma fração de segundo nos testes, curta demais para o relógio real.
+      const relogio = criarRelogioManual();
+      try {
+        const { cena, el, linha } = montar();
+        void cena.run();
+        relogio.avancar(0.01, 0.005);
         expect(linha().time()).toBeGreaterThan(0);
-      });
 
-      el('.historia').click();
-      document.body.click();
-      document.dispatchEvent(new Event('pointerdown'));
+        el('.historia').click();
+        document.body.click();
+        document.dispatchEvent(new Event('pointerdown'));
 
-      expect(linha().timeScale()).toBe(1);
-      await execucao;
+        expect(linha().timeScale()).toBe(1);
+        cena.skip();
+      } finally {
+        relogio.restaurar();
+      }
     });
 
     it('as cinco frases são anunciadas, na ordem, sem pular nenhuma', async () => {
@@ -295,6 +350,18 @@ describe('história em balões (SPEC-05)', () => {
       expect(frases).toEqual(content.baloes.map((b) => b.frase));
     });
 
+    it('a história inteira dura cerca de 5 s: cinco balões em cascata, não um depois do outro (31/10/2026)', () => {
+      const { balao } = configReal.duracoes;
+      const { subidaFinalEm, subidaFinal, alturas, desvios } = configReal.historia;
+
+      const total = balao * (content.baloes.length - 1) + subidaFinalEm + subidaFinal;
+
+      expect(total).toBeLessThanOrEqual(5);
+      expect(total).toBeGreaterThan(4);
+      expect(alturas).toHaveLength(content.baloes.length);
+      expect(desvios).toHaveLength(content.baloes.length);
+    });
+
     it('a configuração não tem mais velocidade de aceleração nem dica de toque', () => {
       expect(config.historia).not.toHaveProperty('aceleracao');
       expect(config.historia).not.toHaveProperty('dica');
@@ -303,8 +370,8 @@ describe('história em balões (SPEC-05)', () => {
   });
 
   describe('legenda do balão', () => {
-    it('a frase fica fora do corpo que balança, para não girar junto com a nuvem', () => {
-      montar();
+    it('com foto, a frase fica fora do corpo que balança, para não girar junto com a nuvem', () => {
+      montar({}, comFotos);
 
       for (const balao of document.querySelectorAll('.balao')) {
         const frase = balao.querySelector('.balao__frase');
@@ -323,7 +390,7 @@ describe('história em balões (SPEC-05)', () => {
       const recuos = [...document.querySelectorAll<HTMLElement>('.balao')].map((b) =>
         Math.round(Number.parseFloat(b.style.getPropertyValue('--desvio-x'))),
       );
-      expect(recuos).toEqual([120, -100, 60, -120, 0]); // -(desvio × 1000)
+      expect(recuos).toEqual([220, -200, 200, -220, 0]); // -(desvio × 1000)
     });
 
     it('a frase some antes de o balão partir', async () => {
@@ -349,19 +416,26 @@ describe('história em balões (SPEC-05)', () => {
       expect(opacidade('.camada--luz')).toBe(1);
     });
 
-    it('skip interrompe a história: nenhum evento depois dele', async () => {
-      const { cena, registro } = montar();
-      void cena.run();
-      await vi.waitFor(() => {
+    it('skip interrompe a história: nenhum evento depois dele', () => {
+      // Relógio manual: a história inteira dura uma fração de segundo nos testes, curta demais para o skip cair no meio.
+      const relogio = criarRelogioManual();
+      try {
+        const { cena, registro } = montar();
+        void cena.run();
+        for (let i = 0; i < 2000 && !registro.includes('balao:0'); i += 1) {
+          relogio.avancar(0.002, 0.002);
+        }
         expect(registro).toContain('balao:0');
-      });
 
-      cena.skip();
-      const depois = [...registro];
-      await esperar(150);
+        cena.skip();
+        const depois = [...registro];
+        relogio.avancar(2, 0.05);
 
-      expect(registro).toEqual(depois);
-      expect(registro).not.toContain('fim');
+        expect(registro).toEqual(depois);
+        expect(registro).not.toContain('fim');
+      } finally {
+        relogio.restaurar();
+      }
     });
 
     it('skip funciona sem run e destroy remove a história', () => {

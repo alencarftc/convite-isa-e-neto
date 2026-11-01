@@ -12,17 +12,19 @@
 }
 
 .balao {
+  --largura: clamp(160px, 52vw, 260px);
+
   position: absolute;
   top: 0;
   left: 0;
-  width: clamp(160px, 48vw, 260px);
+  width: var(--largura);
   pointer-events: none;
   will-change: transform, opacity;
 }
 
 @media (orientation: landscape) {
   .balao {
-    width: clamp(170px, 16vw, 230px);
+    --largura: clamp(170px, 18vw, 240px);
   }
 }
 
@@ -111,4 +113,26 @@
   border-radius: 18px;
   box-shadow: var(--sombra-cartao);
   transform: translateX(calc(-50% + var(--desvio-x, 0px)));
+}
+
+/*
+ * Balão sem foto: a frase vive dentro da nuvem, no miolo claro dela (a fita fica abaixo), e balança junto com o
+ * balão. O tamanho da letra acompanha a largura do balão, para a frase caber em qualquer tela.
+ */
+.balao--sem-foto .balao__frase {
+  top: 14%;
+  left: 21%;
+  display: grid;
+  place-items: center;
+  width: 58%;
+  height: 38%;
+  max-width: none;
+  padding: 0;
+  font-size: calc(var(--largura) * 0.078);
+  line-height: 1.22;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  transform: none;
 }

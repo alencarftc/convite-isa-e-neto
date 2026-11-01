@@ -28,14 +28,14 @@ Decisões tomadas na conversa de 27/10/2026, que estas specs registram:
 
 Prioridade MoSCoW e pontos (Fibonacci), como no épico original.
 
-| ID      | História                                                                                                           | Spec                                          | Prioridade | Pontos |
-| ------- | ------------------------------------------------------------------------------------------------------------------ | --------------------------------------------- | ---------- | ------ |
-| US-13.1 | Como convidado, quero que o bosque pareça vivo enquanto a história acontece, sem que isso pese no meu celular      | [SPEC-18](./SPEC-18-fundacao-da-cena-viva.md) | Must       | 5      |
-| US-13.2 | Como convidado, quero ver a água do lago se mexendo e brilhando com o pôr do sol                                   | [SPEC-19](./SPEC-19-agua-viva.md)             | Must       | 5      |
-| US-13.3 | Como convidado, quero ver folhas caindo das árvores e passarinhos cruzando o céu                                   | [SPEC-20](./SPEC-20-folhas-e-passaros.md)     | Must       | 5      |
-| US-13.4 | Como convidado, quero ver um esquilo correndo na grama de vez em quando                                            | [SPEC-21](./SPEC-21-esquilo.md)               | Should     | 3      |
-| US-13.5 | Como convidado, quero ver Isabella e David sentados à beira do lago, integrados à pintura e com um movimento sutil | [SPEC-22](./SPEC-22-casal-sentado-e-vivo.md)  | Must       | 5      |
-| US-13.6 | Como convidado sensível a movimento, quero poder parar a animação da cena                                          | [SPEC-18](./SPEC-18-fundacao-da-cena-viva.md) | Could      | 2      |
+| ID      | História                                                                                                      | Spec                                          | Prioridade | Pontos |
+| ------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ---------- | ------ |
+| US-13.1 | Como convidado, quero que o bosque pareça vivo enquanto a história acontece, sem que isso pese no meu celular | [SPEC-18](./SPEC-18-fundacao-da-cena-viva.md) | Must       | 5      |
+| US-13.2 | Como convidado, quero ver a água do lago se mexendo e brilhando com o pôr do sol                              | [SPEC-19](./SPEC-19-agua-viva.md)             | Must       | 5      |
+| US-13.3 | Como convidado, quero ver folhas caindo das árvores e passarinhos cruzando o céu                              | [SPEC-20](./SPEC-20-folhas-e-passaros.md)     | Must       | 5      |
+| US-13.4 | Como convidado, quero ver um esquilo correndo na grama de vez em quando                                       | [SPEC-21](./SPEC-21-esquilo.md)               | Should     | 3      |
+| US-13.5 | ~~Como convidado, quero ver Isabella e David sentados à beira do lago, com um movimento sutil~~ (revertida)   | [SPEC-22](./SPEC-22-casal-sentado-e-vivo.md)  | Must       | 5      |
+| US-13.6 | Como convidado sensível a movimento, quero poder parar a animação da cena                                     | [SPEC-18](./SPEC-18-fundacao-da-cena-viva.md) | Could      | 2      |
 
 ### Critérios de aceite
 
@@ -200,12 +200,20 @@ O limite de 8 kB do épico foi **estourado em 1,29 kB**; o pacote inteiro segue 
 direção vertical e o recorte `cobrirTudo`, que nenhum elemento usa, e simplificar o GLSL dos reflexos), ou carregar a cena
 viva em um pedaço à parte depois do toque de entrada (não muda o total publicado, só o crítico).
 
+### Atualização de 31/10/2026: o teste no celular
+
+Depois de ver a branch no celular, o casal aprovou a água, as folhas, os pássaros e o esquilo e **pediu para reverter o
+casal** (sem animação, com os personagens anteriores: a imagem 17, em pé), além de uma lista de ajustes na composição, no
+selo, no envelope, nos balões e na carta. Tudo está na [ADR-0014](../decisions/0014-ajustes-da-cena-viva-no-celular.md). O
+que muda neste épico: a SPEC-22 está revertida (a imagem 19, a respiração, o vento e o halo saíram) e o motor WebGL ficou
+só com a água; `config.imagens.casal` voltou a `assets/couple/17-casal-costas.webp`.
+
 ### O que falta
 
-1. **Imagens definitivas:** 19 (casal sentado, 640 px de largura, 150 kB), 20a–c (folhas, 128 × 128, 15 kB), 21a–b (esquilo,
-   256 px de largura, 25 kB). O `pnpm arte` ainda não tem etapa para elas: ao chegarem, acrescentar as três etapas e trocar
-   as chaves de `config.imagens` (`assets/provisorio/*.svg` → `assets/couple/19-…`, `assets/objects/20-…`, `21-…`). As elipses
-   do vento (`config.vida.casal.vento.regioes`), o tamanho do casal e a linha do chão do esquilo se ajustam sobre elas.
+1. **Imagens definitivas:** 20a–c (folhas, 128 × 128, 15 kB) e 21a–b (esquilo, 256 px de largura, 25 kB). O `pnpm arte` ainda
+   não tem etapa para elas: ao chegarem, acrescentar as etapas e trocar as chaves de `config.imagens`
+   (`assets/provisorio/*.svg` → `assets/objects/20-…`, `21-…`). A linha do chão do esquilo se ajusta sobre elas. A imagem 19
+   (casal sentado) deixou de ser necessária.
 2. **Texto do botão "Pausar animação"** (US-13.6): `content.dicas.pausarAnimacao` e `retomarAnimacao`, entre colchetes até a
    aprovação do casal.
 3. **Aparelhos reais:** 50 quadros por segundo num Android intermediário, o nível leve, o vento e a água no iPhone (matriz de
