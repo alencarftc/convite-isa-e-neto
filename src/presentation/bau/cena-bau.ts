@@ -27,6 +27,8 @@ interface Partes {
   /** Aura amarela que respira o tempo todo e o realce que o mouse acende. */
   readonly aura: HTMLElement;
   readonly realce: HTMLElement;
+  /** A imagem do baú fechado: sai de cena quando a do baú aberto chega, senão os dois baús ficam um atrás do outro. */
+  readonly fechado: HTMLElement;
   readonly aberto: HTMLElement;
   readonly luz: HTMLElement;
   /** O inventário (moldura e chave) fica na raiz, acima da cena: a chave sai dele e voa até o baú. */
@@ -81,6 +83,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     const aura = decorativo('bau__aura');
     const realce = decorativo('bau__aura bau__aura--realce');
     const luz = decorativo('bau__luz');
+    const fechada = criarImagem('bau__fechado', urlDaImagem(config.imagens.bauFechado, 'vertical'));
     // A tampa aberta e as pétalas só são pedidas quando o baú passa a aceitar o toque (`run`).
     const aberta = criarImagem(
       'bau__aberto',
@@ -96,16 +99,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     dica.setAttribute('aria-live', 'polite');
 
     // A sombra fica sobre a aura (ou a luz a apagaria) e sob o baú.
-    corpo.append(
-      aura,
-      realce,
-      sombra,
-      criarImagem('bau__fechado', urlDaImagem(config.imagens.bauFechado, 'vertical')),
-      aberta,
-      luz,
-      botao,
-      dica,
-    );
+    corpo.append(aura, realce, sombra, fechada, aberta, luz, botao, dica);
     bau.append(corpo);
 
     // Inventário: na raiz (acima da cena, fixo no pé da tela), para a chave poder sair dele e voar até o
@@ -136,6 +130,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
       corpo,
       aura,
       realce,
+      fechado: fechada,
       aberto: aberta,
       luz,
       inventario,
@@ -244,7 +239,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
 
   function abrir(): Promise<void> {
     const p = montar();
-    const { corpo, aura, realce, aberto: tampa, luz, moldura, chave, botao, dica } = p;
+    const { corpo, aura, realce, fechado, aberto: tampa, luz, moldura, chave, botao, dica } = p;
     aberto = true;
     botao.disabled = true;
     estado.definirFase('bau');
@@ -355,6 +350,17 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
           tampa,
           { opacity: 1, duration: parametros.duracaoDaTampa, ease: curvas.leve },
           parametros.instanteDaTampa,
+        )
+        // Com a tampa aberta já inteira, o baú fechado sai: as duas imagens têm silhuetas diferentes e, juntas,
+        // pareciam dois baús, um atrás do outro (01/11/2026).
+        .to(
+          fechado,
+          {
+            opacity: 0,
+            duration: parametros.duracaoDaTampa * 0.4,
+            ease: curvas.leve,
+          },
+          parametros.instanteDaTampa + parametros.duracaoDaTampa * 0.6,
         )
         .call(
           () => {
@@ -512,7 +518,18 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     },
 
     skip() {
-      const { aberto: tampa, luz, aura, realce, inventario, chave, dica, botao, corpo } = montar();
+      const {
+        fechado,
+        aberto: tampa,
+        luz,
+        aura,
+        realce,
+        inventario,
+        chave,
+        dica,
+        botao,
+        corpo,
+      } = montar();
       aberto = true;
       linhaDoTempo?.kill();
       limparAgendamentos();
@@ -523,6 +540,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
       // Baú aberto, luz assentada e sem chave, inventário, aura nem dica (RF-04.8).
       removerPetalas(corpo);
       gsap.set(tampa, { opacity: 1 });
+      gsap.set(fechado, { opacity: 0 });
       gsap.set(luz, { opacity: parametros.opacidadeFinalDaLuz });
       gsap.set([chave, aura, realce, dica, inventario], { opacity: 0 });
     },

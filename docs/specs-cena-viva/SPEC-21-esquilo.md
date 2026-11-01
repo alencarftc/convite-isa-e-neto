@@ -1,6 +1,8 @@
 # SPEC-21 · Esquilo
 
 > **Aprovada para teste em 27/10/2026**, só na branch `feat/cena-viva` ([épico 13](./README.md)).
+>
+> **Atualizada em 01/11/2026** ([ADR-0018](../decisions/0018-esquilo-imprevisivel-e-posicoes-mais-baixas.md)): o esquilo vai ao centro da tela, passa por trás do baú e do casal, continua aparecendo depois de o convite ser exibido e cada visita é sorteada (paradas, disparos, olhadas, espiadas, saída por qualquer lado). A regra de nunca passar pelo baú e de sumir quando o envelope pousa (CA-13.4.2 e CA-13.4.3) deixou de valer.
 
 **Histórias:** US-13.4 · **Prioridade:** Should · **Pontos:** 3 · **Depende de:** SPEC-18, SPEC-04
 

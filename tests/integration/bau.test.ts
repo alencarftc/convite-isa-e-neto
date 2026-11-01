@@ -330,6 +330,8 @@ describe('baú e chave (SPEC-04)', () => {
       await execucao;
 
       expect(opacidade('.bau__aberto')).toBe(1);
+      // O baú fechado sai: senão as duas silhuetas pareciam dois baús, um atrás do outro (01/11/2026).
+      expect(opacidade('.bau__fechado')).toBe(0);
       expect(opacidade('.bau__luz')).toBeCloseTo(config.bau.opacidadeFinalDaLuz);
       expect(opacidade('.bau__chave')).toBe(0);
       expect(opacidade('.bau__dica')).toBe(0);
@@ -435,6 +437,7 @@ describe('baú e chave (SPEC-04)', () => {
       cena.skip();
 
       expect(opacidade('.bau__aberto')).toBe(1);
+      expect(opacidade('.bau__fechado')).toBe(0);
       expect(opacidade('.bau__luz')).toBeCloseTo(config.bau.opacidadeFinalDaLuz);
       expect(opacidade('.bau__chave')).toBe(0);
       expect(opacidade('.inventario')).toBe(0);

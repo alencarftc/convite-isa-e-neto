@@ -180,7 +180,7 @@
  */
 .casal__imagem {
   --casal-altura: 25%;
-  --casal-base: 26%;
+  --casal-base: 23%;
 
   position: absolute;
   right: 0;
@@ -194,7 +194,7 @@
 @media (orientation: landscape) {
   .casal__imagem {
     --casal-altura: 30%;
-    --casal-base: 20%;
+    --casal-base: 18%;
   }
 }
 
