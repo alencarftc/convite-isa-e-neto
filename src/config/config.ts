@@ -56,7 +56,13 @@ export const config: ConfigConvite = {
     escalaFinalDaNevoa: 1.15,
     deslocamentoDaNevoa: 14,
     fracaoDaNevoa: 0.8,
-    profundidadeDasCamadas: { ceu: 0.15, lago: 0.3, arvores: 0.6, bau: 0.75, frente: 1 },
+    profundidadeDasCamadas: {
+      ceu: 0.15,
+      lago: 0.3,
+      arvores: 0.6,
+      frente: 1,
+      solo: { vertical: 0.3, horizontal: 1 },
+    },
     profundidade: {
       mouseX: 24,
       mouseY: 12,
@@ -256,8 +262,9 @@ export const config: ConfigConvite = {
     esquilo: {
       primeiroEm: 6,
       intervalo: [20, 35],
-      largura: { vertical: 0.07, horizontal: 0.035 },
-      chao: { vertical: 0.1, horizontal: 0.09 },
+      largura: { vertical: 0.17, horizontal: 0.04 },
+      // Na vertical a linha do esquilo é o gramado limpo da pintura (a 27% da base), acima das rosas dos cantos.
+      chao: { vertical: 0.27, horizontal: 0.09 },
       pulos: [3, 6],
       pulo: {
         distancia: [0.04, 0.06],
