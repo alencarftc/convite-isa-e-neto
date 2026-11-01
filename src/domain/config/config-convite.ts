@@ -5,7 +5,6 @@ import type { ParametrosDeFolha } from '../vida/folhas';
 import type { OndaDeOndulacao, ReflexosDaOndulacao } from '../vida/ondulacao';
 import type { ParametrosDePassaros } from '../vida/passaros';
 import type { RegiaoDeOndulacao } from '../vida/regioes';
-import type { Intervalo } from '../vida/sorteio';
 
 /** Formato de `src/config/config.ts` (SPEC-01, "Conteúdo e configuração"). Tempos em segundos. */
 export interface ConfigConvite {
@@ -400,8 +399,6 @@ export interface ConfigConvite {
     };
     readonly completo: {
       readonly resolucaoDaAgua: number;
-      /** Teto da densidade do canvas do vento no casal (no nível leve não há vento). */
-      readonly resolucaoDoVento: number;
       readonly maximoDeFolhas: number;
     };
     /** Água viva (SPEC-19): a superfície do lago ondula e reflete a luz do pôr do sol. */
@@ -433,26 +430,6 @@ export interface ConfigConvite {
     };
     /** O esquilo que corre na grama de tempos em tempos (SPEC-21). */
     readonly esquilo: ParametrosDoEsquilo;
-    /** O casal sentado ganha vida quando surge: respira, o vento mexe no cabelo e no vestido, e um halo respira atrás (SPEC-22). */
-    readonly casal: {
-      /** O corpo dos dois cresce `escala` na vertical e volta, a cada `periodo` segundos. */
-      readonly respiracao: { readonly escala: number; readonly periodo: number };
-      /** O halo quente atrás deles vai de `minimo` a `maximo` de opacidade e volta, a cada `periodo` segundos. */
-      readonly brilho: {
-        readonly minimo: number;
-        readonly maximo: number;
-        readonly periodo: number;
-      };
-      readonly vento: {
-        readonly onda: OndaDeOndulacao;
-        /** Duração de cada rajada, sorteada a cada ciclo: a força sobe e desce uma vez nela. */
-        readonly rajada: Intervalo;
-        /** Força do vento no ponto mais calmo e no mais forte da rajada, de 0 a 1. */
-        readonly forca: Intervalo;
-        /** O cabelo dela e a barra do vestido, em frações da caixa da imagem. */
-        readonly regioes: readonly RegiaoDeOndulacao[];
-      };
-    };
   };
   /** Arquivo de cada imagem do convite (SPEC-02, SPEC-03); caminhos relativos à página. */
   readonly imagens: Readonly<Record<ChaveDeImagem, ArteDaImagem>>;

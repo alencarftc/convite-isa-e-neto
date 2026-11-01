@@ -185,7 +185,7 @@ export const config: ConfigConvite = {
     larguraParaCobrir: 0.8,
     desempenho: { janelaDeMedicao: 2, quadroLento: 0.025, fracaoDeQuadrosLentos: 0.5 },
     leve: { quadrosDaAgua: 30, resolucaoDaAgua: 1, maximoDeFolhas: 4 },
-    completo: { resolucaoDaAgua: 1.5, resolucaoDoVento: 1.5, maximoDeFolhas: 8 },
+    completo: { resolucaoDaAgua: 1.5, maximoDeFolhas: 8 },
     agua: {
       primeiroEm: 0,
       aparece: 0.8,
@@ -262,27 +262,6 @@ export const config: ConfigConvite = {
       parada: [1.2, 2.4],
       sacudidasDoRabo: 2,
       inclinacaoDaSacudida: 3,
-    },
-    casal: {
-      respiracao: { escala: 1.006, periodo: 4.5 },
-      brilho: { minimo: 0.5, maximo: 0.85, periodo: 6 },
-      vento: {
-        onda: {
-          amplitude: 1.5,
-          frequencia: 14,
-          velocidade: 0.35,
-          direcao: 'horizontal',
-          perspectiva: 0,
-        },
-        rajada: [8, 12],
-        // 0,55 ± 0,45 da spec: do quase calmo (0,1) ao vento inteiro.
-        forca: [0.1, 1],
-        regioes: [
-          // O cabelo dela e a barra do vestido; ajustar sobre a imagem 19 definitiva.
-          { tipo: 'elipse', centro: [0.62, 0.32], raio: [0.12, 0.2], borda: 0.5, intensidade: 1 },
-          { tipo: 'elipse', centro: [0.7, 0.86], raio: [0.22, 0.1], borda: 0.6, intensidade: 0.7 },
-        ],
-      },
     },
   },
   // Arte gerada (docs/decisions/0011), preparada por `pnpm arte` a partir de `arte/originais/`.
