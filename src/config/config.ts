@@ -74,6 +74,7 @@ export const config: ConfigConvite = {
   },
   carta: {
     pouso: 1.2,
+    bauSome: 0.8,
     alturaDeSaida: 0.6,
     inclinacao: -6,
     sombraEm: 0.6,
@@ -103,7 +104,6 @@ export const config: ConfigConvite = {
     cenaSobeEm: 1.7,
     cenaSobe: 1.5,
     cenaSobeFracao: 0.22,
-    bauSome: 0.6,
     casalEm: 2,
     casalAparece: 1.5,
     casalDeslocamento: 8,
@@ -264,7 +264,7 @@ export const config: ConfigConvite = {
       primeiroEm: 6,
       intervalo: [12, 28],
       // A largura é a do quadro das duas poses (a imagem inteira, de 384 × 198): o esquilo sentado ocupa metade dele.
-      largura: { vertical: 0.2, horizontal: 0.05 },
+      largura: { vertical: 0.17, horizontal: 0.043 },
       // Na vertical a linha das patas é o gramado, a 20% da base (a 80% do alto da pintura): o casal pisa a 23% e, com
       // a cena erguida, ela fica logo acima da carta. Na horizontal é a mesma altura do chão do baú.
       chao: { vertical: 0.2, horizontal: 0.16 },
@@ -355,9 +355,11 @@ export const config: ConfigConvite = {
     entradaLeve: 'power1.in',
     viaDuplaForte: 'power3.inOut',
   },
-  volumes: { ambiente: 0.35, ambienteSobMusica: 0.15, efeitos: 0.8, musica: 0.6 },
+  volumes: { ambiente: 0.35, ambienteSobMusica: 0.15, efeitos: 0.8, fada: 0.2, musica: 0.6 },
   transicoesDeAudio: {
     entradaDoAmbiente: 2,
+    entradaDaFada: 1.5,
+    saidaDaFada: 1.5,
     ambienteSobMusica: 2,
     musica: 2,
     retornoDoAmbiente: 3,

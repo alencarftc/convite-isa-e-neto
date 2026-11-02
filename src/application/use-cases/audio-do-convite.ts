@@ -51,6 +51,9 @@ export function conectarAudio({
       protegido(() => {
         audio.musica2();
       });
+      protegido(() => {
+        audio.encerrarFada();
+      });
     }),
     eventos.on('bau:girou', () => {
       protegido(() => {
@@ -60,6 +63,18 @@ export function conectarAudio({
     eventos.on('bau:abriu', () => {
       protegido(() => {
         audio.efeito('tampa');
+      });
+    }),
+    // A poeira de fada sobe com a luz, quando a tampa já abriu, e fica como fundo (em loop, bem baixa) enquanto as
+    // coisas preciosas saem do baú: acaba quando a história termina e o envelope toma o lugar do baú.
+    eventos.on('bau:aberto', () => {
+      protegido(() => {
+        audio.iniciarFada();
+      });
+    }),
+    eventos.on('historia:fim', () => {
+      protegido(() => {
+        audio.encerrarFada();
       });
     }),
     eventos.on('historia:inicio', () => {

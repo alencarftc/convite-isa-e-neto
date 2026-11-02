@@ -179,7 +179,7 @@
  * tamanho; centrado, com as margens automáticas.
  */
 .casal__imagem {
-  --casal-altura: 31%;
+  --casal-altura: 37%;
   --casal-base: 23%;
 
   position: absolute;
@@ -193,7 +193,7 @@
 
 @media (orientation: landscape) {
   .casal__imagem {
-    --casal-altura: 36%;
+    --casal-altura: 43%;
     --casal-base: 18%;
   }
 }

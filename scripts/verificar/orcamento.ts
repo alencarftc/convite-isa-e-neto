@@ -55,6 +55,7 @@ export const LIMITE_DOS_AUDIOS: Readonly<Record<string, number>> = {
   'audio/ambiente.mp3': 400 * KB,
   'audio/fechadura.mp3': 20 * KB,
   'audio/tampa.mp3': 25 * KB,
+  'audio/fada.mp3': 60 * KB, // loop de poeira de fada de uns 2,6 s, estéreo, 128 kbps
   'audio/selo.mp3': 20 * KB,
   'audio/musica-1.mp3': 1 * MB + 100 * KB, // "cerca de 1 MB"
   'audio/musica-2.mp3': 3 * MB, // "cerca de 2,9 MB"
