@@ -16,6 +16,17 @@ export interface BalaoDoConvite {
   readonly foco: string;
 }
 
+/** Uma foto da mini-galeria do casal (02/11/2026): o arquivo, o texto alternativo e o tamanho dele, para reservar o lugar. */
+export interface FotoDaGaleria {
+  /** Caminho da foto, relativo à página (`photos/galeria-1.webp`). */
+  readonly foto: string;
+  /** Texto alternativo: descreve a foto para o leitor de tela. */
+  readonly alt: string;
+  /** Largura e altura do arquivo, em pixels: a página reserva o espaço antes de a foto chegar (sem pulo no rolar). */
+  readonly largura: number;
+  readonly altura: number;
+}
+
 /** A carta, bloco a bloco (SPEC-06, "Layout da carta"). Textos aprovados em docs/requisitos.md. */
 export interface CartaDoConvite {
   readonly versiculo: string;
@@ -47,6 +58,8 @@ export interface ConteudoConvite {
     readonly historia: string;
     /** Nome acessível do botão que cobre o envelope (SPEC-06, RF-06.3). */
     readonly abrirEnvelope: string;
+    /** Nome acessível da mini-galeria de fotos do casal, abaixo da mensagem. */
+    readonly galeria: string;
     /** Títulos dos cartões das informações (SPEC-07); a spec deixa em aberto se ficam visíveis. */
     readonly mensagem: string;
     readonly traje: string;
@@ -104,6 +117,8 @@ export interface ConteudoConvite {
   readonly dressCode: string;
   /** Os balões da história, na ordem em que aparecem (SPEC-05). */
   readonly baloes: readonly BalaoDoConvite[];
+  /** A mini-galeria do casal, abaixo da mensagem do convite aberto; vazia, o cartão não aparece. */
+  readonly galeria: readonly FotoDaGaleria[];
   readonly contagem: {
     /** Modelo com `{dias}`, `{horas}` e `{minutos}`. */
     readonly antes: string;
