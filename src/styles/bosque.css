@@ -89,11 +89,18 @@
   }
 }
 
-/* Na vertical a pintura inteira está na camada do lago; as outras duas só trazem uma imagem vazia. */
+/*
+ * Na vertical a pintura inteira está na camada do lago e a das árvores só traz uma imagem vazia. A do primeiro plano
+ * é a cópia dos arbustos dos cantos de baixo, do mesmo tamanho da pintura e ao centro, para cair exatamente sobre
+ * ela: fica à frente do baú, do esquilo e das folhas de trás, que passam por trás dos arbustos (ADR-0019).
+ */
 @media (orientation: portrait) {
-  .camada--arvores,
-  .camada--frente {
+  .camada--arvores {
     display: none;
+  }
+
+  .camada--frente img {
+    object-position: center;
   }
 }
 

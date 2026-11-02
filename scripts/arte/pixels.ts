@@ -462,6 +462,54 @@ function removerFurosDoCeu(
 }
 
 /**
+ * Se a cor parece a grama do gramado pintado: amarelo-esverdeada, quente, clara e com cor. As folhas escuras, as
+ * rosas azuis e brancas e as sombras não passam, e é o que as separa do gramado.
+ */
+export function pareceGrama(r: number, g: number, b: number): boolean {
+  const maior = Math.max(r, g, b);
+  const menor = Math.min(r, g, b);
+  const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+  const saturacao = maior === 0 ? 0 : (maior - menor) / maior;
+  return r - b > 28 && g - b > 28 && luma > 105 && saturacao > 0.22;
+}
+
+export interface OpcoesDoPrimeiroPlano {
+  /** As linhas acima desta ficam transparentes: só as de baixo podem ser primeiro plano. */
+  readonly topo: number;
+  /** Os pedaços de folhas e flores com menos que esta área, em pixels, são pontos soltos do gramado e saem. */
+  readonly areaMinima: number;
+}
+
+/**
+ * Deixa só o primeiro plano de uma cena inteira: das linhas de `topo` para baixo, o que não parece gramado e forma
+ * um pedaço grande (os arbustos de rosas dos cantos) fica opaco, e o resto, transparente. A camada resultante, posta à
+ * frente do baú e do esquilo, repete exatamente os pixels da cena por baixo, então não muda a imagem: só deixa os
+ * arbustos taparem o que passa por trás. Devolve quantos pixels ficaram.
+ */
+export function isolarPrimeiroPlano(quadro: Quadro, opcoes: OpcoesDoPrimeiroPlano): number {
+  const { largura, altura, dados } = quadro;
+  const mascara = new Uint8Array(largura * altura);
+  for (let y = Math.max(0, opcoes.topo); y < altura; y++) {
+    for (let x = 0; x < largura; x++) {
+      const indice = y * largura + x;
+      const pixel = indice * 4;
+      if (!pareceGrama(dados[pixel] ?? 0, dados[pixel + 1] ?? 0, dados[pixel + 2] ?? 0)) {
+        mascara[indice] = 1;
+      }
+    }
+  }
+  const { rotulos, areas } = componentes(mascara, largura, altura);
+  let mantidos = 0;
+  for (let indice = 0; indice < mascara.length; indice++) {
+    const rotulo = rotulos[indice] ?? -1;
+    const fica = rotulo >= 0 && (areas[rotulo] ?? 0) >= opcoes.areaMinima;
+    dados[indice * 4 + 3] = fica ? 255 : 0;
+    if (fica) mantidos += 1;
+  }
+  return mantidos;
+}
+
+/**
  * Pinta de novo a borda do objeto com as cores de dentro. Na borda recortada de um fundo escuro, cada
  * pixel é uma mistura de objeto e fundo, e o resultado é um contorno escuro. Das `profundidade`
  * camadas mais externas, a mais interna copia a média dos vizinhos limpos logo abaixo dela, a seguinte

@@ -9,10 +9,12 @@ import {
   ehResiduoDeRecorte,
   erodirAlfa,
   escurecerBase,
+  isolarPrimeiroPlano,
   limparRecorte,
   medirPoseGirada,
   normalizarAlfa,
   paraHsv,
+  pareceGrama,
   pontuacaoDeCeu,
   type Quadro,
   removerCeu,
@@ -497,5 +499,52 @@ describe('removerCeu', () => {
     removerCeu(quadro, { ...opcoes, furo: { area: 100, luma: 185 } });
 
     expect(alfaEm(quadro, 1, 8)).toBe(255);
+  });
+});
+
+describe('pareceGrama', () => {
+  it('o gramado amarelo-esverdeado passa; folhas escuras, rosas e sombras não', () => {
+    expect(pareceGrama(160, 150, 80)).toBe(true); // grama ao sol
+    expect(pareceGrama(190, 180, 110)).toBe(true);
+    expect(pareceGrama(60, 85, 50)).toBe(false); // folha escura
+    expect(pareceGrama(140, 160, 210)).toBe(false); // rosa azul
+    expect(pareceGrama(245, 240, 235)).toBe(false); // rosa branca
+    expect(pareceGrama(70, 66, 36)).toBe(false); // sombra no gramado: escura demais
+  });
+});
+
+describe('isolarPrimeiroPlano', () => {
+  const GRAMA: [number, number, number, number] = [165, 152, 82, 255];
+  const FOLHA: [number, number, number, number] = [55, 80, 48, 255];
+
+  /** 40 × 30 de gramado, com um arbusto de folhas de 10 × 8 nas linhas 20 a 27 e um pontinho de folha solto. */
+  function cena() {
+    return quadroDe(40, 30, (x, y) => {
+      if (x >= 2 && x < 12 && y >= 20 && y < 28) return FOLHA; // arbusto grande, embaixo
+      if (x >= 25 && x < 27 && y >= 22 && y < 24) return FOLHA; // ponto solto de 4 px
+      if (x >= 30 && x < 38 && y >= 6 && y < 12) return FOLHA; // arbusto grande, mas acima do topo
+      return GRAMA;
+    });
+  }
+  const opcoes = { topo: 15, areaMinima: 20 };
+
+  it('mantém só os arbustos grandes de baixo, copiando os pixels; o resto fica transparente', () => {
+    const quadro = cena();
+
+    const mantidos = isolarPrimeiroPlano(quadro, opcoes);
+
+    expect(mantidos).toBe(10 * 8);
+    expect(alfaEm(quadro, 5, 24)).toBe(255); // dentro do arbusto
+    expect(quadro.dados[(24 * 40 + 5) * 4]).toBe(55); // a cor da cena segue igual
+    expect(alfaEm(quadro, 20, 24)).toBe(0); // gramado
+    expect(alfaEm(quadro, 25, 22)).toBe(0); // ponto solto de 4 px
+    expect(alfaEm(quadro, 33, 8)).toBe(0); // acima do topo
+  });
+
+  it('sem nada de folha embaixo, tudo fica transparente', () => {
+    const quadro = quadroDe(10, 10, () => GRAMA);
+
+    expect(isolarPrimeiroPlano(quadro, { topo: 3, areaMinima: 1 })).toBe(0);
+    expect(alfaEm(quadro, 5, 5)).toBe(0);
   });
 });

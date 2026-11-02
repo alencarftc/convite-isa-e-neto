@@ -37,6 +37,10 @@
   --cor-sombra-35: #1f261659;
   --cor-sombra-55: #1f26168c;
   --cor-sombra-70: #1f2616b3;
+  --cor-contato: #12160a; /* a sombra de contato sob o baú: mais escura que a sombra comum, para ele não flutuar */
+  --cor-contato-25: #12160a40;
+  --cor-contato-60: #12160a99;
+  --cor-contato-90: #12160ae6;
   --cor-aura: #ffd96b; /* aura do baú: ouro vivo e saturado, que contrasta com o azul do lago e o verde */
   --cor-aura-90: #ffd96be6;
   --cor-aura-55: #ffd96b8c;

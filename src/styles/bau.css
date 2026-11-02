@@ -42,6 +42,11 @@
 .bau__fechado,
 .bau__aberto {
   filter: drop-shadow(-1px 2px 2px var(--cor-sombra-35));
+
+  /* A base se perde na grama, na sombra: sem a borda reta e limpa, o baú parecia colado sobre ela. */
+  /* stylelint-disable-next-line property-no-vendor-prefix -- o Chrome 90 e o Safari 15 só entendem a versão com prefixo */
+  -webkit-mask-image: linear-gradient(to bottom, black 86%, transparent 99%);
+  mask-image: linear-gradient(to bottom, black 86%, transparent 99%);
 }
 
 .bau__aberto,
@@ -65,13 +70,13 @@
  * própria imagem (`pnpm arte`), completa o contato.
  */
 .bau__sombra {
-  inset: auto -6% -13% -14%;
-  height: 38%;
+  inset: auto -10% -2% -18%;
+  height: 36%;
   background: radial-gradient(
     closest-side,
-    var(--cor-sombra-70),
-    var(--cor-sombra-70) 42%,
-    var(--cor-sombra-35) 74%,
+    var(--cor-contato-90),
+    var(--cor-contato-60) 50%,
+    var(--cor-contato-25) 78%,
     transparent
   );
 }
