@@ -80,6 +80,7 @@ describe('conectarAudio', () => {
   it('cada evento das cenas dispara o som da tabela do comportamento', () => {
     const { audio, eventos } = montar();
 
+    eventos.emit('bau:tocado');
     eventos.emit('bau:girou');
     eventos.emit('bau:abriu');
     eventos.emit('bau:aberto');

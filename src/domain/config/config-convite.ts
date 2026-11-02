@@ -199,8 +199,6 @@ export interface ConfigConvite {
     readonly abaEm: number;
     readonly aba: number;
     readonly abaEscala: number;
-    readonly cartaSobeEm: number;
-    readonly cartaSobe: number;
     readonly envelopeDesceEm: number;
     readonly envelopeDesce: number;
     readonly cenaSobeEm: number;
@@ -470,6 +468,8 @@ export interface ConfigConvite {
     readonly ambienteSobMusica: number;
     /** Música entra (de 0 ao volume) ou sai (ao 0). */
     readonly musica: number;
+    /** A música 1 entra devagar, de 0 ao volume, quando o convidado toca no baú. */
+    readonly entradaDaMusica1: number;
     /** Ambiente volta ao volume normal quando a música 2 termina. */
     readonly retornoDoAmbiente: number;
   };

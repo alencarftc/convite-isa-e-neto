@@ -8,6 +8,8 @@ export type EscolhaDeEntrada = 'entrar' | 'pular';
 export interface EventosConvite {
   'entrada:tocou': { readonly escolha: EscolhaDeEntrada };
   'bosque:pronto': undefined;
+  /** O convidado tocou no baú (ou na chave guardada): a música da história começa a subir. */
+  'bau:tocado': undefined;
   'bau:girou': undefined;
   'bau:abriu': undefined;
   /** A tampa terminou de abrir: o baú está aberto e a luz sobe (a fada cintila, SPEC-08). */

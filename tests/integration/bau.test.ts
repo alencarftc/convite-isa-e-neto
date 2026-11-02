@@ -26,6 +26,7 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}) {
   const { carregamento } = criarCarregamentoFalso(config, { instantaneo: true });
   const eventos = criarBarramento<EventosConvite>();
   const ordem: string[] = [];
+  eventos.on('bau:tocado', () => ordem.push('tocou'));
   eventos.on('bau:girou', () => ordem.push('girou'));
   eventos.on('bau:abriu', () => ordem.push('abriu'));
   eventos.on('bau:aberto', () => ordem.push('aberto'));
@@ -310,7 +311,7 @@ describe('baú e chave (SPEC-04)', () => {
       expect(botao().disabled).toBe(true);
       await execucao;
 
-      expect(ordem).toEqual(['girou', 'abriu', 'aberto']);
+      expect(ordem).toEqual(['tocou', 'girou', 'abriu', 'aberto']);
     });
 
     it('tocar na chave do inventário também usa a chave', async () => {
@@ -320,7 +321,7 @@ describe('baú e chave (SPEC-04)', () => {
       el('.inventario__moldura').click();
       await execucao;
 
-      expect(ordem).toEqual(['girou', 'abriu', 'aberto']);
+      expect(ordem).toEqual(['tocou', 'girou', 'abriu', 'aberto']);
     });
 
     it('termina com a tampa aberta, a luz assentada em 0,6, sem chave nem dica, com a moldura vazia e a chave girada', async () => {
@@ -401,7 +402,7 @@ describe('baú e chave (SPEC-04)', () => {
       for (let i = 0; i < 5; i += 1) botao().click();
       await execucao;
 
-      expect(ordem).toEqual(['girou', 'abriu', 'aberto']);
+      expect(ordem).toEqual(['tocou', 'girou', 'abriu', 'aberto']);
     });
 
     it('Enter ou Espaço (clique sem ponteiro) também abre (RF-04.4, CT-04.6)', async () => {
@@ -411,7 +412,7 @@ describe('baú e chave (SPEC-04)', () => {
       botao().click(); // `detail` zero: ativação por teclado
       await execucao;
 
-      expect(ordem).toEqual(['girou', 'abriu', 'aberto']);
+      expect(ordem).toEqual(['tocou', 'girou', 'abriu', 'aberto']);
     });
 
     it('depois de abrir, o reforço e a dica não voltam', async () => {

@@ -78,8 +78,6 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
       },
       abaEm: esc(original.convite.abaEm),
       aba: esc(original.convite.aba),
-      cartaSobeEm: esc(original.convite.cartaSobeEm),
-      cartaSobe: esc(original.convite.cartaSobe),
       envelopeDesceEm: esc(original.convite.envelopeDesceEm),
       envelopeDesce: esc(original.convite.envelopeDesce),
       cenaSobeEm: esc(original.convite.cenaSobeEm),

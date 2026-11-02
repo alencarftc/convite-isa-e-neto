@@ -75,6 +75,7 @@
   --z-lago: 10;
   --z-arvores: 20;
   --z-vida-fundo: 25; /* folhas que caem atrás do baú (cena viva, SPEC-18) */
+  --z-casal-vertical: 24; /* o casal no retrato: à frente das árvores e atrás do esquilo (25), do baú e dos arbustos */
   --z-bau: 30;
   --z-primeiro-plano: 40;
   --z-vida-chao: 42; /* esquilo e folhas da frente: sobre a grama, abaixo da chave guardada */

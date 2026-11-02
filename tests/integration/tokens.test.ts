@@ -80,7 +80,7 @@ describe('tokens.css (SPEC-09, SPEC-01)', () => {
     expect(carta).toMatch(/forced-colors:\s*active/);
   });
 
-  it('dourado e serenidade são decoração: abaixo de 3:1 sobre marfim, nunca em texto de leitura', () => {
+  it('dourado e serenidade são decoração: abaixo de 3:1 sobre marfim (só o "&" e a data da carta, a pedido do casal, o usam em texto)', () => {
     expect(razaoDeContraste(cor('cor-dourado'), cor('cor-marfim'))).toBeLessThan(3.5);
     expect(razaoDeContraste(cor('cor-serenidade'), cor('cor-marfim'))).toBeLessThan(3);
   });

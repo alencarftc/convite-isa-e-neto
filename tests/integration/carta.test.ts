@@ -90,18 +90,20 @@ describe('montarCarta (SPEC-06, "Layout da carta")', () => {
   };
   const artigo = () => montarCarta(content.carta, papel);
 
-  it('tem os quatorze blocos, na ordem aprovada, com o texto de content.carta (CT-06.5)', () => {
+  it('tem dezesseis blocos, na ordem aprovada, com o texto de content.carta; o título é um contêiner de três (CT-06.5)', () => {
     const blocos = [...artigo().querySelectorAll('.carta__bloco')];
     const c = content.carta;
 
-    expect(blocos).toHaveLength(14);
+    expect(blocos).toHaveLength(16);
     expect(blocos.map((b) => b.textContent.replace(/\s+/g, ' ').trim())).toEqual([
       c.versiculo,
       c.referencia,
       '', // filete (SVG)
       c.bencao,
       `${c.paisNoiva.join('')}${c.paisNoivo.join('')}`,
-      `${c.nomes.noiva} ${c.nomes.e} ${c.nomes.noivo}`,
+      c.nomes.noiva,
+      c.nomes.e,
+      c.nomes.noivo,
       c.convite,
       c.data,
       `${c.cerimonia}${c.local}${c.endereco}`,
@@ -110,6 +112,19 @@ describe('montarCarta (SPEC-06, "Layout da carta")', () => {
       c.referenciaFecho,
       c.despedida,
       c.assinatura,
+    ]);
+  });
+
+  it('o título não é um bloco: o "&" e os nomes são, para o "&" ficar dourado fora da mistura da tinta (02/11/2026)', () => {
+    const titulo = artigo().querySelector<HTMLElement>('#carta-titulo');
+
+    expect(titulo?.classList.contains('carta__bloco')).toBe(false);
+    expect(
+      [...(titulo?.children ?? [])].map((filho) => [filho.className, filho.textContent]),
+    ).toEqual([
+      ['carta__bloco carta__nome', content.carta.nomes.noiva],
+      ['carta__bloco carta__e', content.carta.nomes.e],
+      ['carta__bloco carta__nome', content.carta.nomes.noivo],
     ]);
   });
 
@@ -377,14 +392,14 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(Number(gsap.getProperty(el('.envelope'), 'opacity'))).toBeGreaterThan(0);
     });
 
-    it('a carta dobrada fica escondida até a aba abrir: não aparece por trás do envelope fechado (31/10/2026)', async () => {
-      const { carta, botao, opacidade } = montar();
+    it('não há carta dobrada subindo por trás do envelope: o papel só aparece quando a carta se desdobra (02/11/2026)', async () => {
+      const { carta, botao } = montar();
       void carta.run();
       await vi.waitFor(() => {
         expect(botao().disabled).toBe(false);
       });
 
-      expect(opacidade('.envelope__dobrada')).toBe(0);
+      expect(document.querySelector('.envelope__dobrada')).toBeNull();
     });
 
     it('dois toques seguidos: só a primeira origem vale (casos de borda)', async () => {

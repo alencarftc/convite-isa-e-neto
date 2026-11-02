@@ -55,6 +55,12 @@ export function conectarAudio({
         audio.encerrarFada();
       });
     }),
+    // A música da história ("Bondade de Deus") começa baixinho assim que o convidado toca no baú e segue tocando.
+    eventos.on('bau:tocado', () => {
+      protegido(() => {
+        audio.musica1();
+      });
+    }),
     eventos.on('bau:girou', () => {
       protegido(() => {
         audio.efeito('fechadura');
@@ -75,11 +81,6 @@ export function conectarAudio({
     eventos.on('historia:fim', () => {
       protegido(() => {
         audio.encerrarFada();
-      });
-    }),
-    eventos.on('historia:inicio', () => {
-      protegido(() => {
-        audio.musica1();
       });
     }),
     eventos.on('carta:abrindo', () => {

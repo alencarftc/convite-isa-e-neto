@@ -13,6 +13,7 @@ const config = {
     saidaDaFada: 1.5,
     ambienteSobMusica: 2,
     musica: 2,
+    entradaDaMusica1: 6,
     retornoDoAmbiente: 3,
   },
   musicas: { inicio1: 0, inicio2: 0 },
@@ -29,6 +30,12 @@ class SomFalso {
   readonly fade = vi.fn();
   readonly seek = vi.fn();
   readonly volume = vi.fn(() => this.volumeAtual);
+  /** Quem pediu `once('play')`: o teste dispara com `tocou()`, como o Howler faz quando o `play` acontece. */
+  readonly aoTocar: (() => void)[] = [];
+  readonly once = vi.fn((evento: string, ouvinte: () => void) => {
+    if (evento === 'play') this.aoTocar.push(ouvinte);
+    return this;
+  });
 
   readonly opcoes: HowlOptions;
 
@@ -41,6 +48,11 @@ class SomFalso {
   get arquivo(): string {
     return String((this.opcoes.src as string[])[0]);
   }
+}
+
+/** O `play` do elemento <audio> de fato aconteceu: o Howler avisa e as subidas de volume pedidas começam. */
+function tocou(arquivo: string): void {
+  for (const ouvinte of som(arquivo).aoTocar.splice(0)) ouvinte();
 }
 
 function som(arquivo: string): SomFalso {
@@ -242,7 +254,7 @@ describe('criarAudioHowler', () => {
   });
 
   describe('músicas (CA-08.3.1, CA-08.3.2)', () => {
-    it('a música 1 entra subindo de 0 a 0,6 em 2 s e o ambiente baixa para 0,15 em 2 s', () => {
+    it('a música 1 entra devagar, de 0 a 0,6 em 6 s, e o ambiente baixa para 0,15 em 2 s', () => {
       const { audio } = montar();
       audio.desbloquear(true);
       carregarAmbiente();
@@ -252,7 +264,9 @@ describe('criarAudioHowler', () => {
 
       expect(som('ambiente').fade).toHaveBeenLastCalledWith(0.35, 0.15, 2000);
       expect(som('musica-1').play).toHaveBeenCalledOnce();
-      expect(som('musica-1').fade).toHaveBeenCalledWith(0, 0.6, 2000);
+      expect(som('musica-1').fade).not.toHaveBeenCalled(); // espera o play: um fade antes dele ficaria preso na fila
+      tocou('musica-1');
+      expect(som('musica-1').fade).toHaveBeenCalledWith(0, 0.6, 6000);
       expect(som('musica-1').seek).not.toHaveBeenCalled();
     });
 
@@ -287,6 +301,7 @@ describe('criarAudioHowler', () => {
 
       expect(som('musica-1').fade).toHaveBeenLastCalledWith(0.6, 0, 2000);
       expect(som('musica-2').play).toHaveBeenCalledOnce();
+      tocou('musica-2');
       expect(som('musica-2').fade).toHaveBeenCalledWith(0, 0.6, 2000);
       (som('musica-1').opcoes.onfade as () => void)();
       expect(som('musica-1').stop).toHaveBeenCalledOnce();
@@ -320,6 +335,60 @@ describe('criarAudioHowler', () => {
 
       expect(som('musica-1').play).not.toHaveBeenCalled();
       expect(som('musica-2').play).toHaveBeenCalledOnce();
+      tocou('musica-2');
+      expect(som('musica-2').fade).toHaveBeenCalledWith(0, 0.6, 2000);
+    });
+
+    it('a música 1 toca uma vez só, mesmo que o evento se repita', () => {
+      const { audio } = montar();
+      audio.desbloquear(true);
+
+      audio.musica1();
+      audio.musica1();
+
+      expect(som('musica-1').play).toHaveBeenCalledOnce();
+    });
+
+    it('sem a música 2 (arquivo que não carrega), a música 1 segue tocando e não sai (ADR-0023)', () => {
+      const { audio, avisar } = montar();
+      audio.desbloquear(true);
+      audio.musica1();
+      (som('musica-2').opcoes.onloaderror as (id: number, erro: unknown) => void)(1, 'falhou');
+
+      audio.musica2();
+
+      expect(avisar).toHaveBeenCalledWith('falhou');
+      expect(som('musica-2').play).not.toHaveBeenCalled();
+      tocou('musica-1');
+      expect(som('musica-1').fade).toHaveBeenCalledTimes(1); // só a entrada, nenhuma saída
+      expect(som('musica-1').play).toHaveBeenCalledOnce();
+    });
+
+    it('sem a música 2, quem pula a história ouve a música 1', () => {
+      const { audio } = montar();
+      audio.desbloquear(true);
+      (som('musica-2').opcoes.onloaderror as (id: number, erro: unknown) => void)(1, 'falhou');
+
+      audio.musica2();
+      tocou('musica-1');
+
+      expect(som('musica-1').play).toHaveBeenCalledOnce();
+      expect(som('musica-1').fade).toHaveBeenCalledWith(0, 0.6, 6000);
+    });
+
+    it('quando a música 1 acaba sozinha, o ambiente volta a 0,35 em 3 s e ela não é retomada', () => {
+      const { audio } = montar();
+      audio.desbloquear(true);
+      carregarAmbiente();
+      audio.musica1();
+      som('ambiente').volumeAtual = 0.15;
+
+      (som('musica-1').opcoes.onend as () => void)();
+      audio.pausar();
+      audio.retomar();
+
+      expect(som('ambiente').fade).toHaveBeenLastCalledWith(0.15, 0.35, 3000);
+      expect(som('musica-1').pause).not.toHaveBeenCalled();
     });
 
     it('quando a música 2 termina, o ambiente volta a 0,35 em 3 s', () => {

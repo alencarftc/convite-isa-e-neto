@@ -31,7 +31,6 @@ type OrigemDaAbertura = 'toque' | 'gesto';
 interface Elementos {
   readonly envelope: HTMLElement;
   readonly sombra: HTMLElement;
-  readonly dobrada: HTMLElement;
   readonly fechado: HTMLElement;
   readonly aberto: HTMLElement;
   readonly selo: HTMLElement;
@@ -87,15 +86,10 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
   function montar(): Elementos {
     if (elementos) return elementos;
 
-    // Envelope: sombra, carta dobrada (atrás), as duas imagens, selo (inteiro, com as siglas na
+    // Envelope: sombra, as duas imagens, selo (inteiro, com as siglas na
     // arte), botão e dica. Não há texto escrito no envelope.
     const envelope = criar('div', 'envelope');
     const sombra = criar('div', 'envelope__sombra');
-    const dobrada = criar('div', 'envelope__dobrada');
-    dobrada.style.setProperty(
-      '--papel',
-      `url('${urlDaImagem(config.imagens.papelCarta, 'vertical')}')`,
-    );
     const fechado = criarImagem(
       'envelope__fechado',
       urlDaImagem(config.imagens.envelopeFechado, 'vertical'),
@@ -120,10 +114,9 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     dica.setAttribute('aria-live', 'polite');
     // O botão vem antes do selo: o foco do teclado acende o selo (`.carta__abrir:focus-visible + .selo`), no lugar de
     // um retângulo em volta do envelope inteiro.
-    envelope.append(sombra, dobrada, fechado, aberto, botao, selo, dica);
+    envelope.append(sombra, fechado, aberto, botao, selo, dica);
     gsap.set(envelope, { opacity: 0, xPercent: -50, yPercent: -50 });
-    // A carta dobrada só aparece quando a aba abre: antes, as pontas do papel apareciam por trás do envelope fechado.
-    gsap.set([sombra, aberto, dica, brilho, dobrada], { opacity: 0 });
+    gsap.set([sombra, aberto, dica, brilho], { opacity: 0 });
 
     // Carta e informações: já no DOM, inertes e invisíveis até a abertura terminar.
     const { papel } = tempoDaCarta;
@@ -192,7 +185,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     elementos = {
       envelope,
       sombra,
-      dobrada,
       fechado,
       aberto,
       selo,
@@ -524,14 +516,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
           .to(e.fechado, { opacity: 0, duration: t.aba, ease: curvas.leve }, t.abaEm)
           .to(e.aberto, { opacity: 1, duration: t.aba, ease: curvas.leve }, t.abaEm)
           .to(e.envelope, { scale: t.abaEscala, duration: t.aba, ease: curvas.leve }, t.abaEm)
-          // A carta dobrada, atrás do envelope, aparece com a aba aberta e sai pela abertura.
-          .set(e.dobrada, { opacity: 1 }, t.cartaSobeEm)
-          .to(
-            e.dobrada,
-            { yPercent: -70, duration: t.cartaSobe, ease: curvas.saida },
-            t.cartaSobeEm,
-          )
-          // O envelope desce e some.
+          // O envelope desce e some; a carta só aparece depois, desdobrando-se na cena (nada de papel subindo por trás
+          // do envelope, 01/11/2026).
           .to(
             e.envelope,
             {
@@ -569,8 +555,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
         }
 
         linha
-          // A carta se desdobra a partir do topo e assenta; a dobrada some no mesmo instante.
-          .to(e.dobrada, { opacity: 0, duration: t.desdobra / 2, ease: curvas.leve }, t.desdobraEm)
+          // A carta se desdobra a partir do topo e assenta.
           .to(
             e.carta,
             { opacity: 1, scaleY: 1, duration: t.desdobra, ease: curvas.viaDuplaForte },
