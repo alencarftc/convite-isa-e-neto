@@ -47,6 +47,8 @@ export const LIMITE_DAS_IMAGENS: Readonly<Record<ChaveDeImagem, number>> = {
 
 /** Fotos dos balões (SPEC-05, RNF-05.3), prévia do link (SPEC-10, RF-10.2) e fontes (RNF da SPEC-02). */
 export const LIMITE_DE_FOTO = 120 * KB;
+/** Fotos da mini-galeria do casal (02/11/2026): menores, porque são duas por linha. */
+export const LIMITE_DE_FOTO_DA_GALERIA = 110 * KB;
 export const LIMITE_DA_PREVIA = 300 * KB;
 export const LIMITE_DE_FONTE = 50 * KB;
 
@@ -87,7 +89,7 @@ function pesoDaImagem(arte: ConfigConvite['imagens'][ChaveDeImagem], tamanhoDe: 
  */
 export function validarPeso(
   config: ConfigConvite,
-  conteudo: Pick<ConteudoConvite, 'baloes'>,
+  conteudo: Pick<ConteudoConvite, 'baloes' | 'galeria'>,
   arquivosDeAudio: readonly string[],
   fontes: readonly string[],
   tamanhoDe: TamanhoDe,
@@ -115,6 +117,9 @@ export function validarPeso(
     if (balao.foto !== '')
       conferir(`content.baloes[${String(indice)}].foto`, balao.foto, LIMITE_DE_FOTO);
   });
+  conteudo.galeria.forEach((foto, indice) => {
+    conferir(`content.galeria[${String(indice)}].foto`, foto.foto, LIMITE_DE_FOTO_DA_GALERIA);
+  });
   conferir('config.publicacao.imagemDaPrevia', config.publicacao.imagemDaPrevia, LIMITE_DA_PREVIA);
   for (const fonte of fontes) conferir('fonte', fonte, LIMITE_DE_FONTE);
   for (const audio of arquivosDeAudio) {
@@ -137,6 +142,7 @@ export function validarPeso(
   const todos = [
     ...Object.values(config.imagens).map((arte) => pesoDaImagem(arte, tamanhoDe)),
     ...conteudo.baloes.map((balao) => tamanhoDe(balao.foto) ?? 0),
+    ...conteudo.galeria.map((foto) => tamanhoDe(foto.foto) ?? 0),
     ...arquivosDeAudio.map((audio) => tamanhoDe(audio) ?? 0),
     ...fontes.map((fonte) => tamanhoDe(fonte) ?? 0),
   ].reduce((soma, peso) => soma + peso, 0);

@@ -198,7 +198,7 @@ export function validarArteDefinitiva(
 /** Todo arquivo citado precisa existir em `public/` (imagens do manifesto e os MP3). */
 export function validarArquivos(
   config: ConfigConvite,
-  conteudo: Pick<ConteudoConvite, 'baloes'>,
+  conteudo: Pick<ConteudoConvite, 'baloes' | 'galeria'>,
   arquivosDeAudio: readonly string[],
   existe: (caminho: string) => boolean,
 ): Problema[] {
@@ -212,12 +212,16 @@ export function validarArquivos(
       url: balao.foto,
     }))
     .filter(({ url }) => url !== '');
+  const galeria = conteudo.galeria.map((foto, indice) => ({
+    origem: `content.galeria[${String(indice)}].foto`,
+    url: foto.foto,
+  }));
   const audios = arquivosDeAudio.map((url) => ({ origem: 'áudio', url }));
   const publicacao = (['imagemDaPrevia', 'icone32', 'iconeApple'] as const).map((chave) => ({
     origem: `config.publicacao.${chave}`,
     url: config.publicacao[chave],
   }));
-  return [...imagens, ...fotos, ...audios, ...publicacao]
+  return [...imagens, ...fotos, ...galeria, ...audios, ...publicacao]
     .filter(({ url }) => !existe(url))
     .map(({ origem, url }) => ({
       regra: 'arquivo-ausente',

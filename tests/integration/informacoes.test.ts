@@ -173,7 +173,7 @@ describe('atualização do bloco (SPEC-07, RF-07.3)', () => {
 });
 
 describe('cartões da mensagem e do traje (SPEC-07)', () => {
-  it('vêm na ordem: contagem, agradecimento, mensagem, traje e ações', () => {
+  it('vêm na ordem: contagem, agradecimento, mensagem, galeria, traje e ações', () => {
     const { raiz } = montarEm('2026-11-15T10:00');
 
     const ordem = [...raiz.querySelectorAll('.cartao')].map((c) =>
@@ -184,9 +184,17 @@ describe('cartões da mensagem e do traje (SPEC-07)', () => {
       'cartao--contagem',
       'cartao--agradecimento',
       'cartao--mensagem',
+      'cartao--galeria',
       'cartao--traje',
       'cartao--acoes',
     ]);
+  });
+
+  it('sem fotos na galeria, o cartão dela some (02/11/2026)', () => {
+    const { raiz } = montarEm('2026-11-15T10:00', false, { ...content, galeria: [] });
+
+    expect(visivel(raiz, '.cartao--mensagem')).toBe(true);
+    expect(raiz.querySelector<HTMLElement>('.cartao--galeria')?.hidden).toBe(true);
   });
 
   it('a mensagem traz os três parágrafos aprovados, o verso e a assinatura (CA-07.2.1, CT-07.4)', () => {
@@ -361,7 +369,7 @@ describe('cartões surgem ao entrar na tela (SPEC-07, "Estilo")', () => {
     const contagem = raiz.querySelector<HTMLElement>('.cartao--contagem');
     expect(Number(gsap.getProperty(contagem, 'opacity'))).toBe(0);
     expect(Number(gsap.getProperty(contagem, 'y'))).toBe(config.movimento.deslocamentoDosCartoes);
-    expect(observados).toHaveLength(5);
+    expect(observados).toHaveLength(6);
   });
 
   it('ao entrar na tela, o cartão sobe e aparece; os que ficam abaixo seguem escondidos', async () => {

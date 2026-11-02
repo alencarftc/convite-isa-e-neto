@@ -346,9 +346,24 @@ describe('validarArquivos', () => {
       return true;
     });
 
-    expect(visitados.filter((caminho) => caminho === '' || caminho.includes('photos/'))).toEqual(
+    expect(
+      visitados.filter(
+        (caminho) =>
+          caminho === '' || (caminho.includes('photos/') && !caminho.includes('galeria')),
+      ),
+    ).toEqual([]);
+  });
+
+  it('as fotos da mini-galeria precisam existir em public/ (02/11/2026)', () => {
+    const problemas = validarArquivos(
+      config,
+      content,
       [],
+      (caminho) => caminho !== 'photos/galeria-3.webp',
     );
+
+    expect(problemas.map((p) => p.regra)).toEqual(['arquivo-ausente']);
+    expect(problemas[0]?.mensagem).toContain('content.galeria[2].foto');
   });
 });
 

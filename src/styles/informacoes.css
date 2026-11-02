@@ -55,6 +55,47 @@
   margin-bottom: 0;
 }
 
+/*
+ * Mini-galeria do casal (02/11/2026): duas colunas, cada foto inteira (sem cortar rostos), com filete dourado, uma
+ * leve inclinação alternada e a sombra dos cartões. O tamanho vem dos atributos da imagem (`width` e `height`), então o
+ * lugar de cada foto é reservado antes de ela chegar.
+ */
+.cartao--galeria {
+  padding: var(--espaco-3);
+}
+
+.galeria {
+  display: flex;
+  gap: var(--espaco-3);
+  align-items: flex-start;
+}
+
+.galeria__coluna {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  min-width: 0;
+}
+
+.galeria__foto {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--cor-dourado-15);
+  border: 1px solid var(--cor-dourado-55);
+  border-radius: 12px;
+  box-shadow: var(--sombra-cartao);
+}
+
+.galeria__foto--esquerda {
+  transform: rotate(-1.2deg);
+}
+
+.galeria__foto--direita {
+  transform: rotate(1deg);
+}
+
 .mensagem__verso {
   font-style: italic;
 }

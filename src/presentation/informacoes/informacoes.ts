@@ -7,6 +7,8 @@ import type { ConfigConvite } from '@/domain/config/config-convite';
 import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import { msAteProximoMinuto } from '@/domain/tempo/tempo';
 
+import { montarGaleria } from './galeria';
+
 export interface DependenciasInformacoes {
   readonly raiz: HTMLElement;
   readonly conteudo: ConteudoConvite;
@@ -169,6 +171,11 @@ export function montarInformacoes(dependencias: DependenciasInformacoes): Inform
     criarParagrafo('mensagem__assinatura', conteudo.mensagem.assinatura),
   );
 
+  // A mini-galeria do casal, logo abaixo da mensagem (02/11/2026); sem fotos, o cartão não existe.
+  const cartaoGaleria = criarCartao('cartao--galeria');
+  cartaoGaleria.append(montarGaleria(conteudo.galeria, conteudo.rotulos.galeria));
+  cartaoGaleria.hidden = conteudo.galeria.length === 0;
+
   const cartaoTraje = criarCartao('cartao--traje');
   cartaoTraje.append(
     criarTitulo(conteudo.rotulos.traje),
@@ -191,7 +198,14 @@ export function montarInformacoes(dependencias: DependenciasInformacoes): Inform
   const botaoAgenda = criarBotaoDaAgenda(conteudo, config, baixaArquivos);
   cartaoAcoes.append(botaoConfirmar, avisoPrazo, avisoEncerrado, botaoComoChegar, botaoAgenda);
 
-  const cartoes = [cartaoContagem, cartaoAgradecimento, cartaoMensagem, cartaoTraje, cartaoAcoes];
+  const cartoes = [
+    cartaoContagem,
+    cartaoAgradecimento,
+    cartaoMensagem,
+    cartaoGaleria,
+    cartaoTraje,
+    cartaoAcoes,
+  ];
   secao.append(...cartoes);
 
   function atualizar(): void {

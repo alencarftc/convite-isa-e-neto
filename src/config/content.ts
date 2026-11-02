@@ -11,6 +11,7 @@ export const content: ConteudoConvite = {
     historia: 'História do casal',
     abrirEnvelope: 'Abrir o envelope',
     mensagem: 'Mensagem do casal',
+    galeria: 'Fotos do casal',
     traje: 'Traje',
   },
   entrada: {
@@ -116,6 +117,45 @@ export const content: ConteudoConvite = {
     versoLouvor: '[Um verso do louvor escolhido, em itálico, com o nome da música]',
     assinatura: 'Com carinho, Isabella & David',
   },
+  // Mini-galeria do casal (02/11/2026), abaixo da mensagem. Os arquivos são os de `public/photos/`.
+  galeria: [
+    {
+      foto: 'photos/galeria-1.webp',
+      alt: 'O pedido de casamento na praia: ele ajoelhado, com a caixinha da aliança, e ela emocionada, com a mão no rosto.',
+      largura: 533,
+      altura: 800,
+    },
+    {
+      foto: 'photos/galeria-2.webp',
+      alt: 'O casal sentado num balanço de madeira, num parque: ela sorri de olhos fechados e ele a beija no rosto.',
+      largura: 800,
+      altura: 600,
+    },
+    {
+      foto: 'photos/galeria-3.webp',
+      alt: 'Selfie do casal, lado a lado, sorrindo, num restaurante.',
+      largura: 800,
+      altura: 450,
+    },
+    {
+      foto: 'photos/galeria-4.webp',
+      alt: 'Selfie do casal: ela encosta a cabeça nele e faz biquinho, e ele sorri de leve.',
+      largura: 450,
+      altura: 800,
+    },
+    {
+      foto: 'photos/galeria-5.webp',
+      alt: 'Selfie do casal de boné, no balanço do parque, ele beijando o rosto dela.',
+      largura: 800,
+      altura: 600,
+    },
+    {
+      foto: 'photos/galeria-6.webp',
+      alt: 'Selfie do casal à mesa de um restaurante, sorrindo, ela com uma bebida verde na mão.',
+      largura: 600,
+      altura: 800,
+    },
+  ],
   dressCode: 'Esporte fino',
   botoes: {
     confirmar: 'Confirmar presença',
