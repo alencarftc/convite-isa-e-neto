@@ -146,7 +146,7 @@ describe('cena do bosque (SPEC-03)', () => {
       }
     });
 
-    it('na vertical a camada do lago leva a cena mestre inteira e as árvores e o primeiro plano ficam vazios (ADR-0015)', () => {
+    it('na vertical a camada do lago leva a cena mestre inteira, o primeiro plano os arbustos dela e as árvores ficam vazias (ADR-0015, ADR-0019)', () => {
       const { cena, camada } = montar();
 
       cena.init();
@@ -155,24 +155,26 @@ describe('cena do bosque (SPEC-03)', () => {
       expect(lago.querySelector('source')?.media).toBe('(orientation: portrait)');
       expect(lago.querySelector('source')?.srcset).toMatch(/01-cena-9x16\.webp$/);
       expect(lago.querySelector('img')?.getAttribute('src')).toMatch(/04-lago\.webp$/);
-      for (const nome of ['arvores', 'frente']) {
-        const quadro = camada(nome);
-        expect(quadro.querySelector('source')?.media).toBe('(orientation: portrait)');
-        expect(quadro.querySelector('source')?.srcset).toMatch(/vazio\.webp$/);
-        expect(quadro.querySelector('img')?.getAttribute('src')).toMatch(/\.webp$/);
-        expect(quadro.querySelector('img')?.getAttribute('src')).not.toMatch(/vazio/);
-      }
+      const arvores = camada('arvores');
+      expect(arvores.querySelector('source')?.media).toBe('(orientation: portrait)');
+      expect(arvores.querySelector('source')?.srcset).toMatch(/vazio\.webp$/);
+      expect(arvores.querySelector('img')?.getAttribute('src')).toMatch(/05-arvores-16x9\.webp$/);
+      // O primeiro plano vertical é uma cópia exata dos arbustos de baixo da pintura, para taparem o baú e o esquilo.
+      const frente = camada('frente');
+      expect(frente.querySelector('source')?.media).toBe('(orientation: portrait)');
+      expect(frente.querySelector('source')?.srcset).toMatch(/01-cena-9x16-frente\.webp$/);
+      expect(frente.querySelector('img')?.getAttribute('src')).toMatch(/06-primeiro-plano\.webp$/);
       for (const nome of ['lago', 'arvores', 'frente']) {
         expect(camada(nome).querySelector('img')?.alt).toBe('');
       }
     });
 
     it.each([
-      ['vertical', '0.3'],
-      ['horizontal', '1'],
+      ['vertical', '0.3', '0.3'],
+      ['horizontal', '1', '1'],
     ] as const)(
-      'as profundidades seguem a tabela (céu 0,15 · lago 0,3 · árvores 0,6 · frente 1), e o baú e o casal acompanham o chão: %s = %s',
-      (orientacao, solo) => {
+      'as profundidades seguem a tabela (céu 0,15 · lago 0,3 · árvores 0,6 · frente 1), e o baú e o casal acompanham o chão; na vertical os arbustos andam com a pintura: %s (chão %s, frente %s)',
+      (orientacao, solo, frente) => {
         const { cena, cenaEl } = montar({ orientacao });
         cena.init();
 
@@ -190,7 +192,7 @@ describe('cena do bosque (SPEC-03)', () => {
           '0.6',
           '0.6',
           solo,
-          '1',
+          frente,
           '1',
           solo,
         ]);
@@ -270,7 +272,11 @@ describe('cena do bosque (SPEC-03)', () => {
 
   describe('profundidade', () => {
     it('no computador, as camadas acompanham o mouse e as mais próximas andam mais (CA-03.2.1, CT-03.2)', async () => {
-      const { cena, camada } = montar({ instantaneo: true, toque: false });
+      const { cena, camada } = montar({
+        instantaneo: true,
+        toque: false,
+        orientacao: 'horizontal',
+      });
       cena.init();
       await cena.run();
       Object.assign(window, { innerWidth: 1000, innerHeight: 800 });
@@ -288,7 +294,11 @@ describe('cena do bosque (SPEC-03)', () => {
     });
 
     it('quando o mouse sai da janela, as camadas voltam ao centro', async () => {
-      const { cena, camada } = montar({ instantaneo: true, toque: false });
+      const { cena, camada } = montar({
+        instantaneo: true,
+        toque: false,
+        orientacao: 'horizontal',
+      });
       cena.init();
       await cena.run();
       Object.assign(window, { innerWidth: 1000, innerHeight: 800 });
@@ -302,6 +312,27 @@ describe('cena do bosque (SPEC-03)', () => {
       await vi.waitFor(() => {
         expect(Number(gsap.getProperty(camada('frente'), 'x'))).toBeCloseTo(0, 0);
       });
+    });
+
+    it('na vertical os arbustos do primeiro plano andam junto com a pintura, senão apareceriam em dobro (ADR-0019)', async () => {
+      const { cena, camada } = montar({ instantaneo: true, toque: false, orientacao: 'vertical' });
+      cena.init();
+      await cena.run();
+      Object.assign(window, { innerWidth: 1000, innerHeight: 800 });
+
+      moverMouse(0, 0);
+
+      await vi.waitFor(() => {
+        expect(Number(gsap.getProperty(camada('lago'), 'x'))).toBeCloseTo(24 * 0.3, 0);
+      });
+      expect(Number(gsap.getProperty(camada('frente'), 'x'))).toBeCloseTo(
+        Number(gsap.getProperty(camada('lago'), 'x')),
+        6,
+      );
+      expect(Number(gsap.getProperty(camada('frente'), 'y'))).toBeCloseTo(
+        Number(gsap.getProperty(camada('lago'), 'y')),
+        6,
+      );
     });
 
     it('no celular, em vez do mouse, cada camada faz uma deriva automática (CA-03.2.2, CT-03.3)', async () => {

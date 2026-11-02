@@ -8,7 +8,7 @@
  *
  * Os originais nunca vão para `public/`: o Vite copiaria os 41 MB para o site.
  */
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 import sharp, { type Sharp } from 'sharp';
@@ -20,6 +20,7 @@ import {
   descontaminarBorda,
   erodirAlfa,
   escurecerBase,
+  isolarPrimeiroPlano,
   limparRecorte,
   medirPoseGirada,
   normalizarAlfa,
@@ -217,6 +218,28 @@ async function cenaVertical(): Promise<Quadro4> {
   return quadro;
 }
 
+/**
+ * O primeiro plano da pintura mestre, para ficar à frente do baú e do esquilo: os arbustos de rosas dos cantos de baixo
+ * (das linhas a 80% da altura para baixo, o que não parece gramado e é grande). É uma cópia exata dos pixels da cena,
+ * com o resto transparente: não muda a imagem, só deixa os arbustos taparem os cantos do baú e o esquilo que passa atrás.
+ */
+const TOPO_DO_PRIMEIRO_PLANO = 0.8;
+const AREA_MINIMA_DO_PRIMEIRO_PLANO = 9000;
+
+async function primeiroPlanoVertical(): Promise<void> {
+  const limite = LIMITE_DAS_IMAGENS.primeiroPlano;
+  const quadro = await lerQuadro(join(originais, '01-cena-mestre-9x16.png'));
+  const mantidos = isolarPrimeiroPlano(quadro, {
+    topo: Math.round(quadro.altura * TOPO_DO_PRIMEIRO_PLANO),
+    areaMinima: AREA_MINIMA_DO_PRIMEIRO_PLANO,
+  });
+  suavizarAlfa(quadro, 2);
+  const codificada = await codificarNoLimite(paraSharp(quadro), quadro.largura, limite);
+  const destino = 'assets/scene/01-cena-9x16-frente.webp';
+  escrever(join(publico, destino), codificada.buffer);
+  relatar(`${destino} (${String(mantidos)} px de arbustos)`, codificada, limite);
+}
+
 /** Uma imagem de 1 × 1 transparente: as camadas que na vertical não têm arte (as árvores e o primeiro plano). */
 async function vazio(): Promise<void> {
   const buffer = await sharp({
@@ -393,6 +416,55 @@ async function papel(): Promise<void> {
   );
 }
 
+/**
+ * As folhas (20a–c) e as duas poses do esquilo (21a–b) da cena viva: só entram se as imagens definitivas já estiverem em
+ * `arte/originais/` (os prompts estão em `docs/specs-cena-viva/prompts-das-imagens-definitivas.md`); enquanto não
+ * chegam, a cena usa a arte provisória. As duas poses do esquilo levam o mesmo recorte, para a troca de pose não pular.
+ */
+async function cenaViva(): Promise<void> {
+  const chegou = (nome: string) => existsSync(join(originais, nome));
+  for (const letra of ['a', 'b', 'c'] as const) {
+    const origem = `20-folha-${letra}.png`;
+    if (!chegou(origem)) {
+      console.log(`  ${origem} ainda não chegou: a cena usa a folha provisória`);
+      continue;
+    }
+    await objetos(
+      [
+        {
+          origem,
+          destino: `assets/objects/20-folha-${letra}.webp`,
+          chave: `folha${letra.toUpperCase()}` as 'folhaA',
+          largura: 256,
+        },
+      ],
+      { limpar: true },
+    );
+  }
+  const poses = ['21-esquilo-encolhido.png', '21-esquilo-esticado.png'] as const;
+  if (!poses.every(chegou)) {
+    console.log('  21-esquilo-*.png ainda não chegaram: a cena usa o esquilo provisório');
+    return;
+  }
+  await objetos(
+    [
+      {
+        origem: poses[0],
+        destino: 'assets/objects/21-esquilo-encolhido.webp',
+        chave: 'esquiloEncolhido',
+        largura: 384,
+      },
+      {
+        origem: poses[1],
+        destino: 'assets/objects/21-esquilo-esticado.webp',
+        chave: 'esquiloEsticado',
+        largura: 384,
+      },
+    ],
+    { limpar: true },
+  );
+}
+
 /** Quanto a chave está inclinada na arte (ponta embaixo à esquerda, argola em cima à direita), em graus. */
 const INCLINACAO_DA_CHAVE = 45;
 
@@ -541,6 +613,7 @@ async function main(): Promise<void> {
   );
   const retrato = await cenaVertical();
   await vazio();
+  await primeiroPlanoVertical();
   await chao(retrato, 'assets/scene/06-chao-9x16.webp');
   // O chão do computador vem da borda de baixo do primeiro plano em 16:9.
   const paisagem = await lerQuadro(join(originais, '06-primeiro-plano.png'));
@@ -635,6 +708,9 @@ async function main(): Promise<void> {
       { limpar: true },
     );
   }
+
+  console.log('Cena viva');
+  await cenaViva();
 
   console.log('Casal');
   await casal();

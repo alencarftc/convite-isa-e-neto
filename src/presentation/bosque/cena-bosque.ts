@@ -91,7 +91,14 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
       criarCamada(config, 'arvores', 'arvores', camadas.arvores, 'high'),
       criarEspaco('vida vida--fundo', camadas.arvores),
       criarEspaco('bau', solo, false),
-      criarCamada(config, 'frente', 'primeiroPlano', camadas.frente, 'high'),
+      // Na vertical os arbustos são cópia da pintura (a camada do lago) e andam com ela, ou apareceriam em dobro.
+      criarCamada(
+        config,
+        'frente',
+        'primeiroPlano',
+        estado.orientacao === 'vertical' ? camadas.lago : camadas.frente,
+        'high',
+      ),
       criarEspaco('vida vida--chao', camadas.frente),
       criarEspaco('camada camada--luz'),
       criarEspaco('casal', solo),

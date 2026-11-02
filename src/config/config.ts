@@ -262,7 +262,7 @@ export const config: ConfigConvite = {
     esquilo: {
       primeiroEm: 6,
       intervalo: [12, 28],
-      largura: { vertical: 0.14, horizontal: 0.035 },
+      largura: { vertical: 0.11, horizontal: 0.03 },
       // Na vertical a linha das patas é o gramado, a 20% da base (a 80% do alto da pintura): o casal pisa a 23% e, com
       // a cena erguida, ela fica logo acima da carta. Na horizontal é a mesma altura do chão do baú.
       chao: { vertical: 0.2, horizontal: 0.16 },
@@ -290,7 +290,8 @@ export const config: ConfigConvite = {
   },
   // Arte gerada (docs/decisions/0011), preparada por `pnpm arte` a partir de `arte/originais/`.
   // Cada camada tem um arquivo por orientação. Na vertical a chave `lago` leva a cena mestre 9:16 inteira, sem o
-  // céu (ADR-0015), e as árvores e o primeiro plano apontam para uma imagem vazia de 1 × 1.
+  // céu (ADR-0015), o primeiro plano leva só os arbustos de rosas dos cantos de baixo (uma cópia exata dos pixels da
+  // cena, para taparem o baú e o esquilo; ADR-0019) e as árvores apontam para uma imagem vazia de 1 × 1.
   imagens: {
     ceu: {
       vertical: 'assets/scene/02-ceu-baunilha-9x16.webp',
@@ -309,7 +310,7 @@ export const config: ConfigConvite = {
       horizontal: 'assets/scene/05-arvores-16x9.webp',
     },
     primeiroPlano: {
-      vertical: 'assets/scene/vazio.webp',
+      vertical: 'assets/scene/01-cena-9x16-frente.webp',
       horizontal: 'assets/scene/06-primeiro-plano.webp',
     },
     chao: {
