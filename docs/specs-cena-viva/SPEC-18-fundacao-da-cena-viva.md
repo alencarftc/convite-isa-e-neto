@@ -243,6 +243,7 @@ desenho acima:
   na paleta do projeto; `pnpm arte:provisoria` os gera em `public/assets/provisorio/`. O casal sentado provisório
   substitui, nesta branch, a imagem 17 (`config.imagens.casal`); a 17 em WebP continua em `public/assets/couple/`, sem uso.
   O `verificar` acusa as seis (`arte-provisoria`) até as imagens 19, 20 e 21 chegarem.
+  **Atualização (ADR-0020, 01/11/2026):** as imagens 20 e 21 chegaram, o gerador e os SVG de folhas e esquilo saíram, e a 19 deixou de ser necessária (SPEC-22 revertida).
 - **Tamanho (CT-18.12):** o JavaScript crítico passou de 57,67 kB para 58,91 kB gzip (+1,24 kB) só com o esqueleto.
 - **Não conferido:** quadros por segundo reais num Android intermediário e o trabalho por quadro com a CPU 4× mais lenta
   (RNF-18.2) só têm sentido com os elementos de vida; ficam para o fim do épico, em aparelho real.
