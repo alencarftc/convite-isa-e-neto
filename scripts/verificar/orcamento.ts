@@ -53,6 +53,7 @@ export const LIMITE_DE_FONTE = 50 * KB;
 /** Áudio, por arquivo (SPEC-08, "Arquivos de áudio"). */
 export const LIMITE_DOS_AUDIOS: Readonly<Record<string, number>> = {
   'audio/ambiente.mp3': 400 * KB,
+  'audio/harpa.mp3': 40 * KB, // glissando de harpa de uns 1,7 s, estéreo, 128 kbps
   'audio/fechadura.mp3': 20 * KB,
   'audio/tampa.mp3': 25 * KB,
   'audio/fada.mp3': 60 * KB, // loop de poeira de fada de uns 2,6 s, estéreo, 128 kbps

@@ -1,4 +1,4 @@
-export type NomeDeEfeito = 'fechadura' | 'tampa' | 'selo';
+export type NomeDeEfeito = 'harpa' | 'fechadura' | 'tampa' | 'selo';
 
 /**
  * Porta de áudio (SPEC-08). Todos os métodos são seguros: se um arquivo falhar ou o navegador

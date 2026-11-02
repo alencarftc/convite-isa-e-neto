@@ -136,11 +136,13 @@ export interface ConfigConvite {
     };
   };
   /**
-   * Envelope (SPEC-06, `tlCarta`, 3 s): pousa sobre o baú e espera o toque no selo. Instantes
+   * Envelope (SPEC-06, `tlCarta`, 3 s): pousa a 1/3 da altura da tela, de baixo para cima, e espera o toque no selo. Instantes
    * contados do início da etapa.
    */
   readonly carta: {
     readonly pouso: number;
+    /** Onde o envelope pousa, como fração da altura da tela contada do alto: 2/3 é a 1/3 de baixo para cima (02/11/2026). */
+    readonly alturaDoPouso: number;
     /** O baú some, esmaecendo, quando o envelope aparece (antes do toque no selo); o envelope pousa onde ele estava. */
     readonly bauSome: number;
     /** O envelope parte a esta fração da altura acima do centro, inclinado. */

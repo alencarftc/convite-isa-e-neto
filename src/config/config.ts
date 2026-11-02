@@ -74,6 +74,8 @@ export const config: ConfigConvite = {
   },
   carta: {
     pouso: 1.2,
+    // O envelope pousa a 1/3 da altura da tela, contada de baixo para cima (o centro dele fica a 2/3 do alto).
+    alturaDoPouso: 2 / 3,
     bauSome: 0.8,
     alturaDeSaida: 0.6,
     inclinacao: -6,
@@ -140,8 +142,8 @@ export const config: ConfigConvite = {
     subidaFinalEm: 4.5,
     subidaFinal: 0.5,
     // Os cinco ficam na faixa de leitura, no alto da tela, e se alternam de lado, como num vaivém leve.
-    alturas: [0.7, 0.66, 0.72, 0.64, 0.68],
-    alturasNaHorizontal: [0.82, 0.78, 0.84, 0.76, 0.8],
+    alturas: [0.64, 0.6, 0.66, 0.58, 0.62],
+    alturasNaHorizontal: [0.76, 0.72, 0.78, 0.7, 0.74],
     subidaDaLeitura: 0.04,
     margemSuperior: 16,
     desvios: [-0.12, 0.12, -0.08, 0.1, 0],
@@ -353,11 +355,12 @@ export const config: ConfigConvite = {
     entradaLeve: 'power1.in',
     viaDuplaForte: 'power3.inOut',
   },
-  volumes: { ambiente: 0.35, ambienteSobMusica: 0.15, efeitos: 0.8, fada: 0.2, musica: 0.6 },
+  volumes: { ambiente: 0.35, ambienteSobMusica: 0.15, efeitos: 0.8, fada: 0.12, musica: 0.6 },
   transicoesDeAudio: {
     entradaDoAmbiente: 2,
     entradaDaFada: 1.5,
-    saidaDaFada: 1.5,
+    // A fada se esvai durante o último balão (5 s) e termina um pouco antes do fim da história.
+    saidaDaFada: 4.5,
     ambienteSobMusica: 2,
     musica: 2,
     entradaDaMusica1: 6,

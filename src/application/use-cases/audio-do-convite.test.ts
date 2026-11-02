@@ -59,6 +59,25 @@ describe('conectarAudio', () => {
     expect(audio.musica2).not.toHaveBeenCalled();
   });
 
+  it('o primeiro toque, ao entrar, solta o glissando de harpa depois de liberar o áudio (02/11/2026)', () => {
+    const { audio, eventos } = montar();
+
+    eventos.emit('entrada:tocou', { escolha: 'entrar' });
+
+    expect(audio.efeito).toHaveBeenCalledExactlyOnceWith('harpa');
+    expect(audio.desbloquear.mock.invocationCallOrder[0]).toBeLessThan(
+      audio.efeito.mock.invocationCallOrder[0] ?? 0,
+    );
+  });
+
+  it('quem pula pela entrada não ouve a harpa', () => {
+    const { audio, eventos } = montar();
+
+    eventos.emit('entrada:tocou', { escolha: 'pular' });
+
+    expect(audio.efeito).not.toHaveBeenCalled();
+  });
+
   it('o toque de entrada só libera o áudio: a música 2 espera o envelope ou o pulo', () => {
     const { audio, eventos } = montar();
 
@@ -85,12 +104,16 @@ describe('conectarAudio', () => {
     eventos.emit('bau:abriu');
     eventos.emit('bau:aberto');
     eventos.emit('historia:inicio', { duracao: 15 });
+    eventos.emit('historia:ultimo');
+    // A fada começa a se esvair com o último balão, antes do fim da história.
+    expect(audio.encerrarFada).toHaveBeenCalledOnce();
     eventos.emit('historia:fim');
     eventos.emit('carta:abrindo', { origem: 'toque' });
 
     expect(audio.efeito.mock.calls).toEqual([['fechadura'], ['tampa'], ['selo']]);
     expect(audio.iniciarFada).toHaveBeenCalledOnce();
-    expect(audio.encerrarFada).toHaveBeenCalledOnce();
+    // O pedido do fim da história é inofensivo: o adaptador só obedece ao primeiro.
+    expect(audio.encerrarFada).toHaveBeenCalledTimes(2);
     expect(audio.musica1).toHaveBeenCalledOnce();
     expect(audio.musica2).toHaveBeenCalledOnce();
   });

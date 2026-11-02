@@ -20,9 +20,10 @@ export interface DependenciasDoAudioHowler {
   readonly sessaoDeAudio?: { type: string } | undefined;
 }
 
-/** Os sete arquivos de áudio (SPEC-08, "Arquivos de áudio", mais a fada); `pnpm verificar` confere que existem. */
+/** Os oito arquivos de áudio (SPEC-08, "Arquivos de áudio", mais a fada e a harpa); `pnpm verificar` confere que existem. */
 export const ARQUIVOS_DE_AUDIO: readonly string[] = [
   'audio/ambiente.mp3',
+  'audio/harpa.mp3',
   'audio/fechadura.mp3',
   'audio/tampa.mp3',
   'audio/fada.mp3',
@@ -34,6 +35,7 @@ export const ARQUIVOS_DE_AUDIO: readonly string[] = [
 /** Caminhos relativos à página, para funcionar em qualquer subpasta do GitHub Pages (RF-01.2). */
 const ARQUIVOS = {
   ambiente: 'audio/ambiente.mp3',
+  harpa: 'audio/harpa.mp3',
   fechadura: 'audio/fechadura.mp3',
   tampa: 'audio/tampa.mp3',
   fada: 'audio/fada.mp3',
@@ -42,7 +44,7 @@ const ARQUIVOS = {
   musica2: 'audio/musica-2.mp3',
 } as const;
 
-const NOMES_DE_EFEITO: readonly NomeDeEfeito[] = ['fechadura', 'tampa', 'selo'];
+const NOMES_DE_EFEITO: readonly NomeDeEfeito[] = ['harpa', 'fechadura', 'tampa', 'selo'];
 
 const emMilissegundos = (segundos: number): number => segundos * 1000;
 

@@ -41,10 +41,16 @@ export function conectarAudio({
   }
 
   const cancelar = [
-    eventos.on('entrada:tocou', () => {
+    eventos.on('entrada:tocou', ({ escolha }) => {
       protegido(() => {
         audio.desbloquear(estado.somLigado);
       });
+      // O glissando de harpa marca a entrada na experiência, logo no primeiro toque; quem pula direto ao convite não o ouve.
+      if (escolha === 'entrar') {
+        protegido(() => {
+          audio.efeito('harpa');
+        });
+      }
     }),
     // Pular, atalho de teclado e animação reduzida não passam pelo envelope: a música 2 entra direto.
     eventos.on('convite:pulado', () => {
@@ -72,12 +78,19 @@ export function conectarAudio({
       });
     }),
     // A poeira de fada sobe com a luz, quando a tampa já abriu, e fica como fundo (em loop, bem baixa) enquanto as
-    // coisas preciosas saem do baú: acaba quando a história termina e o envelope toma o lugar do baú.
+    // coisas preciosas saem do baú: some antes de a história terminar, quando o envelope toma o lugar do baú.
     eventos.on('bau:aberto', () => {
       protegido(() => {
         audio.iniciarFada();
       });
     }),
+    // A fada começa a se esvair quando o último balão sobe e some aos poucos, durante essa última animação...
+    eventos.on('historia:ultimo', () => {
+      protegido(() => {
+        audio.encerrarFada();
+      });
+    }),
+    // ...e, se isso não aconteceu, pelo menos ao fim da história (só o primeiro pedido vale).
     eventos.on('historia:fim', () => {
       protegido(() => {
         audio.encerrarFada();

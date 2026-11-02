@@ -12,7 +12,7 @@
 }
 
 .balao {
-  --largura: clamp(210px, 68vw, 300px);
+  --largura: clamp(170px, 56vw, 250px);
 
   position: absolute;
   top: 0;
@@ -24,7 +24,7 @@
 
 @media (orientation: landscape) {
   .balao {
-    --largura: clamp(200px, 22vw, 280px);
+    --largura: clamp(165px, 18vw, 235px);
   }
 }
 

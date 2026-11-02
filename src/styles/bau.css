@@ -1,6 +1,6 @@
 /*
- * Baú e chave (SPEC-04, ADR-0012). O baú fica centralizado, na grama, com a base a 15% da altura na vertical
- * (a grama começa a cerca de 18%) e 25% na horizontal; a largura acompanha a tela. A posição da fechadura é uma variável relativa ao baú
+ * Baú e chave (SPEC-04, ADR-0012). O baú fica centralizado, na grama, com a base a 15% da altura na vertical e a 20% na
+ * horizontal; a largura é fixa, 195 px, o tamanho que ficou bom no celular de 375 px (02/11/2026: não é responsiva). A posição da fechadura é uma variável relativa ao baú
  * (`--fechadura-x/y`), medida na imagem 08 (o buraco da fechadura). A chave espera no inventário, no pé
  * da tela, e voa até a fechadura quando é usada. Só `transform` e `opacity` se animam.
  */
@@ -9,16 +9,15 @@
   --fechadura-y: 60%;
 
   position: absolute;
-  inset: auto 0 11%;
+  inset: auto 0 15%;
   z-index: var(--z-bau);
-  width: clamp(150px, 46vw, 290px);
+  width: 195px;
   margin-inline: auto;
 }
 
 @media (orientation: landscape) {
   .bau {
-    bottom: 16%;
-    width: clamp(170px, 17vw, 280px);
+    bottom: 20%;
   }
 }
 

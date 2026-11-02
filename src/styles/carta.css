@@ -4,7 +4,7 @@
  * Só `transform` e `opacity` se animam.
  */
 .envelope {
-  --envelope-largura: min(78vw, 360px);
+  --envelope-largura: min(66vw, 300px);
 
   position: fixed;
   top: 0;
@@ -162,7 +162,9 @@
  * tamanho; centrado, com as margens automáticas.
  */
 .casal__imagem {
-  --casal-altura: 40%;
+  /* Altura fixa em pixels (02/11/2026): o tamanho que ficou perfeito no celular de 375 × 812, igual em qualquer tela. O
+   * teto de 52% da altura só vale em telas muito baixas, para a cabeça não sair da tela. */
+  --casal-altura: min(325px, 52vh);
   --casal-base: 23%;
 
   position: absolute;
@@ -176,7 +178,6 @@
 
 @media (orientation: landscape) {
   .casal__imagem {
-    --casal-altura: 46%;
     --casal-base: 18%;
   }
 }

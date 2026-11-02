@@ -53,7 +53,7 @@ interface Elementos {
 /**
  * Envelope e carta (SPEC-06). Devolve as duas etapas do caminho, que dividem o mesmo DOM e estado:
  *
- * - `carta` (`tlCarta`, 3 s): o envelope pousa sobre o baú e espera o toque (ou o arrasto) no selo, o
+ * - `carta` (`tlCarta`, 3 s): o envelope pousa a 1/3 da altura da tela, de baixo para cima, e espera o toque (ou o arrasto) no selo, o
  *   tempo que for: não abre sozinho (`carta:pousou`).
  * - `convite` (`tlConvite`, 7 s): o selo se solta, a carta sai do envelope, a cena sobe, o casal
  *   surge, a carta se desdobra, a rolagem é liberada, os blocos começam a aparecer um a um e caem as
@@ -217,12 +217,9 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     return svg;
   }
 
-  /** Centro vertical do baú na tela, onde o envelope pousa; sem baú, um ponto baixo. */
+  /** Onde o envelope pousa: a 1/3 da altura da tela, de baixo para cima (02/11/2026); o baú já saiu de cena. */
   function pousoY(): number {
-    const corpo = raiz.querySelector('.bau__corpo');
-    if (!corpo) return window.innerHeight * 0.7;
-    const caixa = corpo.getBoundingClientRect();
-    return caixa.top + caixa.height * 0.2;
+    return window.innerHeight * tempoDaCarta.alturaDoPouso;
   }
 
   function luzesDoPorDoSol(): HTMLElement[] {
@@ -386,10 +383,10 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
         e.dica.textContent = conteudo.dicas.selo;
         linhaDaCarta = gsap.timeline();
         // O baú sai de cena assim que o envelope aparece, antes do toque no selo (01/11/2026); o envelope ainda pousa
-        // no lugar onde ele estava (`pousoY` mede o baú, que só esmaece).
+        // a 1/3 da altura da tela, de baixo para cima (`pousoY`).
         if (bau) linhaDaCarta.to(bau, { opacity: 0, duration: t.bauSome, ease: curvas.saida }, 0);
         linhaDaCarta
-          // O envelope surge no alto, inclinado, e desce até pousar no lugar do baú.
+          // O envelope surge no alto, inclinado, e desce até pousar a 1/3 da altura da tela, de baixo para cima.
           .fromTo(
             e.envelope,
             {
