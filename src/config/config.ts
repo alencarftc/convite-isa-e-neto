@@ -232,7 +232,8 @@ export const config: ConfigConvite = {
       balanco: [20, 60],
       trocasDeLado: [2, 3],
       giro: 540,
-      largura: { fundo: [0.014, 0.024], frente: [0.026, 0.036] },
+      // Larguras da imagem da folha como fração da tela; as folhas têm de 100 a 256 px de lado e a menor tem piso.
+      largura: { fundo: [0.03, 0.05], frente: [0.05, 0.07] },
       fracaoNaFrente: 0.2,
       aceleracaoNaFrente: 1.3,
       // A folhagem da árvore da direita na arte 05 (a copa densa vai do topo a 40% da altura, de 72% da
@@ -262,7 +263,8 @@ export const config: ConfigConvite = {
     esquilo: {
       primeiroEm: 6,
       intervalo: [12, 28],
-      largura: { vertical: 0.11, horizontal: 0.03 },
+      // A largura é a do quadro das duas poses (a imagem inteira, de 384 × 198): o esquilo sentado ocupa metade dele.
+      largura: { vertical: 0.2, horizontal: 0.05 },
       // Na vertical a linha das patas é o gramado, a 20% da base (a 80% do alto da pintura): o casal pisa a 23% e, com
       // a cena erguida, ela fica logo acima da carta. Na horizontal é a mesma altura do chão do baú.
       chao: { vertical: 0.2, horizontal: 0.16 },
@@ -331,12 +333,12 @@ export const config: ConfigConvite = {
     selo: 'assets/objects/15-selo.webp',
     papelCarta: 'assets/objects/14-papel-carta.webp',
     papelMiolo: 'assets/objects/14-papel-miolo.webp',
-    // Cena viva (épico 13): arte provisória até chegarem as imagens 20a–c e 21a–b.
-    folhaA: 'assets/provisorio/folha-a.svg',
-    folhaB: 'assets/provisorio/folha-b.svg',
-    folhaC: 'assets/provisorio/folha-c.svg',
-    esquiloEncolhido: 'assets/provisorio/esquilo-encolhido.svg',
-    esquiloEsticado: 'assets/provisorio/esquilo-esticado.svg',
+    // Cena viva (épico 13): as imagens 20a–c (folhas) e 21a–b (esquilo), repartidas pelo `pnpm arte`.
+    folhaA: 'assets/objects/20-folha-a.webp',
+    folhaB: 'assets/objects/20-folha-b.webp',
+    folhaC: 'assets/objects/20-folha-c.webp',
+    esquiloEncolhido: 'assets/objects/21-esquilo-encolhido.webp',
+    esquiloEsticado: 'assets/objects/21-esquilo-esticado.webp',
     casal: 'assets/couple/17-casal-costas.webp',
   },
   curvas: {

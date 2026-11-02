@@ -227,24 +227,11 @@ describe('validarArteDefinitiva', () => {
     );
   });
 
-  it('a arte gerada já não é acusada: restam as fotos dos balões, pendentes, e a arte da cena viva, ainda provisória', () => {
+  it('a arte gerada, inclusive a das folhas e do esquilo, já não é acusada: restam só as fotos dos balões, pendentes', () => {
     const problemas = validarArteDefinitiva(config, content);
 
-    const naoEsperados = problemas.filter(
-      (p) =>
-        p.regra !== 'foto-pendente' &&
-        !/^config.imagens.(folha[ABC]|esquilo(Encolhido|Esticado)) /.test(p.mensagem),
-    );
     expect(problemas.length).toBeGreaterThan(0);
-    expect(naoEsperados).toEqual([]);
-  });
-
-  it('acusa a arte provisória da cena viva (folhas e esquilo) até as imagens 20 e 21 chegarem', () => {
-    const mensagens = validarArteDefinitiva(config, content).map((p) => p.mensagem);
-
-    for (const chave of ['folhaA', 'folhaB', 'folhaC', 'esquiloEncolhido', 'esquiloEsticado']) {
-      expect(mensagens, chave).toContainEqual(expect.stringContaining(`config.imagens.${chave} `));
-    }
+    expect(problemas.every((p) => p.regra === 'foto-pendente')).toBe(true);
   });
 
   it('acusa as fotos dos balões que ainda não chegaram (vazias) e as que apontam para a arte provisória', () => {
@@ -376,8 +363,8 @@ describe('verificarTudo', () => {
   it('o conteúdo e as datas atuais passam nas regras de texto, data e link', () => {
     const regras = new Set(verificarTudo(entradas).map((p) => p.regra));
 
-    // Restam a arte provisória, as fotos que o casal ainda não mandou e o texto pendente (entre colchetes).
-    expect(regras).toEqual(new Set(['arte-provisoria', 'foto-pendente', 'texto-pendente']));
+    // Restam as fotos que o casal ainda não mandou e o texto pendente (entre colchetes).
+    expect(regras).toEqual(new Set(['foto-pendente', 'texto-pendente']));
   });
 
   it('o endereço do Google Agenda é permitido, e outro serviço de agenda não (SPEC-17, RF-17.3)', () => {
@@ -396,7 +383,11 @@ describe('verificarTudo', () => {
   it('junta os problemas de todas as regras', () => {
     const problemas = verificarTudo({
       ...entradas,
-      config: { ...config, casamento: 'ontem' },
+      config: {
+        ...config,
+        casamento: 'ontem',
+        imagens: { ...config.imagens, chave: 'assets/provisorio/chave.svg' },
+      },
       conteudo: { ...content, rotulos: { ...content.rotulos, informacoes: '[pendente]' } },
       existe: () => false,
     });

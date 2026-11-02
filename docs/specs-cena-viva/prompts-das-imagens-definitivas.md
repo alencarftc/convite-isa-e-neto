@@ -1,6 +1,11 @@
 # Prompts das imagens definitivas (cena viva)
 
-Faltam as imagens que ainda usam arte provisória (`assets/provisorio/`): as **três folhas** (20a–c) e as **duas poses do
+> **Atualização de 2026-11-01:** as folhas e o esquilo **já chegaram e estão no convite** ([ADR-0020](../decisions/0020-folhas-esquilo-definitivos-e-audio-de-ambiente.md)).
+> Vieram em duas folhas de 2000 × 667 px sobre fundo cinza liso (`arte/originais/20-folhas.webp`, as três folhas lado a
+> lado, e `21-esquilo.webp`, as duas poses), e o `pnpm arte` as reparte sozinho; os prompts abaixo ficam só como registro
+> e para gerar de novo. As fotos dos balões continuam pendentes.
+
+As imagens que usavam arte provisória (`assets/provisorio/`) eram as **três folhas** (20a–c) e as **duas poses do
 esquilo** (21a–b). As fotos dos balões não são geradas: são fotos do casal (veja o fim). As regras abaixo são as de
 [`requisitos.md`](../requisitos.md), "Imagens a gerar": prompts em inglês, objeto sobre fundo cinza-claro liso, nenhum
 texto, a mesma luz quente vinda de trás e da direita, e a **cena mestre como imagem de referência de estilo** (use
@@ -63,15 +68,20 @@ The same small red-brown squirrel as in the reference image (same fur, same tail
 
 ## Depois de gerar
 
-1. Tire o fundo cinza (o script de `rembg` do [README do épico](./README.md), "Recorte do fundo") e salve os PNG em
-   `arte/originais/` com estes nomes: `20-folha-a.png`, `20-folha-b.png`, `20-folha-c.png`, `21-esquilo-encolhido.png` e
-   `21-esquilo-esticado.png`.
-2. Rode `pnpm arte`: ele prepara `assets/objects/20-folha-*.webp` (limite de 15 kB cada) e `assets/objects/21-esquilo-*.webp`
-   (25 kB cada). Os arquivos que ainda não chegaram são pulados, com um aviso.
-3. Em `src/config/config.ts`, troque as cinco chaves `folhaA`, `folhaB`, `folhaC`, `esquiloEncolhido` e `esquiloEsticado`
-   de `assets/provisorio/*.svg` para os `.webp` novos. O `pnpm verificar` deixa de acusar a arte provisória.
-4. Confira no navegador (celular primeiro): o tamanho do esquilo (`config.vida.esquilo.largura`) e das folhas
-   (`config.vida.folhas.largura`) se ajustam sobre as imagens.
+Para gerar de novo, há dois caminhos, e o `pnpm arte` aceita os dois em `arte/originais/`:
+
+- **Uma folha de imagem por assunto** (o caminho que foi usado): `20-folhas.webp` (ou `.png`) com as três folhas lado a lado
+  e `21-esquilo.webp` com as duas poses (encolhido à esquerda, esticado à direita), sobre fundo cinza liso. O script tira o
+  fundo, acha cada objeto (pedaços opacos com mais de 20 000 px²), confere que são 3 e 2, e grava os cinco PNG já recortados.
+  As duas poses do esquilo saem no **mesmo quadro**, centradas e com a base na mesma linha, para a troca de pose não pular.
+  Se o número de objetos não bater, o script para e diz quantos achou.
+- **Um arquivo por imagem:** tire o fundo cinza (o script de `rembg` do [README do épico](./README.md), "Recorte do fundo") e
+  salve os PNG com estes nomes: `20-folha-a.png`, `20-folha-b.png`, `20-folha-c.png`, `21-esquilo-encolhido.png` e
+  `21-esquilo-esticado.png`.
+
+Depois, rode `pnpm arte`: ele prepara `assets/objects/20-folha-*.webp` e `assets/objects/21-esquilo-*.webp`, cada um no
+limite de peso de `scripts/verificar/orcamento.ts`. Confira no navegador (celular primeiro) o tamanho do esquilo
+(`config.vida.esquilo.largura`, a largura do quadro das duas poses) e das folhas (`config.vida.folhas.largura`).
 
 ## Fotos dos balões (não são geradas)
 

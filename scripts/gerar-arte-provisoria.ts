@@ -1,8 +1,7 @@
 /**
  * Gera a ARTE PROVISÓRIA: as fotos dos balões (retratos pintados em aquarela simples, na paleta do projeto,
- * no lugar das fotos reais do casal, SPEC-05) e, na branch da cena viva, as folhas e o esquilo
- * sentado (SPEC-18, RF-18.8). A arte do bosque, do baú, da carta etc. já é a gerada (`pnpm arte`,
- * ADR-0011); o que está aqui continua pendente.
+ * no lugar das fotos reais do casal, SPEC-05). A arte do bosque, do baú, da carta, das folhas e do esquilo
+ * já é a gerada (`pnpm arte`, ADR-0011); o que está aqui continua pendente.
  *
  * Os arquivos vão para `public/assets/provisorio/` e carregam o marcador `ARTE PROVISÓRIA` (comentário e
  * `data-provisorio`), sem texto visível: no balão elas devem parecer retratos, não avisos. O gate
@@ -12,12 +11,8 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { type DesenhoProvisorio, esquilo, folha } from './arte-provisoria-vida';
-
 const MARCADOR =
   'ARTE PROVISÓRIA: substituir pela foto real do casal (docs/requisitos.md, "Fotos dos balões")';
-const MARCADOR_DA_VIDA =
-  'ARTE PROVISÓRIA: substituir pela imagem definitiva (docs/specs-cena-viva/README.md, "Imagens novas")';
 
 const TAMANHO_FOTO = 400;
 
@@ -123,17 +118,4 @@ for (const numero of [1, 2, 3, 4, 5]) {
   const nome = `foto-${String(numero)}.svg`;
   writeFileSync(join(destino, nome), foto(numero), 'utf8');
   console.log(`foto provisória ${nome}`);
-}
-
-/** Cena viva (épico 13): folhas 20a–c e esquilo 21a–b. */
-const desenhosDaVida: readonly (readonly [string, DesenhoProvisorio])[] = [
-  ['folha-a.svg', folha('a')],
-  ['folha-b.svg', folha('b')],
-  ['folha-c.svg', folha('c')],
-  ['esquilo-encolhido.svg', esquilo('encolhido')],
-  ['esquilo-esticado.svg', esquilo('esticado')],
-];
-for (const [nome, { corpo, largura, altura }] of desenhosDaVida) {
-  writeFileSync(join(destino, nome), svg(corpo, nome, largura, altura, MARCADOR_DA_VIDA), 'utf8');
-  console.log(`arte provisória ${nome}`);
 }

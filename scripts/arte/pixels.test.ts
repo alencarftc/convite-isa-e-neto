@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   caixaDoObjeto,
+  caixasDosObjetos,
   comFolga,
   corDoFundo,
   criarQuadro,
@@ -546,5 +547,38 @@ describe('isolarPrimeiroPlano', () => {
 
     expect(isolarPrimeiroPlano(quadro, { topo: 3, areaMinima: 1 })).toBe(0);
     expect(alfaEm(quadro, 5, 5)).toBe(0);
+  });
+});
+
+describe('caixasDosObjetos', () => {
+  const COR: [number, number, number, number] = [200, 150, 90, 255];
+  const VAZIO: [number, number, number, number] = [0, 0, 0, 0];
+
+  it('devolve a caixa de cada objeto, da esquerda para a direita, e ignora o que é pequeno demais', () => {
+    // Três objetos soltos (os do meio e da direita fora de ordem de desenho) e um pontinho de 2 px.
+    const quadro = quadroDe(60, 20, (x, y) => {
+      if (x >= 40 && x < 50 && y >= 2 && y < 12) return COR; // 10 × 10, o mais à direita
+      if (x >= 3 && x < 11 && y >= 5 && y < 15) return COR; // 8 × 10, o mais à esquerda
+      if (x >= 20 && x < 28 && y >= 8 && y < 18) return COR; // 8 × 10, no meio
+      if (x >= 55 && x < 57 && y === 1) return COR; // bigode solto
+      return VAZIO;
+    });
+
+    const caixas = caixasDosObjetos(quadro, 20);
+
+    expect(caixas).toEqual([
+      { esquerda: 3, topo: 5, largura: 8, altura: 10 },
+      { esquerda: 20, topo: 8, largura: 8, altura: 10 },
+      { esquerda: 40, topo: 2, largura: 10, altura: 10 },
+    ]);
+  });
+
+  it('sem nada opaco, não há objeto', () => {
+    expect(
+      caixasDosObjetos(
+        quadroDe(5, 5, () => VAZIO),
+        1,
+      ),
+    ).toEqual([]);
   });
 });

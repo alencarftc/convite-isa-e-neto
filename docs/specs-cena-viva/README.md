@@ -193,7 +193,7 @@ spec registra as respostas e os desvios. A ADR da cena viva é a [0013](../decis
 | JavaScript da cena viva, gzip        | até 8 kB                    | **9,29 kB** (57,67 → 66,96 kB): fundação 1,24 · água 4,2 · folhas e pássaros 1,96 · esquilo 1,14 · casal 0,74 |
 | Pacote inteiro, gzip                 | até 120 kB                  | 66,96 kB                                                                                                      |
 | Trabalho por quadro com CPU 4× lenta | até 4 ms                    | não medido                                                                                                    |
-| Imagens novas                        | folhas 15 kB, esquilo 25 kB | provisórias em SVG (poucas centenas de bytes cada)                                                            |
+| Imagens novas                        | folhas 15 kB, esquilo 25 kB | definitivas desde 01/11/2026 (13 a 18 kB cada; eram SVG provisórios, ADR-0020)                                |
 
 O limite de 8 kB do épico foi **estourado em 1,29 kB**; o pacote inteiro segue com mais de 50 kB de folga. O motor WebGL da
 água (código, GLSL e elemento) é a maior parte. Se o limite for firme, os caminhos são: enxugar o motor (tirar o suporte à
@@ -216,10 +216,10 @@ gramado. Na horizontal nada mudou.
 
 ### O que falta
 
-1. **Imagens definitivas:** 20a–c (folhas, 128 × 128, 15 kB) e 21a–b (esquilo, 256 px de largura, 25 kB). O `pnpm arte` ainda
-   não tem etapa para elas: ao chegarem, acrescentar as etapas e trocar as chaves de `config.imagens`
-   (`assets/provisorio/*.svg` → `assets/objects/20-…`, `21-…`). A linha do chão do esquilo se ajusta sobre elas. A imagem 19
-   (casal sentado) deixou de ser necessária.
+1. ~~**Imagens definitivas:** 20a–c (folhas) e 21a–b (esquilo)~~ **chegaram em 2026-11-01**
+   ([ADR-0020](../decisions/0020-folhas-esquilo-definitivos-e-audio-de-ambiente.md)): o `pnpm arte` reparte as duas folhas de
+   imagem e a arte provisória saiu. A imagem 19 (casal sentado) deixou de ser necessária. Falta só conferir os tamanhos num
+   aparelho real. O som de ambiente (`ambiente.mp3`) também já está no convite.
 2. **Texto do botão "Pausar animação"** (US-13.6): `content.dicas.pausarAnimacao` e `retomarAnimacao`, entre colchetes até a
    aprovação do casal.
 3. **Aparelhos reais:** 50 quadros por segundo num Android intermediário, o nível leve, o vento e a água no iPhone (matriz de
