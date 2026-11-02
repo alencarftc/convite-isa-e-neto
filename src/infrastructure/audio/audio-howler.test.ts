@@ -6,9 +6,11 @@ import type { AudioPort } from '@/application/ports/audio';
 import { type BibliotecaDeAudio, criarAudioHowler, obterSessaoDeAudio } from './audio-howler';
 
 const config = {
-  volumes: { ambiente: 0.35, ambienteSobMusica: 0.15, efeitos: 0.8, musica: 0.6 },
+  volumes: { ambiente: 0.35, ambienteSobMusica: 0.15, efeitos: 0.8, fada: 0.2, musica: 0.6 },
   transicoesDeAudio: {
     entradaDoAmbiente: 2,
+    entradaDaFada: 1.5,
+    saidaDaFada: 1.5,
     ambienteSobMusica: 2,
     musica: 2,
     retornoDoAmbiente: 3,
@@ -87,13 +89,15 @@ describe('criarAudioHowler', () => {
   });
 
   describe('desbloquear', () => {
-    it('cria ambiente, três efeitos e duas músicas, com as opções de cada tipo (RF-08.3)', () => {
+    it('cria ambiente, três efeitos, a poeira de fada e duas músicas, com as opções de cada tipo (RF-08.3)', () => {
       const { audio } = montar();
 
       audio.desbloquear(true);
 
-      expect(SomFalso.criados).toHaveLength(6);
+      expect(SomFalso.criados).toHaveLength(7);
       expect(som('ambiente').opcoes).toMatchObject({ loop: true, volume: 0 });
+      expect(som('fada').opcoes).toMatchObject({ loop: true, volume: 0 });
+      expect(som('fada').opcoes.html5).toBeUndefined();
       expect(som('ambiente').opcoes.html5).toBeUndefined();
       expect(som('fechadura').opcoes).toMatchObject({ volume: 0.8 });
       expect(som('musica-1').opcoes).toMatchObject({ html5: true, volume: 0, preload: 'metadata' });
@@ -109,7 +113,7 @@ describe('criarAudioHowler', () => {
       const desligado = montar();
       desligado.audio.desbloquear(false);
       expect(desligado.mute).toHaveBeenLastCalledWith(true);
-      expect(SomFalso.criados).toHaveLength(6);
+      expect(SomFalso.criados).toHaveLength(7);
     });
 
     it('pede ao Safari que toque mesmo com o modo silencioso (caso de borda do iPhone)', () => {
@@ -126,7 +130,7 @@ describe('criarAudioHowler', () => {
       audio.desbloquear(true);
       audio.desbloquear(true);
 
-      expect(SomFalso.criados).toHaveLength(6);
+      expect(SomFalso.criados).toHaveLength(7);
     });
 
     it('o ambiente começa quando carrega, subindo de 0 a 0,35 em 2 s (CA-08.1.1)', () => {
@@ -175,6 +179,65 @@ describe('criarAudioHowler', () => {
       expect(som('fechadura').play).toHaveBeenCalledOnce();
       expect(som('selo').play).toHaveBeenCalledOnce();
       expect(som('tampa').play).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('poeira de fada (ADR-0021)', () => {
+    it('sobe em loop, de 0 a 0,2 em 1,5 s, quando o baú abre', () => {
+      const { audio } = montar();
+      audio.desbloquear(true);
+
+      audio.iniciarFada();
+
+      expect(som('fada').play).toHaveBeenCalledOnce();
+      expect(som('fada').fade).toHaveBeenCalledWith(0, 0.2, 1500);
+    });
+
+    it('só a primeira chamada vale', () => {
+      const { audio } = montar();
+      audio.desbloquear(true);
+
+      audio.iniciarFada();
+      audio.iniciarFada();
+
+      expect(som('fada').play).toHaveBeenCalledOnce();
+    });
+
+    it('ao encerrar, esmaece a 0 em 1,5 s e só para quando o esmaecimento termina', () => {
+      const { audio } = montar();
+      audio.desbloquear(true);
+      audio.iniciarFada();
+      som('fada').volumeAtual = 0.2;
+      (som('fada').opcoes.onfade as () => void)(); // o fim do esmaecimento de entrada não a para
+      expect(som('fada').stop).not.toHaveBeenCalled();
+
+      audio.encerrarFada();
+      audio.encerrarFada();
+
+      expect(som('fada').fade).toHaveBeenLastCalledWith(0.2, 0, 1500);
+      expect(som('fada').fade).toHaveBeenCalledTimes(2);
+      (som('fada').opcoes.onfade as () => void)();
+      expect(som('fada').stop).toHaveBeenCalledOnce();
+    });
+
+    it('encerrar sem ter começado (pular) não faz nada', () => {
+      const { audio } = montar();
+      audio.desbloquear(true);
+
+      audio.encerrarFada();
+
+      expect(som('fada').fade).not.toHaveBeenCalled();
+      expect(som('fada').stop).not.toHaveBeenCalled();
+    });
+
+    it('antes do toque de entrada ignora os comandos', () => {
+      const { audio, avisar } = montar();
+
+      audio.iniciarFada();
+      audio.encerrarFada();
+
+      expect(SomFalso.criados).toHaveLength(0);
+      expect(avisar).not.toHaveBeenCalled();
     });
   });
 
@@ -361,14 +424,14 @@ describe('criarAudioHowler', () => {
     });
   });
 
-  it('parar (modo de segurança) silencia e para ambiente e músicas', () => {
+  it('parar (modo de segurança) silencia e para ambiente, poeira de fada e músicas', () => {
     const { audio, mute } = montar();
     audio.desbloquear(true);
 
     audio.parar();
 
     expect(mute).toHaveBeenLastCalledWith(true);
-    for (const arquivo of ['ambiente', 'musica-1', 'musica-2']) {
+    for (const arquivo of ['ambiente', 'fada', 'musica-1', 'musica-2']) {
       expect(som(arquivo).stop).toHaveBeenCalledOnce();
     }
   });

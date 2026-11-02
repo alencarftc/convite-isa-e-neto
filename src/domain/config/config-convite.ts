@@ -141,6 +141,8 @@ export interface ConfigConvite {
    */
   readonly carta: {
     readonly pouso: number;
+    /** O baú some, esmaecendo, quando o envelope aparece (antes do toque no selo); o envelope pousa onde ele estava. */
+    readonly bauSome: number;
     /** O envelope parte a esta fração da altura acima do centro, inclinado. */
     readonly alturaDeSaida: number;
     readonly inclinacao: number;
@@ -205,7 +207,6 @@ export interface ConfigConvite {
     readonly cenaSobe: number;
     /** A cena inteira sobe esta fração da altura da tela. */
     readonly cenaSobeFracao: number;
-    readonly bauSome: number;
     readonly casalEm: number;
     readonly casalAparece: number;
     readonly casalDeslocamento: number;
@@ -454,12 +455,17 @@ export interface ConfigConvite {
     readonly ambiente: number;
     readonly ambienteSobMusica: number;
     readonly efeitos: number;
+    /** A poeira de fada em loop: um fundo bem baixo, que mal se percebe, sob o ambiente e as músicas. */
+    readonly fada: number;
     readonly musica: number;
   };
   /** Transições de volume do áudio, em segundos (SPEC-08, tabela "Comportamento"). */
   readonly transicoesDeAudio: {
     /** Ambiente sobe de 0 ao volume normal no toque de entrada. */
     readonly entradaDoAmbiente: number;
+    /** A poeira de fada sobe ao volume de fundo quando o baú abre e esmaece quando ele sai de cena. */
+    readonly entradaDaFada: number;
+    readonly saidaDaFada: number;
     /** Ambiente baixa quando uma música entra. */
     readonly ambienteSobMusica: number;
     /** Música entra (de 0 ao volume) ou sai (ao 0). */

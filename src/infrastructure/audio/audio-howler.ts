@@ -20,11 +20,12 @@ export interface DependenciasDoAudioHowler {
   readonly sessaoDeAudio?: { type: string } | undefined;
 }
 
-/** Os seis arquivos de áudio (SPEC-08, "Arquivos de áudio"); `pnpm verificar` confere que existem. */
+/** Os sete arquivos de áudio (SPEC-08, "Arquivos de áudio", mais a fada); `pnpm verificar` confere que existem. */
 export const ARQUIVOS_DE_AUDIO: readonly string[] = [
   'audio/ambiente.mp3',
   'audio/fechadura.mp3',
   'audio/tampa.mp3',
+  'audio/fada.mp3',
   'audio/selo.mp3',
   'audio/musica-1.mp3',
   'audio/musica-2.mp3',
@@ -35,6 +36,7 @@ const ARQUIVOS = {
   ambiente: 'audio/ambiente.mp3',
   fechadura: 'audio/fechadura.mp3',
   tampa: 'audio/tampa.mp3',
+  fada: 'audio/fada.mp3',
   selo: 'audio/selo.mp3',
   musica1: 'audio/musica-1.mp3',
   musica2: 'audio/musica-2.mp3',
@@ -61,6 +63,9 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
   let ambienteCarregado = false;
   let volumeDoAmbiente = 0;
   const efeitos: Partial<Record<NomeDeEfeito, Som>> = {};
+  let fada: Som | undefined;
+  let fadaIniciada = false;
+  let fadaSaindo = false;
   let musica1: Som | undefined;
   let musica2: Som | undefined;
   let idMusica1: number | undefined;
@@ -122,6 +127,24 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
     });
   }
 
+  /** A poeira de fada é um loop curto e sem emenda; sobe e desce por `fade`, e o `onfade` da saída a para de vez. */
+  function criarFada(): Som {
+    const som: Som = new Howl({
+      src: [ARQUIVOS.fada],
+      loop: true,
+      volume: 0,
+      onfade: () => {
+        seguro(() => {
+          if (fadaSaindo) som.stop();
+        });
+      },
+      onloaderror: (_id, erro) => {
+        avisar(erro);
+      },
+    });
+    return som;
+  }
+
   function criarMusica1(): Som {
     const som: Som = new Howl({
       src: [ARQUIVOS.musica1],
@@ -173,6 +196,7 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
         volumeDoAmbiente = volumes.ambiente;
         ambiente = criarAmbiente();
         for (const nome of NOMES_DE_EFEITO) efeitos[nome] = criarEfeito(nome);
+        fada = criarFada();
         musica1 = criarMusica1();
         musica2 = criarMusica2();
       });
@@ -181,6 +205,24 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
     efeito(nome) {
       seguro(() => {
         efeitos[nome]?.play();
+      });
+    },
+
+    iniciarFada() {
+      seguro(() => {
+        if (!fada || fadaIniciada) return;
+        fadaIniciada = true;
+        fada.play();
+        // Se a fada ainda carrega, o `play` e o `fade` ficam na fila do Howler e ela entra quando chegar.
+        fada.fade(0, volumes.fada, emMilissegundos(transicoes.entradaDaFada));
+      });
+    },
+
+    encerrarFada() {
+      seguro(() => {
+        if (!fada || !fadaIniciada || fadaSaindo) return;
+        fadaSaindo = true;
+        fada.fade(fada.volume(), 0, emMilissegundos(transicoes.saidaDaFada));
       });
     },
 
@@ -241,7 +283,7 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
     parar() {
       seguro(() => {
         Howler.mute(true);
-        for (const som of [ambiente, musica1, musica2]) som?.stop();
+        for (const som of [ambiente, fada, musica1, musica2]) som?.stop();
       });
     },
   };

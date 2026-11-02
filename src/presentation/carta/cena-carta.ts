@@ -349,6 +349,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
           e.petalas.push(petala);
         }
       }
+      const bau = raiz.querySelector<HTMLElement>('.bau');
       return new Promise<void>((resolver) => {
         const abrir = (como: OrigemDaAbertura) => {
           if (aberta) return;
@@ -391,9 +392,12 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
         );
 
         e.dica.textContent = conteudo.dicas.selo;
-        linhaDaCarta = gsap
-          .timeline()
-          // O envelope surge no alto, inclinado, e desce até pousar sobre o baú.
+        linhaDaCarta = gsap.timeline();
+        // O baú sai de cena assim que o envelope aparece, antes do toque no selo (01/11/2026); o envelope ainda pousa
+        // no lugar onde ele estava (`pousoY` mede o baú, que só esmaece).
+        if (bau) linhaDaCarta.to(bau, { opacity: 0, duration: t.bauSome, ease: curvas.saida }, 0);
+        linhaDaCarta
+          // O envelope surge no alto, inclinado, e desce até pousar no lugar do baú.
           .fromTo(
             e.envelope,
             {
@@ -469,7 +473,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
       // acelerada ou pulada (RF-06.7).
       gsap.set(luzesDoPorDoSol(), { opacity: 1 });
       const cena = raiz.querySelector<HTMLElement>('.cena');
-      const bau = raiz.querySelector<HTMLElement>('.bau');
 
       return new Promise<void>((resolver) => {
         const linha = gsap.timeline({ onComplete: resolver });
@@ -540,7 +543,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
             t.envelopeDesceEm,
           );
 
-        // A cena inteira sobe e o baú some; o chão preenche a base que fica à mostra.
+        // A cena inteira sobe (o baú já saiu de cena com a chegada do envelope); o chão preenche a base que fica à mostra.
         if (cena) {
           linha.to(
             cena,
@@ -548,8 +551,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
             t.cenaSobeEm,
           );
         }
-        if (bau)
-          linha.to(bau, { opacity: 0, duration: t.bauSome, ease: curvas.saida }, t.cenaSobeEm);
         linha
           .set(e.chao, { opacity: 1 }, t.cenaSobeEm)
           .to(

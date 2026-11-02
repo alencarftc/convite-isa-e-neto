@@ -11,6 +11,13 @@ export interface AudioPort {
    */
   desbloquear(somLigado: boolean): void;
   efeito(nome: NomeDeEfeito): void;
+  /**
+   * A poeira de fada: um fundo suave, em loop, que sobe quando o baú termina de abrir e dura até a cena do baú acabar
+   * (`encerrarFada`). Só a primeira chamada vale.
+   */
+  iniciarFada(): void;
+  /** O baú saiu de cena: a poeira de fada esmaece e para. */
+  encerrarFada(): void;
   /** Música da história: entra com esmaecimento e o ambiente baixa. */
   musica1(): void;
   /** Música da revelação: a música 1 sai e a 2 entra, uma só vez. Quando termina, o ambiente volta. */

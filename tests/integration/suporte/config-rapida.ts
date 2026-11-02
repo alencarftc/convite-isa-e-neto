@@ -57,6 +57,7 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
       sombraEm: esc(original.carta.sombraEm),
       sombra: esc(original.carta.sombra),
       pousouEm: esc(original.carta.pousouEm),
+      bauSome: esc(original.carta.bauSome),
       dicaEm: esc(original.carta.dicaEm),
       dicaAparece: esc(original.carta.dicaAparece),
       pulsoDoSelo: {
@@ -83,7 +84,6 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
       envelopeDesce: esc(original.convite.envelopeDesce),
       cenaSobeEm: esc(original.convite.cenaSobeEm),
       cenaSobe: esc(original.convite.cenaSobe),
-      bauSome: esc(original.convite.bauSome),
       casalEm: esc(original.convite.casalEm),
       casalAparece: esc(original.convite.casalAparece),
       desdobraEm: esc(original.convite.desdobraEm),

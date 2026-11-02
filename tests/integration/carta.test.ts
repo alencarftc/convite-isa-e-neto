@@ -323,6 +323,18 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(el('.carta__dica').textContent).toBe('Toque no selo');
     });
 
+    it('o baú já saiu de cena quando o envelope pousa, antes do toque no selo (01/11/2026)', async () => {
+      const { carta, registro, opacidade } = montar();
+      void carta.run();
+
+      await vi.waitFor(() => {
+        expect(registro).toContain('pousou');
+      });
+
+      expect(registro).not.toContain('abrindo:toque');
+      expect(opacidade('.bau')).toBe(0);
+    });
+
     it('o foco vai para o botão do envelope quando ele pousa (SPEC-09, RF-09.6)', async () => {
       const { carta, botao, registro } = montar();
       void carta.run();

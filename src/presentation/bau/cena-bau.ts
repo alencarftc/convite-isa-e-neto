@@ -369,6 +369,14 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
           [],
           parametros.instanteDaTampa,
         )
+        // Baú aberto: a poeira de fada (som) acompanha a luz que sobe.
+        .call(
+          () => {
+            eventos.emit('bau:aberto');
+          },
+          [],
+          parametros.instanteDaTampa + parametros.duracaoDaTampa,
+        )
         .add(
           soltarPetalas({
             conteiner: corpo,

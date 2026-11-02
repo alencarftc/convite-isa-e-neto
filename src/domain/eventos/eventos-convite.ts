@@ -10,6 +10,8 @@ export interface EventosConvite {
   'bosque:pronto': undefined;
   'bau:girou': undefined;
   'bau:abriu': undefined;
+  /** A tampa terminou de abrir: o baú está aberto e a luz sobe (a fada cintila, SPEC-08). */
+  'bau:aberto': undefined;
   'historia:inicio': { readonly duracao: number };
   'historia:balao': { readonly indice: number; readonly frase: string };
   'historia:fim': undefined;

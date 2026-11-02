@@ -11,6 +11,8 @@ function audioFalso(): { [K in keyof AudioPort]: ReturnType<typeof vi.fn> } {
   return {
     desbloquear: vi.fn(),
     efeito: vi.fn(),
+    iniciarFada: vi.fn(),
+    encerrarFada: vi.fn(),
     musica1: vi.fn(),
     musica2: vi.fn(),
     ligar: vi.fn(),
@@ -80,10 +82,14 @@ describe('conectarAudio', () => {
 
     eventos.emit('bau:girou');
     eventos.emit('bau:abriu');
+    eventos.emit('bau:aberto');
     eventos.emit('historia:inicio', { duracao: 15 });
+    eventos.emit('historia:fim');
     eventos.emit('carta:abrindo', { origem: 'toque' });
 
     expect(audio.efeito.mock.calls).toEqual([['fechadura'], ['tampa'], ['selo']]);
+    expect(audio.iniciarFada).toHaveBeenCalledOnce();
+    expect(audio.encerrarFada).toHaveBeenCalledOnce();
     expect(audio.musica1).toHaveBeenCalledOnce();
     expect(audio.musica2).toHaveBeenCalledOnce();
   });
