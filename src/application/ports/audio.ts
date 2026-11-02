@@ -1,4 +1,4 @@
-export type NomeDeEfeito = 'fechadura' | 'tampa' | 'selo';
+export type NomeDeEfeito = 'harpa' | 'fechadura' | 'tampa' | 'selo';
 
 /**
  * Porta de áudio (SPEC-08). Todos os métodos são seguros: se um arquivo falhar ou o navegador
@@ -18,9 +18,12 @@ export interface AudioPort {
   iniciarFada(): void;
   /** O baú saiu de cena: a poeira de fada esmaece e para. */
   encerrarFada(): void;
-  /** Música da história: entra com esmaecimento e o ambiente baixa. */
+  /** Música da história: entra aos poucos quando o convidado toca no baú, segue tocando, e o ambiente baixa. */
   musica1(): void;
-  /** Música da revelação: a música 1 sai e a 2 entra, uma só vez. Quando termina, o ambiente volta. */
+  /**
+   * Música da revelação: a música 1 sai e a 2 entra, uma só vez. Quando termina, o ambiente volta. Se a música 2 não
+   * existe (ainda não chegou), a 1 segue tocando; quem pulou a história ouve a 1.
+   */
   musica2(): void;
   /** Liga ou silencia tudo; as músicas seguem tocando mudas para ficarem em sincronia. */
   ligar(ligado: boolean): void;

@@ -219,6 +219,7 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
               () => {
                 regiao.textContent = frase;
                 eventos.emit('historia:balao', { indice, frase });
+                if (indice === baloes.length - 1) eventos.emit('historia:ultimo');
               },
               [],
               rotulo,

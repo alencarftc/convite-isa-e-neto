@@ -111,6 +111,13 @@
   z-index: var(--z-primeiro-plano);
 }
 
+/* No retrato o esquilo (espaço de trás do baú) passa à frente do casal, não atrás dele (02/11/2026). */
+@media (orientation: portrait) {
+  .casal {
+    z-index: var(--z-casal-vertical);
+  }
+}
+
 /* Luz quente do pôr do sol, vinda do fundo à direita (SPEC-03, "Luz"). */
 .camada--luz {
   z-index: var(--z-primeiro-plano);

@@ -72,13 +72,17 @@ export function montarCarta(carta: CartaDoConvite, papel: PapelDaCarta): HTMLEle
     criarColuna(carta.paisNoivo),
   );
 
-  const titulo = criar('h2', 'carta__bloco carta__nomes');
+  // O "&" é dourado e fica fora da mistura que dá a tinta ao texto (ADR-0016), e a mistura só vale no mesmo elemento da
+  // opacidade da revelação: por isso o título é um contêiner e cada nome e o "&" são blocos próprios.
+  const titulo = criar('h2', 'carta__nomes');
   titulo.id = 'carta-titulo';
   titulo.tabIndex = -1;
   titulo.append(
-    document.createTextNode(`${carta.nomes.noiva} `),
-    criar('span', 'carta__e', carta.nomes.e),
-    document.createTextNode(` ${carta.nomes.noivo}`),
+    criar('span', 'carta__bloco carta__nome', carta.nomes.noiva),
+    document.createTextNode(' '),
+    criar('span', 'carta__bloco carta__e', carta.nomes.e),
+    document.createTextNode(' '),
+    criar('span', 'carta__bloco carta__nome', carta.nomes.noivo),
   );
 
   const local = criar('div', 'carta__bloco carta__local');

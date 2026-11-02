@@ -46,6 +46,7 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}, conteudo: typeof content = con
     registro.push(`balao:${String(indice)}`);
     frases.push(frase);
   });
+  eventos.on('historia:ultimo', () => registro.push('ultimo'));
   eventos.on('historia:fim', () => registro.push('fim'));
 
   // O bosque cria as camadas do pôr do sol que a história anima (tlLuz).
@@ -181,7 +182,7 @@ describe('história em balões (SPEC-05)', () => {
   });
 
   describe('execução (tlHistoria)', () => {
-    it('emite inicio, cinco balões na ordem, e fim; o run resolve (CA-05.1.1)', async () => {
+    it('emite inicio, cinco balões na ordem, o aviso do último balão e fim; o run resolve (CA-05.1.1)', async () => {
       const { cena, registro, frases } = montar();
 
       await cena.run();
@@ -193,6 +194,7 @@ describe('história em balões (SPEC-05)', () => {
         'balao:2',
         'balao:3',
         'balao:4',
+        'ultimo', // a fada começa a se esvair com o último balão (02/11/2026)
         'fim',
       ]);
       expect(frases).toEqual(content.baloes.map((b) => b.frase));

@@ -243,6 +243,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     aberto = true;
     botao.disabled = true;
     estado.definirFase('bau');
+    eventos.emit('bau:tocado');
     limparAgendamentos();
     pararOciosas();
     ouvintes?.abort();
