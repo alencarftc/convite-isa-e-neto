@@ -15,8 +15,11 @@ import sharp, { type Sharp } from 'sharp';
 
 import { LIMITE_DAS_IMAGENS } from '../verificar/orcamento';
 import {
+  type Caixa,
   caixaDoObjeto,
+  caixasDosObjetos,
   comFolga,
+  criarQuadro,
   descontaminarBorda,
   erodirAlfa,
   escurecerBase,
@@ -416,12 +419,88 @@ async function papel(): Promise<void> {
   );
 }
 
+/** Quanto o fundo cinza liso das folhas e do esquilo pode variar e ainda ser fundo, e a área mínima de um objeto. */
+const TOLERANCIA_DO_FUNDO_DA_CENA_VIVA = 14;
+const AREA_MINIMA_DE_OBJETO = 20000;
+const MARGEM_DO_ESQUILO = 24;
+
+/** Copia a região `caixa` de um quadro para um quadro novo. */
+function recortarCaixa(quadro: Quadro4, caixa: Caixa): Quadro4 {
+  const dados = new Uint8Array(caixa.largura * caixa.altura * 4);
+  for (let y = 0; y < caixa.altura; y++) {
+    const origem = ((caixa.topo + y) * quadro.largura + caixa.esquerda) * 4;
+    dados.set(quadro.dados.subarray(origem, origem + caixa.largura * 4), y * caixa.largura * 4);
+  }
+  return { largura: caixa.largura, altura: caixa.altura, dados, canais: 4 };
+}
+
+async function gravarPng(quadro: Quadro, caminho: string): Promise<void> {
+  escrever(caminho, await paraSharp(quadro).png().toBuffer());
+}
+
+/** Lê uma imagem com vários objetos sobre fundo cinza liso, tira o fundo e devolve o quadro e a caixa de cada objeto. */
+async function lerObjetosDeUmaFolha(arquivo: string, esperados: number) {
+  const quadro = await lerQuadro(join(originais, arquivo));
+  removerFundoLiso(quadro, TOLERANCIA_DO_FUNDO_DA_CENA_VIVA);
+  descontaminarBorda(quadro, 3);
+  erodirAlfa(quadro, 1);
+  suavizarAlfa(quadro, 1);
+  const caixas = caixasDosObjetos(quadro, AREA_MINIMA_DE_OBJETO);
+  if (caixas.length !== esperados) {
+    throw new RangeError(
+      `${arquivo}: esperava ${String(esperados)} objetos e achei ${String(caixas.length)}`,
+    );
+  }
+  return { quadro, caixas };
+}
+
+/**
+ * As folhas e o esquilo podem vir numa imagem só cada (`20-folhas.webp` com as três folhas lado a lado,
+ * `21-esquilo.webp` com as duas poses): aqui elas são repartidas e gravadas, já sem o fundo, nos nomes que o resto do
+ * pipeline espera (`20-folha-a.png`…, `21-esquilo-encolhido.png`, `21-esquilo-esticado.png`). As duas poses do esquilo
+ * ganham o mesmo quadro (mesmo tamanho, centradas e com a base na mesma linha), porque a troca de pose não pode pular.
+ */
+async function repartirCenaViva(): Promise<void> {
+  if (existsSync(join(originais, '20-folhas.webp'))) {
+    const { quadro, caixas } = await lerObjetosDeUmaFolha('20-folhas.webp', 3);
+    for (const [indice, letra] of (['a', 'b', 'c'] as const).entries()) {
+      const caixa = caixas[indice];
+      if (caixa)
+        await gravarPng(recortarCaixa(quadro, caixa), join(originais, `20-folha-${letra}.png`));
+    }
+    console.log('  20-folhas.webp repartida em 20-folha-a, -b e -c');
+  }
+  if (existsSync(join(originais, '21-esquilo.webp'))) {
+    const { quadro, caixas } = await lerObjetosDeUmaFolha('21-esquilo.webp', 2);
+    const largura = Math.max(...caixas.map((c) => c.largura)) + 2 * MARGEM_DO_ESQUILO;
+    const altura = Math.max(...caixas.map((c) => c.altura)) + 2 * MARGEM_DO_ESQUILO;
+    for (const [indice, nome] of (['encolhido', 'esticado'] as const).entries()) {
+      const caixa = caixas[indice];
+      if (!caixa) continue;
+      const pose = recortarCaixa(quadro, caixa);
+      const quadroComum = criarQuadro(largura, altura);
+      const esquerda = Math.round((largura - caixa.largura) / 2);
+      const topo = altura - MARGEM_DO_ESQUILO - caixa.altura;
+      for (let y = 0; y < caixa.altura; y++) {
+        const origem = y * caixa.largura * 4;
+        quadroComum.dados.set(
+          pose.dados.subarray(origem, origem + caixa.largura * 4),
+          ((topo + y) * largura + esquerda) * 4,
+        );
+      }
+      await gravarPng(quadroComum, join(originais, `21-esquilo-${nome}.png`));
+    }
+    console.log('  21-esquilo.webp repartida em 21-esquilo-encolhido e -esticado (mesmo quadro)');
+  }
+}
+
 /**
  * As folhas (20a–c) e as duas poses do esquilo (21a–b) da cena viva: só entram se as imagens definitivas já estiverem em
  * `arte/originais/` (os prompts estão em `docs/specs-cena-viva/prompts-das-imagens-definitivas.md`); enquanto não
  * chegam, a cena usa a arte provisória. As duas poses do esquilo levam o mesmo recorte, para a troca de pose não pular.
  */
 async function cenaViva(): Promise<void> {
+  await repartirCenaViva();
   const chegou = (nome: string) => existsSync(join(originais, nome));
   for (const letra of ['a', 'b', 'c'] as const) {
     const origem = `20-folha-${letra}.png`;

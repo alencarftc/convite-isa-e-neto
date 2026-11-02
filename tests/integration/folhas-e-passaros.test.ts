@@ -131,8 +131,9 @@ describe('folhas (SPEC-20, "Folhas")', { timeout: PRAZO_DAS_SIMULACOES }, () => 
     expect(nasceramNoFundo).toBeGreaterThan(nasceramNoChao * 2);
     const maiorDoFundo = Math.max(...[...larguras.fundo].map(parseFloat));
     const menorDaFrente = Math.min(...[...larguras.chao].map(parseFloat));
-    expect(maiorDoFundo).toBeLessThanOrEqual(0.024 * window.innerWidth + 1e-6);
-    expect(menorDaFrente).toBeGreaterThanOrEqual(0.026 * window.innerWidth - 1e-6);
+    const { fundo, frente } = configReal.vida.folhas.largura;
+    expect(maiorDoFundo).toBeLessThanOrEqual(fundo[1] * window.innerWidth + 1e-6);
+    expect(menorDaFrente).toBeGreaterThanOrEqual(frente[0] * window.innerWidth - 1e-6);
   });
 
   it('é decorativa: imagem clonada, alt vazio, aria-hidden e sem foco', () => {

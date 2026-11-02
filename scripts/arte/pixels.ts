@@ -341,6 +341,41 @@ export function removerFundoNeutroInterno(
   return removidos;
 }
 
+/**
+ * A caixa de cada objeto de uma imagem com vários (as três folhas lado a lado, as duas poses do esquilo) já sem o
+ * fundo, da esquerda para a direita. Cada pedaço opaco ligado, com pelo menos `areaMinima` pixels, é um objeto; o que
+ * é menor (um bigode solto, um respingo) fica de fora.
+ */
+export function caixasDosObjetos(quadro: Quadro, areaMinima: number): Caixa[] {
+  const { largura, altura, dados } = quadro;
+  const mascara = new Uint8Array(largura * altura);
+  for (let indice = 0; indice < mascara.length; indice++) {
+    if ((dados[indice * 4 + 3] ?? 0) > 16) mascara[indice] = 1;
+  }
+  const { rotulos, areas } = componentes(mascara, largura, altura);
+  const limites = areas.map(() => ({ esquerda: largura, topo: altura, direita: -1, base: -1 }));
+  for (let indice = 0; indice < mascara.length; indice++) {
+    const rotulo = rotulos[indice] ?? -1;
+    const limite = limites[rotulo];
+    if (!limite) continue;
+    const x = indice % largura;
+    const y = Math.floor(indice / largura);
+    limite.esquerda = Math.min(limite.esquerda, x);
+    limite.direita = Math.max(limite.direita, x);
+    limite.topo = Math.min(limite.topo, y);
+    limite.base = Math.max(limite.base, y);
+  }
+  return limites
+    .filter((_, rotulo) => (areas[rotulo] ?? 0) >= areaMinima)
+    .map((l) => ({
+      esquerda: l.esquerda,
+      topo: l.topo,
+      largura: l.direita - l.esquerda + 1,
+      altura: l.base - l.topo + 1,
+    }))
+    .sort((a, b) => a.esquerda - b.esquerda);
+}
+
 /** Apaga os pedaços opacos soltos com menos de `areaMinima` pixels: respingos do fundo que sobraram. */
 export function removerManchasPequenas(quadro: Quadro, areaMinima: number): number {
   const { largura, altura, dados } = quadro;
