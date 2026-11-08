@@ -369,7 +369,8 @@ describe('cartões surgem ao entrar na tela (SPEC-07, "Estilo")', () => {
     const contagem = raiz.querySelector<HTMLElement>('.cartao--contagem');
     expect(Number(gsap.getProperty(contagem, 'opacity'))).toBe(0);
     expect(Number(gsap.getProperty(contagem, 'y'))).toBe(config.movimento.deslocamentoDosCartoes);
-    expect(observados).toHaveLength(6);
+    // O carrossel de fotos tem o seu próprio observador (só troca com ele na tela): aqui contam os cartões.
+    expect(observados.filter((alvo) => alvo.classList.contains('cartao'))).toHaveLength(6);
   });
 
   it('ao entrar na tela, o cartão sobe e aparece; os que ficam abaixo seguem escondidos', async () => {
@@ -392,7 +393,7 @@ describe('cartões surgem ao entrar na tela (SPEC-07, "Estilo")', () => {
   it('sem animação (pular, animação reduzida, segurança), tudo já nasce visível', () => {
     const { raiz } = montarEm('2026-11-15T10:00', false);
 
-    expect(observados).toHaveLength(0);
+    expect(observados.filter((alvo) => alvo.classList.contains('cartao'))).toHaveLength(0);
     expect(Number(gsap.getProperty(raiz.querySelector('.cartao--mensagem'), 'opacity'))).toBe(1);
   });
 

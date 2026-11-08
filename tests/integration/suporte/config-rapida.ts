@@ -98,8 +98,6 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
         porCaractere: esc(original.convite.leitura.porCaractere),
         maximo: esc(original.convite.leitura.maximo),
       },
-      petalasEm: esc(original.convite.petalasEm),
-      petalas: { ...original.convite.petalas, duracao: esc(original.convite.petalas.duracao) },
       rolar: {
         ...original.convite.rolar,
         aparece: esc(original.convite.rolar.aparece),
@@ -133,6 +131,11 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
     bau: {
       ...b,
       dicaSome: esc(b.dicaSome),
+      dica: {
+        visivel: esc(b.dica.visivel),
+        oculta: esc(b.dica.oculta),
+        some: esc(b.dica.some),
+      },
       chaveVoa: esc(b.chaveVoa),
       chaveEncaixa: esc(b.chaveEncaixa),
       giroDaChave: esc(b.giroDaChave),

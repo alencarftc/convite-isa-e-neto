@@ -4,6 +4,7 @@ import type { ParametrosDoEsquilo } from '../vida/esquilo';
 import type { ParametrosDeFolha } from '../vida/folhas';
 import type { OndaDeOndulacao, ReflexosDaOndulacao } from '../vida/ondulacao';
 import type { ParametrosDePassaros } from '../vida/passaros';
+import type { ParametrosDasPetalas } from '../vida/petalas-do-convite';
 import type { RegiaoDeOndulacao } from '../vida/regioes';
 
 /** Formato de `src/config/config.ts` (SPEC-01, "Conteúdo e configuração"). Tempos em segundos. */
@@ -57,6 +58,21 @@ export interface ConfigConvite {
     /** Depois do toque, tempo de espera antes de mostrar "Preparando o bosque…". */
     readonly avisoDeEspera: number;
   };
+  /** O carrossel de fotos do casal, abaixo da mensagem (08/11/2026). */
+  readonly carrossel: {
+    /** Tempo de cada foto à vista, em segundos. */
+    readonly intervalo: number;
+    /** Duração da troca de uma foto pela outra. */
+    readonly transicao: number;
+    /** Quanto a foto desliza de lado ao trocar, em % da largura. */
+    readonly deslocamento: number;
+    /** O zoom lento da foto à vista termina nesta escala. */
+    readonly zoom: number;
+    /** Arrastar para o lado pelo menos isto, em pixels, passa a foto. */
+    readonly limiteDoGesto: number;
+  };
+  /** As pétalas azuis do convite aberto: caem devagar e sem parar, em posições variadas (08/11/2026). */
+  readonly petalasDoConvite: ParametrosDasPetalas;
   /** "Salvar na agenda" (SPEC-17): o evento do casamento no calendário do aparelho. */
   readonly agenda: {
     /** Duração do evento (a data e a hora de início vêm de `casamento`). */
@@ -222,21 +238,9 @@ export interface ConfigConvite {
     readonly leitura: ParametrosDeLeitura;
     /** Parte da altura da tela, na base, que um bloco precisa respeitar para aparecer: abaixo dela ele espera a rolagem. */
     readonly folgaDaDobra: number;
-    readonly petalasEm: number;
-    readonly petalas: {
-      readonly minimo: number;
-      readonly maximo: number;
-      readonly duracao: number;
-      /** Queda mínima e máxima, em fração da altura da tela. */
-      readonly quedaMinima: number;
-      readonly quedaMaxima: number;
-      readonly balanco: number;
-      readonly rotacao: number;
-      readonly largura: string;
-    };
     /**
-     * "Role para ler" aparece quando a carta para esperando a rolagem e fica, animado (a seta desce e sobe),
-     * até a primeira rolagem (SPEC-14, ADR-0012).
+     * "Role para ler" é o primeiro texto a aparecer na carta aberta e fica à vista, animado (a seta desce e sobe),
+     * sem sumir (SPEC-14, ADR-0012; 08/11/2026).
      */
     readonly rolar: {
       readonly aparece: number;
@@ -306,6 +310,8 @@ export interface ConfigConvite {
    */
   readonly bau: {
     readonly dicaSome: number;
+    /** A dica "Toque no baú" se repete: `visivel` s à vista, `oculta` s fora, e de novo; `some` é o esmaecimento de saída. */
+    readonly dica: { readonly visivel: number; readonly oculta: number; readonly some: number };
     /** A chave sai do inventário e voa até ficar diante da fechadura. */
     readonly chaveVoa: number;
     /** A chave entra na fechadura, deslizando na horizontal. */

@@ -182,10 +182,6 @@
   }
 }
 
-.petala--chuva {
-  position: absolute;
-}
-
 /* A carta começa a 58% da altura da tela: acima dela, a cena e o casal. */
 .conteudo {
   position: relative;

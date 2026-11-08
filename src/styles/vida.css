@@ -126,3 +126,26 @@
   bottom: 0;
   left: 0;
 }
+
+/*
+ * As pétalas azuis do convite aberto (08/11/2026): uma camada fixa sobre a carta e as informações, que caem devagar e sem
+ * parar, uma de cada vez. Sem toque nem foco: só enfeite. Só `transform` e `opacity` se animam.
+ */
+.petalas-do-convite {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-petalas-do-convite);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.petala-do-convite {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  will-change: transform, opacity;
+}

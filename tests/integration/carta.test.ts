@@ -15,6 +15,7 @@ import { criarCarregamentoFalso } from './suporte/carregamento-falso';
 import { configRapida } from './suporte/config-rapida';
 import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
 import { montarIndexHtml } from './suporte/index-html';
+import { criarRelogioManual } from './suporte/relogio-gsap';
 
 const config = configRapida(configReal);
 
@@ -229,18 +230,14 @@ describe('envelope e carta (SPEC-06)', () => {
       );
     });
 
-    it('o run da carta pede o envelope, o selo e as três variações de pétala', () => {
+    it('o run da carta pede o envelope e o selo, e não cria imagem nenhuma por conta própria (as pétalas são de outro componente, 08/11/2026)', () => {
       const criadas = espionarImagens();
       const { carta } = montar();
 
       void carta.run();
 
       expect(imagensDoEnvelope().every((imagem) => imagem.hasAttribute('src'))).toBe(true);
-      expect(criadas.map((imagem) => imagem.src)).toEqual([
-        config.imagens.petalaA,
-        config.imagens.petalaB,
-        config.imagens.petalaC,
-      ]);
+      expect(criadas).toEqual([]);
     });
 
     it('quem pula nunca pede o envelope', () => {
@@ -606,7 +603,30 @@ describe('envelope e carta (SPEC-06)', () => {
         expect(ordem).toEqual(blocos().map((_, indice) => indice));
       });
 
-      it('"Role para ler" não aparece quando a carta toda cabe na tela', async () => {
+      it('"Role para ler" é o primeiro texto a aparecer: surge antes de qualquer bloco da carta (08/11/2026)', () => {
+        const relogio = criarRelogioManual();
+        try {
+          const { convite, opacidade, carta, botao } = montar();
+          combinarCaixas(5000);
+          void carta.run();
+          relogio.avancar(config.carta.pousouEm + 0.05, 0.002); // o envelope pousa e o selo passa a aceitar o toque
+          botao().click();
+          void convite.run();
+
+          const { desdobraEm, desdobra, blocosEm } = config.convite;
+          const dica = desdobraEm + desdobra / 2;
+          expect(dica).toBeLessThan(blocosEm);
+          // Entre o instante da dica e o do primeiro bloco: a dica já começou a aparecer, e nenhum bloco ainda.
+          relogio.avancar(dica + (blocosEm - dica) / 2, 0.0005);
+          expect(opacidade('.convite__rolar')).toBeGreaterThan(0);
+          expect(blocos().every((bloco) => !visivel(bloco))).toBe(true);
+          convite.skip();
+        } finally {
+          relogio.restaurar();
+        }
+      });
+
+      it('"Role para ler" aparece mesmo quando a carta toda cabe na tela, e fica', async () => {
         const { abrirTudo, opacidade } = montar();
         combinarCaixas(5000);
 
@@ -617,7 +637,7 @@ describe('envelope e carta (SPEC-06)', () => {
           );
         });
 
-        expect(opacidade('.convite__rolar')).toBe(0);
+        expect(opacidade('.convite__rolar')).toBe(1);
       });
 
       it('o bloco abaixo da dobra espera a rolagem, e "Role para ler" aparece, com a seta em movimento', async () => {
@@ -638,7 +658,7 @@ describe('envelope e carta (SPEC-06)', () => {
         expect(visivel(blocos()[4]!)).toBe(false); // ninguém rolou: nada mais aparece
       });
 
-      it('rolar faz a leitura andar, apaga "Role para ler" e ela nunca volta', async () => {
+      it('rolar faz a leitura andar e "Role para ler" continua à vista: nada a apaga (08/11/2026)', async () => {
         const { abrirTudo, opacidade } = montar();
         const pagina = combinarCaixas(600);
         await abrirTudo();
@@ -650,11 +670,11 @@ describe('envelope e carta (SPEC-06)', () => {
 
         await vi.waitFor(() => {
           expect(visivel(blocos()[4]!)).toBe(true);
-          expect(opacidade('.convite__rolar')).toBe(0);
         });
         pagina.rolar(0);
+        pagina.rolar(5000);
         await new Promise((resolver) => setTimeout(resolver, 100));
-        expect(opacidade('.convite__rolar')).toBe(0);
+        expect(opacidade('.convite__rolar')).toBe(1);
       });
 
       it('o bloco que o convidado já deixou acima da tela aparece de uma vez, sem esperar', async () => {
@@ -747,19 +767,6 @@ describe('envelope e carta (SPEC-06)', () => {
       carta.skip();
 
       expect(document.activeElement).toBe(el('#carta-titulo'));
-    });
-
-    it('skip no meio da chuva de pétalas tira as que ficaram no ar, em vez de deixá-las congeladas', () => {
-      const { convite, el } = montar();
-      for (let i = 0; i < 3; i += 1) {
-        const petala = document.createElement('img');
-        petala.className = 'petala petala--chuva';
-        el('.conteudo').append(petala);
-      }
-
-      convite.skip();
-
-      expect(document.querySelectorAll('.petala--chuva')).toHaveLength(0);
     });
 
     it('skip da etapa do convite faz o mesmo, mesmo sem init (modo de segurança)', () => {

@@ -11,8 +11,6 @@ import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
 import { criar, criarImagem } from '../dom';
 import { carregarImagensTardias } from '../imagens/imagens-tardias';
-import { chuvaDePetalas } from '../petalas/chuva-de-petalas';
-import { removerPetalas } from '../petalas/petalas';
 import { montarImagemDoSelo, soltarSelo } from '../selo/selo';
 import { ligarGestoDoSelo } from './gesto-do-selo';
 import { montarCarta } from './montar-carta';
@@ -47,7 +45,6 @@ interface Elementos {
   readonly seta: SVGSVGElement;
   readonly casal: HTMLElement | null;
   /** Preenchida em `carta.run`: as variações da chuva de pétalas, já pedidas ao navegador. */
-  readonly petalas: HTMLImageElement[];
 }
 
 /**
@@ -76,11 +73,9 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
   let balancoDaSeta: gsap.core.Tween | undefined;
   let leitura: Revelacao | undefined;
   let ouvintes: AbortController | undefined;
-  let ouvintesDoConvite: AbortController | undefined;
   let pararDeOuvirSeguranca: (() => void) | undefined;
   let origem: OrigemDaAbertura = 'toque';
   let aberta = false;
-  let rolou = false;
   let dicaDeRolagemMostrada = false;
 
   function montar(): Elementos {
@@ -171,9 +166,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
       gsap.set(casal, { opacity: 0 });
     }
 
-    // As pétalas são pedidas quando o envelope começa (`carta.run`), e não no `init`, antes do toque.
-    const petalas: HTMLImageElement[] = [];
-
     raiz.append(chao, envelope, caixa);
     // No modo de segurança, a carta já está sem `inert` quando o aviso chega: o foco vai ao título.
     pararDeOuvirSeguranca = eventos.on('seguranca', () => {
@@ -200,7 +192,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
       rolar,
       seta,
       casal,
-      petalas,
     };
     return elementos;
   }
@@ -232,13 +223,12 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     caixa.removeAttribute('inert');
   }
 
-  /** "Role para ler": aparece uma vez, com a seta descendo e subindo, e some na primeira rolagem. */
-  function mostrarDicaDeRolagem(): void {
-    if (dicaDeRolagemMostrada || rolou) return;
-    dicaDeRolagemMostrada = true;
-    const { rolar, seta } = montar();
+  /** A seta de "Role para ler" desce e sobe sem parar; com animação reduzida, fica parada. */
+  function balancarASeta(): void {
+    if (estado.reduzido) return;
+    const { seta } = montar();
     const t = tempoDoConvite.rolar;
-    gsap.to(rolar, { opacity: 1, duration: t.aparece, ease: curvas.saida });
+    balancoDaSeta?.kill();
     balancoDaSeta = gsap.fromTo(
       seta,
       { y: 0 },
@@ -246,16 +236,16 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     );
   }
 
-  function esconderDicaDeRolagem(): void {
+  /**
+   * "Role para ler" é o primeiro texto a aparecer na carta aberta, antes de qualquer bloco, e fica à vista (08/11/2026): nem
+   * a rolagem nem o fim da leitura a apagam.
+   */
+  function mostrarDicaDeRolagem(): void {
+    if (dicaDeRolagemMostrada) return;
+    dicaDeRolagemMostrada = true;
     const { rolar } = montar();
-    gsap.to(rolar, {
-      opacity: 0,
-      duration: tempoDoConvite.rolar.aparece,
-      ease: curvas.saida,
-      onComplete: () => {
-        balancoDaSeta?.kill();
-      },
-    });
+    gsap.to(rolar, { opacity: 1, duration: tempoDoConvite.rolar.aparece, ease: curvas.saida });
+    balancarASeta();
   }
 
   /** Os blocos da carta aparecem um de cada vez, no ritmo da leitura (ADR-0012). */
@@ -290,9 +280,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     leitura?.parar();
     leitura = undefined;
     ouvintes?.abort();
-    ouvintesDoConvite?.abort();
-    // A chuva interrompida não chega ao fim em que cada pétala se remove: tira as que sobraram.
-    if (elementos) removerPetalas(elementos.conteudo);
   }
 
   /** Estado final da primeira tela, sem animação: carta aberta, sem envelope, rolagem liberada. */
@@ -313,7 +300,9 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     if (e.casal) gsap.set(e.casal, { opacity: 1, y: 0 });
     gsap.set(e.carta, { opacity: 1, scaleY: 1 });
     gsap.set(e.blocos, { opacity: 1, y: 0 });
-    gsap.set(e.rolar, { opacity: 0 });
+    gsap.set(e.rolar, { opacity: 1 });
+    dicaDeRolagemMostrada = true;
+    balancarASeta();
     liberarRolagem();
     // Quem chega aqui sem ver a abertura (Pular, atalho, animação reduzida) tem o foco no título,
     // como quem a viu (SPEC-09, RF-09.6); o botão que o levou até aqui acabou de sumir.
@@ -328,16 +317,9 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     run() {
       const e = montar();
       const t = tempoDaCarta;
-      // O envelope, o selo, o chão e as pétalas só são pedidos agora (SPEC-02, RF-02.7).
+      // O envelope, o selo e o chão só são pedidos agora (SPEC-02, RF-02.7).
       carregarImagensTardias(e.envelope);
       carregarImagensTardias(e.chao);
-      if (e.petalas.length === 0) {
-        for (const chave of ['petalaA', 'petalaB', 'petalaC'] as const) {
-          const petala = new Image();
-          petala.src = urlDaImagem(config.imagens[chave], 'vertical');
-          e.petalas.push(petala);
-        }
-      }
       const bau = raiz.querySelector<HTMLElement>('.bau');
       return new Promise<void>((resolver) => {
         const abrir = (como: OrigemDaAbertura) => {
@@ -441,7 +423,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
       pararDeOuvirSeguranca = undefined;
       document.body.style.overflow = '';
       aberta = false;
-      rolou = false;
       dicaDeRolagemMostrada = false;
     },
   };
@@ -555,6 +536,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
             { opacity: 1, scaleY: 1, duration: t.desdobra, ease: curvas.viaDuplaForte },
             t.desdobraEm,
           )
+          // "Role para ler" é o primeiro texto a aparecer: surge quando a carta já se desdobrou pela metade.
+          .call(mostrarDicaDeRolagem, [], t.desdobraEm + t.desdobra / 2)
           // Com a carta aberta, a rolagem é liberada e os blocos começam a aparecer, um a um, no ritmo
           // da leitura; a leitura continua sozinha depois do fim desta linha (ADR-0012).
           .call(
@@ -564,23 +547,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
             },
             [],
             t.blocosEm,
-          )
-          // Pétalas caem devagar pela tela.
-          .add(
-            chuvaDePetalas({
-              conteiner: e.carta.parentElement ?? raiz,
-              imagens: e.petalas,
-              quantidade: Math.round(gsap.utils.random(t.petalas.minimo, t.petalas.maximo)),
-              largura: t.petalas.largura,
-              altura,
-              quedaMinima: t.petalas.quedaMinima,
-              quedaMaxima: t.petalas.quedaMaxima,
-              balanco: t.petalas.balanco,
-              rotacao: t.petalas.rotacao,
-              duracao: t.petalas.duracao,
-              curva: curvas.suave,
-            }),
-            t.petalasEm,
           )
           // 7 s: carta aberta; o foco vai para o título.
           .call(
@@ -592,18 +558,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
             duracoes.convite,
           )
           .set({}, {}, duracoes.convite);
-
-        // A primeira rolagem apaga "Role para ler" para sempre; se ela vier antes de a leitura parar,
-        // a dica nem chega a aparecer.
-        ouvintesDoConvite = new AbortController();
-        window.addEventListener(
-          'scroll',
-          () => {
-            rolou = true;
-            esconderDicaDeRolagem();
-          },
-          { once: true, passive: true, signal: ouvintesDoConvite.signal },
-        );
       });
     },
 

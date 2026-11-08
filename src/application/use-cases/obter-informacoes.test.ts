@@ -19,6 +19,7 @@ const conteudo: ConteudoConvite = {
     abrirEnvelope: 'Abrir',
     mensagem: 'Mensagem',
     galeria: 'Galeria',
+    fotoDaGaleria: 'Foto {n} de {total}',
     traje: 'Traje',
   },
   envelope: { iniciais: 'I' },
