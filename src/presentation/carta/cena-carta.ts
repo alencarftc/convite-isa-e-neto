@@ -77,6 +77,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
   let origem: OrigemDaAbertura = 'toque';
   let aberta = false;
   let dicaDeRolagemMostrada = false;
+  let travaDeRolagem: AbortController | undefined;
 
   function montar(): Elementos {
     if (elementos) return elementos;
@@ -173,6 +174,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     });
     // Até a carta se abrir, a página não rola (RF-06.9).
     document.body.style.overflow = 'hidden';
+    manterNoAlto();
 
     elementos = {
       envelope,
@@ -217,7 +219,27 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     return gsap.utils.toArray<HTMLElement>('.camada--ceu-sol, .camada--luz', raiz);
   }
 
+  /**
+   * Enquanto a carta não abre, a página fica no alto (08/11/2026). O navegador restaura a rolagem de uma visita anterior ao
+   * recarregar, mesmo com a rolagem travada, e a carta aparecia no meio e, de repente, pulava para o topo ao ser liberada:
+   * qualquer rolagem fora do zero é desfeita na hora.
+   */
+  function manterNoAlto(): void {
+    travaDeRolagem?.abort();
+    window.scrollTo(0, 0);
+    travaDeRolagem = new AbortController();
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (window.scrollY !== 0) window.scrollTo(0, 0);
+      },
+      { passive: true, signal: travaDeRolagem.signal },
+    );
+  }
+
   function liberarRolagem(): void {
+    travaDeRolagem?.abort();
+    travaDeRolagem = undefined;
     const { conteudo: caixa } = montar();
     document.body.style.overflow = '';
     caixa.removeAttribute('inert');
@@ -410,6 +432,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
 
     destroy() {
       parar();
+      travaDeRolagem?.abort();
+      travaDeRolagem = undefined;
       if (elementos) {
         for (const parte of [
           elementos.envelope,

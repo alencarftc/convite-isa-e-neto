@@ -64,6 +64,13 @@ import { criarFolhas } from '@/presentation/vida/folhas';
 import { criarPassaros } from '@/presentation/vida/passaros';
 import { criarPetalasDoConvite } from '@/presentation/vida/petalas-do-convite';
 
+// O convite sempre começa do alto: o navegador não restaura a rolagem de uma visita anterior ao recarregar (08/11/2026).
+try {
+  window.history.scrollRestoration = 'manual';
+} catch {
+  // Sem a API (navegador antigo): a carta já desfaz sozinha a rolagem restaurada.
+}
+
 const raiz = document.querySelector<HTMLElement>('#app');
 if (!raiz) throw new Error('Elemento #app não encontrado no index.html');
 
