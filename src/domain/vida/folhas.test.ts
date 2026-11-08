@@ -20,6 +20,7 @@ const PARAMETROS: ParametrosDeFolha = {
   esmaecerNoFim: 0.2,
   aparece: 0.5,
   inclinacao: 25,
+  esmaecerAoAbrir: 1.2,
   larguraMinima: 10,
 };
 

@@ -36,6 +36,7 @@ export function criarFolhas(dependencias: DependenciasDasFolhas): ElementoDeVida
   let maximo = completo.maximoDeFolhas;
   let noAr = 0;
   let parado = false;
+  let pararDeOuvirEstado: (() => void) | undefined;
 
   function lancar(): void {
     const plano = planejarFolha(aleatorio, parametros, estado.orientacao);
@@ -98,11 +99,41 @@ export function criarFolhas(dependencias: DependenciasDasFolhas): ElementoDeVida
     relogio.depois(sortearEntre(parametros.intervalo, aleatorio), nascer);
   }
 
+  /** O convite se abre (o convidado tocou no selo, ou pulou): as folhas verdes não caem mais. */
+  const conviteAberto = () => estado.fase === 'convite' || estado.fase === 'informacoes';
+
+  /** Nenhuma folha nova nasce, e as que estão no ar esmaecem e saem (08/11/2026). */
+  function encerrar(): void {
+    if (parado) return;
+    parado = true;
+    relogio.parar();
+    for (const folha of raiz.querySelectorAll<HTMLElement>(SELETOR_DA_FOLHA)) {
+      gsap.killTweensOf(folha);
+      gsap.to(folha, {
+        opacity: 0,
+        duration: parametros.esmaecerAoAbrir,
+        ease: curvas.saida,
+        onComplete: () => {
+          folha.remove();
+        },
+      });
+    }
+    noAr = 0;
+  }
+
   const limiteDo = (nivel: NivelAtivo) =>
     nivel === 'leve' ? leve.maximoDeFolhas : completo.maximoDeFolhas;
 
   return {
     iniciar(nivel) {
+      // Quem pula já chega com o convite aberto: não há folha nenhuma.
+      if (conviteAberto()) {
+        parado = true;
+        return;
+      }
+      pararDeOuvirEstado = estado.aoMudar(() => {
+        if (conviteAberto()) encerrar();
+      });
       maximo = limiteDo(nivel);
       // As imagens estão na fila secundária; baixadas aqui, vêm do cache (SPEC-18, RF-18.7).
       for (const [variacao, chave] of Object.entries(CHAVES_DAS_IMAGENS) as [
@@ -126,6 +157,8 @@ export function criarFolhas(dependencias: DependenciasDasFolhas): ElementoDeVida
 
     parar() {
       parado = true;
+      pararDeOuvirEstado?.();
+      pararDeOuvirEstado = undefined;
       relogio.parar();
       for (const folha of raiz.querySelectorAll(SELETOR_DA_FOLHA)) folha.remove();
       modelos.clear();
