@@ -20,9 +20,6 @@ const config = {
     petalaA: 'petala-a',
     petalaB: 'petala-b',
     petalaC: 'petala-c',
-    balaoA: 'balao-a',
-    balaoB: 'balao-b',
-    balaoC: 'balao-c',
     envelopeFechado: 'envelope-fechado',
     envelopeAberto: 'envelope-aberto',
     selo: 'selo',
@@ -224,16 +221,8 @@ describe('criarCarregamento', () => {
 
       carregamento.secundario('horizontal');
       await Promise.resolve();
-      // Primeiro grupo: baú aberto, pétalas e balões; o céu do pôr do sol espera.
-      expect(chamadas).toEqual([
-        'bau-aberto',
-        'petala-a',
-        'petala-b',
-        'petala-c',
-        'balao-a',
-        'balao-b',
-        'balao-c',
-      ]);
+      // Primeiro grupo: baú aberto e pétalas; o céu do pôr do sol espera.
+      expect(chamadas).toEqual(['bau-aberto', 'petala-a', 'petala-b', 'petala-c']);
       expect(pendentes[0]?.prioridade).toBe('baixa');
 
       // Cada grupo só começa quando o anterior termina: a cena viva (folhas e esquilo, épico 13), o céu do pôr do
@@ -269,9 +258,6 @@ describe('criarCarregamento', () => {
         'petala-a',
         'petala-b',
         'petala-c',
-        'balao-a',
-        'balao-b',
-        'balao-c',
         'foto-1',
         'foto-2',
       ]);

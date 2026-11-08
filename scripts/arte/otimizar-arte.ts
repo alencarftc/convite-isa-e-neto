@@ -728,23 +728,6 @@ async function main(): Promise<void> {
     ],
     { limpar: true },
   );
-  for (const [letra, chave] of [
-    ['a', 'balaoA'],
-    ['b', 'balaoB'],
-    ['c', 'balaoC'],
-  ] as const) {
-    await objetos(
-      [
-        {
-          origem: `11-balao-${letra}.png`,
-          destino: `assets/objects/11-balao-${letra}.webp`,
-          chave,
-          largura: 640,
-        },
-      ],
-      { limpar: true },
-    );
-  }
   await objetos(
     [
       {

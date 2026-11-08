@@ -386,15 +386,12 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
         // a 1/3 da altura da tela, de baixo para cima (`pousoY`).
         if (bau) linhaDaCarta.to(bau, { opacity: 0, duration: t.bauSome, ease: curvas.saida }, 0);
         linhaDaCarta
-          // O envelope surge no alto, inclinado, e desce até pousar a 1/3 da altura da tela, de baixo para cima.
+          // As estrelas da história se juntam neste ponto (a 1/3 da altura da tela, de baixo para cima) e o envelope
+          // nasce da luz delas: aparece no lugar, crescendo (ADR-0026).
           .fromTo(
             e.envelope,
-            {
-              opacity: 1,
-              rotation: t.inclinacao,
-              y: () => window.innerHeight * (0.5 - t.alturaDeSaida),
-            },
-            { rotation: 0, y: () => pousoY(), duration: t.pouso, ease: curvas.pouso },
+            { opacity: 0, rotation: 0, scale: t.escalaDeNascimento, y: () => pousoY() },
+            { opacity: 1, scale: 1, duration: t.pouso, ease: curvas.saida },
             0,
           )
           .to(

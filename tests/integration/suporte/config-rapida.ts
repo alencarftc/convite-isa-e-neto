@@ -108,14 +108,27 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
     },
     historia: {
       ...original.historia,
-      saida: esc(original.historia.saida),
+      centelhaSobe: esc(original.historia.centelhaSobe),
+      cartaoEm: esc(original.historia.cartaoEm),
+      cartaoAparece: esc(original.historia.cartaoAparece),
       fraseEm: esc(original.historia.fraseEm),
       fraseAparece: esc(original.historia.fraseAparece),
-      fraseSome: esc(original.historia.fraseSome),
-      leituraEm: esc(original.historia.leituraEm),
-      leitura: esc(original.historia.leitura),
-      subidaFinalEm: esc(original.historia.subidaFinalEm),
-      subidaFinal: esc(original.historia.subidaFinal),
+      respiro: {
+        ...original.historia.respiro,
+        duracao: esc(original.historia.respiro.duracao),
+      },
+      cartaoSomeEm: esc(original.historia.cartaoSomeEm),
+      poeira: {
+        ...original.historia.poeira,
+        aparece: esc(original.historia.poeira.aparece),
+        duracao: esc(original.historia.poeira.duracao),
+      },
+      estrela: {
+        ...original.historia.estrela,
+        sobe: esc(original.historia.estrela.sobe),
+        atraso: esc(original.historia.estrela.atraso),
+      },
+      convergencia: esc(original.historia.convergencia),
     },
     bau: {
       ...b,

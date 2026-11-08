@@ -1,7 +1,7 @@
 /*
- * História em balões (SPEC-05). Cada balão é posicionado pela animação (transform); aqui ficam
- * tamanho, foto em círculo e etiqueta da frase. As posições da foto dentro da nuvem são variáveis por
- * variação (`--foto-x/y`), medidas no centro do corpo da nuvem de cada arte (a fita fica abaixo). O tratamento da foto é fixo, sem animar filtro.
+ * História em memórias de luz (SPEC-05, ADR-0026). Cada memória é uma centelha dourada que sobe da boca do baú e se abre
+ * num cartão marfim com a frase; o cartão se desfaz em poeira dourada e deixa uma estrela no céu, sobre o baú. Tudo é
+ * posicionado pela animação (transform): aqui ficam só a aparência e o tamanho. Só `transform` e `opacity` se animam.
  */
 .historia {
   position: fixed;
@@ -11,50 +11,84 @@
   pointer-events: none;
 }
 
-.balao {
-  --largura: clamp(170px, 56vw, 250px);
-
+.memoria__centelha,
+.memoria__cartao,
+.memoria__estrela,
+.memoria__po,
+.historia__clarao {
   position: absolute;
   top: 0;
   left: 0;
-  width: var(--largura);
   pointer-events: none;
+}
+
+/* Só as peças que se movem muito ganham camada própria; os grãos de poeira, tantos e tão pequenos, ficam de fora. */
+.memoria__centelha,
+.memoria__cartao,
+.memoria__estrela,
+.historia__clarao {
   will-change: transform, opacity;
 }
 
-@media (orientation: landscape) {
-  .balao {
-    --largura: clamp(165px, 18vw, 235px);
-  }
+/* A centelha: um núcleo marfim num halo de ouro vivo. */
+.memoria__centelha {
+  width: 26px;
+  height: 26px;
+  background: radial-gradient(
+    circle,
+    var(--cor-marfim) 0 22%,
+    var(--cor-aura) 42%,
+    transparent 72%
+  );
+  border-radius: 50%;
+  filter: drop-shadow(0 0 8px var(--cor-aura));
 }
 
-.balao--a {
-  --foto-x: 27%;
-  --foto-y: 8.4%;
+/*
+ * O cartão-memória: marfim, com filete dourado, um segundo filete por dentro, um losango no alto (como os da carta) e um
+ * halo de luz quente. Com a foto do casal, o medalhão fica em cima da frase.
+ */
+.memoria__cartao {
+  width: min(78vw, 320px);
+  padding: var(--espaco-5) var(--espaco-5) var(--espaco-4);
+  text-align: center;
+  background: var(--cor-marfim);
+  border: 1px solid var(--cor-dourado);
+  border-radius: 18px;
+  outline: 1px solid var(--cor-dourado-30);
+  outline-offset: -6px;
+  box-shadow:
+    0 0 0 3px var(--cor-dourado-15),
+    0 0 32px 8px var(--cor-luz-70),
+    var(--sombra-cartao);
 }
 
-.balao--b {
-  --foto-x: 27%;
-  --foto-y: 5.7%;
+.memoria__cartao::before {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  content: '';
+  background: var(--cor-dourado);
+  transform: translateX(-50%) rotate(45deg);
 }
 
-.balao--c {
-  --foto-x: 27%;
-  --foto-y: 9.3%;
+.memoria__frase {
+  margin: 0;
+  font-size: clamp(20px, 5.8vw, 24px);
+  font-style: italic;
+  line-height: 1.3;
+  color: var(--cor-texto);
+  text-wrap: balance;
 }
 
-/* A nuvem e a foto balançam juntas; a frase, de fora, fica parada. */
-.balao__corpo {
-  position: relative;
+.memoria__foto {
+  width: 96px;
+  margin: 0 auto var(--espaco-3);
 }
 
-.balao__nuvem {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-/* Tratamento fixo da foto do casal, o mesmo nos balões e nos cartões da história estática (SPEC-13, RF-13.4). */
+/* Tratamento fixo da foto do casal, o mesmo nas memórias e nos cartões da história estática (SPEC-13, RF-13.4). */
 .foto-em-circulo {
   position: relative;
   display: block;
@@ -82,59 +116,55 @@
   opacity: 0.25;
 }
 
-.balao__foto {
-  position: absolute;
-  top: var(--foto-y);
-  left: var(--foto-x);
-  width: 46%;
+/* A estrela fica no céu, sobre o baú, cintilando; cada uma cintila a seu tempo (`--indice`, escrito pela cena). */
+.memoria__estrela {
+  filter: drop-shadow(0 0 5px var(--cor-aura));
 }
 
-/*
- * Legenda do balão: um cartão marfim logo abaixo da nuvem, parado e na horizontal. O `--desvio-x` (px,
- * escrito pela cena) cancela o desvio do balão para a legenda ficar sempre no centro da tela, e a
- * largura nunca passa de 84% dela: a frase não é cortada na borda.
- */
-.balao__frase {
-  position: absolute;
-  top: calc(100% + var(--espaco-2));
-  left: 50%;
-  width: max-content;
-  max-width: min(84vw, 20em);
-  padding: var(--espaco-3) var(--espaco-5);
-  margin: 0;
-  font-size: calc(var(--texto-corpo) * 1.1);
-  font-style: italic;
-  line-height: 1.35;
-  color: var(--cor-texto);
-  text-align: center;
-  text-wrap: balance;
-  background: var(--cor-marfim-90);
-  border: 1px solid var(--cor-dourado-55);
-  border-radius: 18px;
-  box-shadow: var(--sombra-cartao);
-  transform: translateX(calc(-50% + var(--desvio-x, 0px)));
+.memoria__estrela-ponta {
+  display: block;
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  background: var(--cor-aura);
+  animation: cintilar 1.8s ease-in-out infinite;
+  animation-delay: calc(var(--indice, 0) * 0.3s);
 }
 
-/*
- * Balão sem foto: a frase vive dentro da nuvem, no miolo claro dela (a fita fica abaixo), numa placa marfim com
- * filete dourado: sem ela o texto fino se perdia no branco e no azul da nuvem e no céu, no celular. A placa
- * balança junto com o balão. O tamanho da letra acompanha a largura do balão, para a frase caber em qualquer tela.
- */
-.balao--sem-foto .balao__frase {
-  top: 15%;
-  left: 14%;
-  display: grid;
-  place-items: center;
-  width: 72%;
-  max-width: none;
-  min-height: 36%;
-  padding: 0.5em 0.7em;
-  font-size: calc(var(--largura) * 0.082);
-  line-height: 1.25;
-  color: var(--cor-texto);
-  background: var(--cor-marfim-88);
-  border: 1px solid var(--cor-dourado-55);
-  border-radius: 1.1em;
-  box-shadow: var(--sombra-cartao);
-  transform: none;
+@keyframes cintilar {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .memoria__estrela-ponta {
+    animation: none;
+  }
+}
+
+/* Poeira dourada: grãos de ouro, com o brilho no próprio degradê, que caem do cartão ao se desfazer (o tamanho vem da cena). */
+.memoria__po {
+  background: radial-gradient(
+    circle,
+    var(--cor-marfim) 0 20%,
+    var(--cor-aura) 48%,
+    transparent 72%
+  );
+  border-radius: 50%;
+}
+
+/* O clarão em que as estrelas se juntam, de onde o envelope nasce. */
+.historia__clarao {
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(closest-side, var(--cor-marfim), var(--cor-aura) 38%, transparent);
+  border-radius: 50%;
 }
