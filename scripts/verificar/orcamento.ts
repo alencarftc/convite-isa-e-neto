@@ -25,9 +25,6 @@ export const LIMITE_DAS_IMAGENS: Readonly<Record<ChaveDeImagem, number>> = {
   chave: 50 * KB, // 10
   bauAberto: 150 * KB, // 09
   ceuPorDoSol: 300 * KB, // 03
-  balaoA: 80 * KB, // 11a
-  balaoB: 80 * KB,
-  balaoC: 80 * KB,
   envelopeFechado: 120 * KB, // 12
   envelopeAberto: 120 * KB, // 13
   papelCarta: 150 * KB, // 14

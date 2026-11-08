@@ -153,15 +153,15 @@ describe('src/main.ts', () => {
     );
 
     // Críticas (bosque, baú fechado, chave), o céu do pôr do sol e o casal, que o estado final mostra,
-    // e o selo da entrada: nada de balões, fotos, tampa aberta, envelope nem pétalas.
-    for (const adiada of ['foto-', 'balao-', 'bau-aberto', 'envelope-', 'petala-', '06-chao']) {
+    // e o selo da entrada: nada de fotos, tampa aberta, envelope nem pétalas.
+    for (const adiada of ['foto-', 'bau-aberto', 'envelope-', 'petala-', '06-chao']) {
       expect(
         pedidas.filter((nome) => nome?.includes(adiada)),
         adiada,
       ).toEqual([]);
     }
-    // Nuvens, tampa aberta, envelope, selo, pétalas e chão ficam em data-src (as fotos dos balões ainda não existem).
-    expect(document.querySelectorAll('img[data-src]').length).toBeGreaterThanOrEqual(10);
+    // Tampa aberta, envelope, selo, pétalas e chão ficam em data-src (as fotos dos balões ainda não existem).
+    expect(document.querySelectorAll('img[data-src]').length).toBeGreaterThanOrEqual(5);
     // O selo da entrada é pedido; o do envelope só depois, quando a etapa começa.
     expect(document.querySelectorAll('.entrada__selo .selo__imagem[src]')).toHaveLength(1);
     expect(document.querySelectorAll('.envelope .selo__imagem[src]')).toHaveLength(0);

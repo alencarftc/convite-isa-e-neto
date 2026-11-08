@@ -145,9 +145,8 @@ export interface ConfigConvite {
     readonly alturaDoPouso: number;
     /** O baú some, esmaecendo, quando o envelope aparece (antes do toque no selo); o envelope pousa onde ele estava. */
     readonly bauSome: number;
-    /** O envelope parte a esta fração da altura acima do centro, inclinado. */
-    readonly alturaDeSaida: number;
-    readonly inclinacao: number;
+    /** O envelope nasce da luz das estrelas com esta escala e cresce até 1 (ADR-0026). */
+    readonly escalaDeNascimento: number;
     readonly sombraEm: number;
     readonly sombra: number;
     readonly opacidadeDaSombra: number;
@@ -247,39 +246,58 @@ export interface ConfigConvite {
     };
   };
   /**
-   * História em balões (SPEC-05). Os balões se apresentam um depois do outro: cada um começa `duracoes.balao` (5 s)
-   * depois do anterior e dura o seu ciclo (`subidaFinalEm` + `subidaFinal`, também 5 s), com os instantes contados
-   * do início dele. A história inteira dura (balões − 1) × `duracoes.balao` + o ciclo (01/11/2026: 25 s).
+   * História em memórias de luz (SPEC-05, ADR-0026). As memórias se apresentam uma depois da outra, cada uma por
+   * `duracoes.balao` (5 s), com os instantes contados do início dela; depois as estrelas se juntam em `convergencia`. A
+   * história inteira dura memórias × `duracoes.balao` + `convergencia` (26,1 s).
    */
   readonly historia: {
-    /** O balão sai da boca do baú e sobe até a altura de leitura. */
-    readonly saida: number;
-    readonly escalaInicial: number;
-    /** A frase surge abaixo do balão. */
+    /** A centelha sobe da boca do baú até o lugar do cartão. */
+    readonly centelhaSobe: number;
+    /** O cartão começa a se abrir (a centelha chega), e leva `cartaoAparece`. */
+    readonly cartaoEm: number;
+    readonly cartaoAparece: number;
+    /** A frase aparece dentro do cartão. */
     readonly fraseEm: number;
     readonly fraseAparece: number;
-    /** A frase some antes de o balão partir; este é o tempo do esmaecimento. */
-    readonly fraseSome: number;
-    /** Leitura: o balão sobe mais um pouco, balançando; a frase fica parada e legível. */
-    readonly leituraEm: number;
-    readonly leitura: number;
-    /** O corpo do balão (nuvem e foto) oscila de -balanco a +balanco graus; a frase não gira. */
-    readonly balanco: number;
-    readonly subidaFinalEm: number;
-    readonly subidaFinal: number;
-    /**
-     * Altura de leitura de cada balão, como fração da tela contada de baixo para cima: os cinco ficam em alturas
-     * e lados diferentes (`desvios`), como um cacho, cada um com a sua frase dentro da nuvem.
-     */
-    readonly alturas: readonly number[];
-    /** Na horizontal a tela é baixa: o cacho se ajeita mais alto. */
-    readonly alturasNaHorizontal: readonly number[];
-    /** Quanto o balão sobe durante a leitura, em fração da altura da tela (8%). */
-    readonly subidaDaLeitura: number;
-    /** Espaço mínimo entre o balão e o alto da tela, em pixels (telas baixas). */
+    /** O cartão respira (cresce e volta) enquanto é lido: duas metades de `duracao`, até `cartaoSomeEm`. */
+    readonly respiro: { readonly escala: number; readonly duracao: number };
+    /** O cartão começa a se desfazer em poeira e a estrela da memória sai dele; tudo termina nos 5 s da memória. */
+    readonly cartaoSomeEm: number;
+    readonly poeira: {
+      readonly quantidade: number;
+      /** Quanto cada grão cai, entre o mínimo e o máximo, em pixels. */
+      readonly queda: readonly [number, number];
+      /** Deriva lateral máxima, em pixels, para cada lado. */
+      readonly deriva: number;
+      readonly aparece: number;
+      readonly duracao: number;
+      /** Diâmetro do grão, entre o mínimo e o máximo, em pixels. */
+      readonly tamanho: readonly [number, number];
+    };
+    readonly estrela: {
+      /** A estrela voa do cartão ao seu lugar no arco. */
+      readonly sobe: number;
+      readonly atraso: number;
+      readonly tamanho: number;
+    };
+    /** O arco de estrelas sobre o baú: raio (fração da largura, até `maximo` px), achatamento e folga acima da boca. */
+    readonly arco: {
+      readonly raio: number;
+      readonly maximo: number;
+      readonly achatamento: number;
+      readonly folga: number;
+    };
+    /** As cinco estrelas descem juntas ao ponto onde o envelope pousa, e é da luz delas que ele nasce. */
+    readonly convergencia: number;
+    /** Altura do centro do cartão, como fração da tela contada do alto; na horizontal a tela é baixa. */
+    readonly alturaDoCartao: number;
+    readonly alturaDoCartaoNaHorizontal: number;
+    /** Espaço mínimo entre o cartão e o alto da tela, em pixels (a linha dos botões do alto). */
     readonly margemSuperior: number;
-    /** Desvio horizontal de cada balão, em fração da largura da tela, a partir do centro. */
+    /** Desvio horizontal de cada cartão, em fração da largura da tela, a partir do centro. */
     readonly desvios: readonly number[];
+    /** Inclinação de cada cartão, em graus. */
+    readonly inclinacoes: readonly number[];
   };
   /**
    * Baú e chave (SPEC-04). A abertura (`tlBau`) soma `duracoes.bau` = 2 s; os instantes são

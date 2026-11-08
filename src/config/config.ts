@@ -77,8 +77,8 @@ export const config: ConfigConvite = {
     // O envelope pousa a 1/3 da altura da tela, contada de baixo para cima (o centro dele fica a 2/3 do alto).
     alturaDoPouso: 2 / 3,
     bauSome: 0.8,
-    alturaDeSaida: 0.6,
-    inclinacao: -6,
+    // O envelope nasce da luz das estrelas, no ponto onde elas se juntam, e cresce desta escala até 1.
+    escalaDeNascimento: 0.82,
     sombraEm: 0.6,
     sombra: 0.6,
     opacidadeDaSombra: 0.35,
@@ -129,24 +129,34 @@ export const config: ConfigConvite = {
     rolar: { aparece: 0.5, periodo: 1.2, deslocamento: 9 },
   },
   historia: {
-    // Cada balão se apresenta por `duracoes.balao` = 5 s, um depois do outro: sobe, a frase fica à vista por uns 3,5 s
-    // (tempo de ler) e ele sai pelo alto quando o próximo já está subindo.
-    saida: 0.8,
-    escalaInicial: 0.4,
-    fraseEm: 0.6,
+    // Cada memória dura `duracoes.balao` = 5 s, uma depois da outra (ADR-0026): a centelha sobe da boca do baú em 1,1 s,
+    // se abre no cartão (0,55 s), a frase fica legível por uns 3 s, e a 4,4 s o cartão se desfaz em poeira dourada e deixa a
+    // estrela no arco sobre o baú. Com as cinco acesas, as estrelas se juntam em 1,1 s no ponto onde o envelope nasce.
+    centelhaSobe: 1.1,
+    cartaoEm: 0.85,
+    cartaoAparece: 0.55,
+    fraseEm: 1.1,
     fraseAparece: 0.3,
-    fraseSome: 0.3,
-    leituraEm: 0.8,
-    leitura: 3.6,
-    balanco: 3,
-    subidaFinalEm: 4.5,
-    subidaFinal: 0.5,
-    // Os cinco ficam na faixa de leitura, no alto da tela, e se alternam de lado, como num vaivém leve.
-    alturas: [0.64, 0.6, 0.66, 0.58, 0.62],
-    alturasNaHorizontal: [0.76, 0.72, 0.78, 0.7, 0.74],
-    subidaDaLeitura: 0.04,
-    margemSuperior: 16,
-    desvios: [-0.12, 0.12, -0.08, 0.1, 0],
+    respiro: { escala: 1.025, duracao: 1.5 },
+    cartaoSomeEm: 4.4,
+    poeira: {
+      quantidade: 14,
+      queda: [40, 90],
+      deriva: 30,
+      aparece: 0.1,
+      duracao: 0.5,
+      tamanho: [4, 9],
+    },
+    estrela: { sobe: 0.5, atraso: 0.1, tamanho: 20 },
+    arco: { raio: 0.34, maximo: 150, achatamento: 0.5, folga: 100 },
+    convergencia: 1.1,
+    // O centro do cartão fica a esta fração da altura da tela, do alto; `margemSuperior` o afasta dos botões do alto.
+    alturaDoCartao: 0.34,
+    alturaDoCartaoNaHorizontal: 0.3,
+    margemSuperior: 64,
+    // Cada cartão se desvia um pouco do centro e se inclina, como cartas deixadas sobre uma mesa.
+    desvios: [-0.06, 0.06, -0.04, 0.05, 0],
+    inclinacoes: [-2, 1.5, -1, 2, -1.5],
   },
   bau: {
     dicaSome: 0.2,
@@ -325,9 +335,6 @@ export const config: ConfigConvite = {
     petalaA: 'assets/objects/16-petala-a.webp',
     petalaB: 'assets/objects/16-petala-b.webp',
     petalaC: 'assets/objects/16-petala-c.webp',
-    balaoA: 'assets/objects/11-balao-a.webp',
-    balaoB: 'assets/objects/11-balao-b.webp',
-    balaoC: 'assets/objects/11-balao-c.webp',
     envelopeFechado: 'assets/objects/12-envelope-fechado.webp',
     envelopeAberto: 'assets/objects/13-envelope-aberto.webp',
     selo: 'assets/objects/15-selo.webp',

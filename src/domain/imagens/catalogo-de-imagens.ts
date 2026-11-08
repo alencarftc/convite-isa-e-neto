@@ -20,7 +20,7 @@ export const CHAVES_CRITICAS = [
  * Cada spec de cena acrescenta as suas imagens aqui, no grupo certo.
  */
 export const FILA_SECUNDARIA = [
-  ['bauAberto', 'petalaA', 'petalaB', 'petalaC', 'balaoA', 'balaoB', 'balaoC'], // 09, 16 e 11 · baú e história
+  ['bauAberto', 'petalaA', 'petalaB', 'petalaC'], // 09 e 16 · baú
   ['folhaA', 'folhaB', 'folhaC', 'esquiloEncolhido', 'esquiloEsticado'], // 20a–c e 21a–b · cena viva (épico 13)
   ['ceuPorDoSol'], // 03 · história
   ['envelopeFechado', 'envelopeAberto', 'selo', 'papelCarta', 'papelMiolo', 'chao'], // 12, 13, 15, 14 e o chão · carta
