@@ -50,7 +50,7 @@ interface Elementos {
 /**
  * Envelope e carta (SPEC-06). Devolve as duas etapas do caminho, que dividem o mesmo DOM e estado:
  *
- * - `carta` (`tlCarta`, 3 s): o envelope pousa a 1/3 da altura da tela, de baixo para cima, e espera o toque (ou o arrasto) no selo, o
+ * - `carta` (`tlCarta`, 3 s): o envelope pousa com o centro a 58% da altura da tela (do alto) e espera o toque (ou o arrasto) no selo, o
  *   tempo que for: não abre sozinho (`carta:pousou`).
  * - `convite` (`tlConvite`, 7 s): o selo se solta, a carta sai do envelope, a cena sobe, o casal
  *   surge, a carta se desdobra, a rolagem é liberada, os blocos começam a aparecer um a um e caem as
@@ -208,7 +208,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     return svg;
   }
 
-  /** Onde o envelope pousa: a 1/3 da altura da tela, de baixo para cima (02/11/2026); o baú já saiu de cena. */
+  /** Onde o envelope pousa: `config.carta.alturaDoPouso` da altura da tela, do alto (08/11/2026); o baú já saiu de cena. */
   function pousoY(): number {
     return window.innerHeight * tempoDaCarta.alturaDoPouso;
   }
@@ -221,6 +221,9 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     const { conteudo: caixa } = montar();
     document.body.style.overflow = '';
     caixa.removeAttribute('inert');
+    // A carta aberta começa sempre do alto: se a página se mexeu enquanto a rolagem estava travada (alguns navegadores de celular
+    // deixam), ela volta ao início ao ser liberada.
+    window.scrollTo(0, 0);
   }
 
   /** A seta de "Role para ler" desce e sobe sem parar; com animação reduzida, fica parada. */
@@ -365,10 +368,10 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
         e.dica.textContent = conteudo.dicas.selo;
         linhaDaCarta = gsap.timeline();
         // O baú sai de cena assim que o envelope aparece, antes do toque no selo (01/11/2026); o envelope ainda pousa
-        // a 1/3 da altura da tela, de baixo para cima (`pousoY`).
+        // em `config.carta.alturaDoPouso` da altura da tela (`pousoY`).
         if (bau) linhaDaCarta.to(bau, { opacity: 0, duration: t.bauSome, ease: curvas.saida }, 0);
         linhaDaCarta
-          // As estrelas da história se juntam neste ponto (a 1/3 da altura da tela, de baixo para cima) e o envelope
+          // As estrelas da história se juntam neste ponto (`config.carta.alturaDoPouso`) e o envelope
           // nasce da luz delas: aparece no lugar, crescendo (ADR-0026).
           .fromTo(
             e.envelope,

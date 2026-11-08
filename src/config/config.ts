@@ -93,8 +93,9 @@ export const config: ConfigConvite = {
   },
   carta: {
     pouso: 1.2,
-    // O envelope pousa a 1/3 da altura da tela, contada de baixo para cima (o centro dele fica a 2/3 do alto).
-    alturaDoPouso: 2 / 3,
+    // O envelope pousa com o centro a 58% da altura da tela, contada do alto (a 42% de baixo para cima): um pouco acima do
+    // que era (08/11/2026, antes a 2/3 do alto).
+    alturaDoPouso: 0.58,
     bauSome: 0.8,
     // O envelope nasce da luz das estrelas, no ponto onde elas se juntam, e cresce desta escala até 1.
     escalaDeNascimento: 0.82,
@@ -155,7 +156,7 @@ export const config: ConfigConvite = {
       duracao: 0.5,
       tamanho: [4, 9],
     },
-    estrela: { sobe: 0.5, atraso: 0.1, tamanho: 20 },
+    estrela: { sobe: 0.5, atraso: 0.1, tamanho: 26 },
     arco: { raio: 0.34, maximo: 150, achatamento: 0.5, folga: 100 },
     convergencia: 1.1,
     // O centro do cartão fica a esta fração da altura da tela, do alto; `margemSuperior` o afasta dos botões do alto.

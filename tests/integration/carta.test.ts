@@ -761,6 +761,15 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(opacidade('.casal__imagem')).toBe(1);
     });
 
+    it('ao liberar a rolagem a carta aberta começa do alto: a página volta ao início (08/11/2026)', () => {
+      const { carta } = montar();
+      const rolar = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+
+      carta.skip();
+
+      expect(rolar).toHaveBeenCalledWith(0, 0);
+    });
+
     it('skip leva o foco ao título da carta, como quem viu a abertura (SPEC-09, RF-09.6)', () => {
       const { carta, el } = montar();
 
