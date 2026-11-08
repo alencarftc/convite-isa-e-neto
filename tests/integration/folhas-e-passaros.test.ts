@@ -229,6 +229,69 @@ describe('folhas (SPEC-20, "Folhas")', { timeout: PRAZO_DAS_SIMULACOES }, () => 
 
     expect(raiz.querySelectorAll('.folha')).toHaveLength(0);
   });
+
+  describe('ao abrir o convite as folhas verdes param de cair (08/11/2026)', () => {
+    it('com a fase "convite" nenhuma folha nova nasce, e as que estão no ar esmaecem e saem em esmaecerAoAbrir', () => {
+      const { folhas, raiz, estado } = montar();
+      folhas.iniciar('completo');
+      correr(8);
+      const noAr = [...raiz.querySelectorAll<HTMLElement>('.folha')];
+      expect(noAr.length).toBeGreaterThan(0);
+
+      estado.definirFase('convite');
+      correr(configReal.vida.folhas.esmaecerAoAbrir / 2);
+      for (const folha of noAr) {
+        expect(Number(gsap.getProperty(folha, 'opacity'))).toBeLessThan(1);
+      }
+
+      correr(configReal.vida.folhas.esmaecerAoAbrir);
+      expect(raiz.querySelectorAll('.folha')).toHaveLength(0);
+      correr(60);
+      expect(raiz.querySelectorAll('.folha')).toHaveLength(0); // e nunca mais
+    });
+
+    it('quem pula direto ao convite (fase "informacoes") não vê folha nenhuma', () => {
+      const { folhas, raiz, estado } = montar();
+      estado.definirFase('informacoes');
+
+      folhas.iniciar('completo');
+      correr(60);
+
+      expect(raiz.querySelectorAll('.folha')).toHaveLength(0);
+    });
+
+    it('antes de abrir o convite elas seguem caindo, e as fases de antes não as param', () => {
+      const { folhas, raiz, estado } = montar();
+      folhas.iniciar('completo');
+
+      for (const fase of [
+        'aguardando-entrada',
+        'bosque',
+        'aguardando-bau',
+        'bau',
+        'historia',
+        'carta',
+        'aguardando-selo',
+      ] as const) {
+        estado.definirFase(fase);
+        correr(2);
+      }
+
+      expect(raiz.querySelectorAll('.folha').length).toBeGreaterThan(0);
+    });
+
+    it('o modo de segurança também as leva, e parar depois não quebra', () => {
+      const { folhas, raiz, estado } = montar();
+      folhas.iniciar('completo');
+      correr(6);
+
+      folhas.parar();
+      estado.definirFase('convite');
+      correr(5);
+
+      expect(raiz.querySelectorAll('.folha')).toHaveLength(0);
+    });
+  });
 });
 
 describe('pássaros (SPEC-20, "Pássaros")', { timeout: PRAZO_DAS_SIMULACOES }, () => {

@@ -37,6 +37,8 @@ export interface ParametrosDeFolha {
   readonly inclinacao: number;
   /** Largura mínima de uma folha, em pixels (telas estreitas não a deixam virar um ponto). */
   readonly larguraMinima: number;
+  /** Ao abrir o convite as folhas no ar esmaecem neste tempo, em segundos, e nenhuma nova cai (08/11/2026). */
+  readonly esmaecerAoAbrir: number;
 }
 
 export type VariacaoDeFolha = 'a' | 'b' | 'c';

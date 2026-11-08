@@ -42,7 +42,7 @@ export const config: ConfigConvite = {
   petalasDoConvite: {
     primeiroEm: 1.8,
     primeiroEmAoPular: 0.6,
-    intervalo: [1.4, 3.2],
+    intervalo: [1, 2.2],
     duracao: [11, 18],
     balanco: [18, 46],
     trocasDeLado: [2, 4],
@@ -51,7 +51,7 @@ export const config: ConfigConvite = {
     opacidade: 0.85,
     esmaecer: 0.1,
     virar: [1.6, 2.8],
-    maximo: { completo: 9, leve: 5 },
+    maximo: { completo: 12, leve: 6 },
   },
   // O carrossel de fotos do casal (08/11/2026): troca sozinho a cada `intervalo` s, com uma troca suave de `transicao` s
   // (a foto desliza `deslocamento`% de lado enquanto muda), um zoom lento sobre a foto à vista e um arrastar de pelo menos
@@ -266,6 +266,7 @@ export const config: ConfigConvite = {
       esmaecerNoFim: 0.2,
       aparece: 0.5,
       inclinacao: 25,
+      esmaecerAoAbrir: 1.2,
       larguraMinima: 10,
     },
     passaros: {
