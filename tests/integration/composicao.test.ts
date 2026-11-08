@@ -127,6 +127,8 @@ describe('src/main.ts', () => {
   it('abre na entrada: nomes do casal, botão de som e "Toque para entrar" (SPEC-02, SPEC-08)', async () => {
     await import('@/main');
 
+    // O convite sempre começa do alto: o navegador não restaura a rolagem de uma visita anterior (08/11/2026).
+    expect(window.history.scrollRestoration).toBe('manual');
     expect(document.querySelector('.entrada__nomes')?.textContent).toBe('Isabella & David');
     expect(document.querySelector('.botao-som')?.getAttribute('aria-pressed')).toBe('true');
     await vi.waitFor(() => {

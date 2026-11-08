@@ -19,6 +19,9 @@ import { criarRelogioManual } from './suporte/relogio-gsap';
 
 const config = configRapida(configReal);
 
+/** As cartas criadas em cada teste: a trava de rolagem escuta a janela, então precisam ser desfeitas ao fim dele. */
+const criadas: { destroy(): void }[] = [];
+
 /** Monta o bosque (cena, baú, casal, luzes) e a carta, como na raiz de composição. */
 function montar(opcoes: OpcoesDoEstadoFalso = {}) {
   montarIndexHtml();
@@ -43,6 +46,7 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}) {
     estado,
     eventos,
   });
+  criadas.push(carta, convite);
   carta.init();
   convite.init();
 
@@ -78,6 +82,7 @@ beforeEach(() => {
   document.body.innerHTML = '';
 });
 afterEach(() => {
+  for (const cena of criadas.splice(0)) cena.destroy();
   vi.restoreAllMocks();
   document.body.removeAttribute('style');
 });
@@ -759,6 +764,26 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(el('.conteudo').hasAttribute('inert')).toBe(false);
       expect(opacidade('.bau')).toBe(0);
       expect(opacidade('.casal__imagem')).toBe(1);
+    });
+
+    it('enquanto a carta não abre a página fica no alto: a rolagem que o navegador restaura é desfeita na hora, sem o pulo de depois (08/11/2026)', () => {
+      const rolar = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+      Object.defineProperty(window, 'scrollY', { value: 480, configurable: true, writable: true });
+      try {
+        const { carta } = montar();
+        expect(rolar).toHaveBeenCalledWith(0, 0); // já ao montar
+        rolar.mockClear();
+
+        window.dispatchEvent(new Event('scroll')); // o navegador restaurou a rolagem de uma visita anterior
+        expect(rolar).toHaveBeenCalledWith(0, 0);
+
+        carta.skip(); // a rolagem é liberada: a trava sai
+        rolar.mockClear();
+        window.dispatchEvent(new Event('scroll'));
+        expect(rolar).not.toHaveBeenCalled();
+      } finally {
+        Object.defineProperty(window, 'scrollY', { value: 0, configurable: true, writable: true });
+      }
     });
 
     it('ao liberar a rolagem a carta aberta começa do alto: a página volta ao início (08/11/2026)', () => {
