@@ -30,10 +30,12 @@
   will-change: transform, opacity;
 }
 
-/* A centelha: um núcleo marfim num halo de ouro vivo. */
-.memoria__centelha {
-  width: 26px;
-  height: 26px;
+/*
+ * A centelha que sobe do baú e a estrela que fica parada no céu têm o mesmo formato (08/11/2026): um orbe redondo, de núcleo
+ * marfim num halo de ouro vivo. A estrela é a mesma centelha, só que parada.
+ */
+.memoria__centelha,
+.memoria__estrela-ponta {
   background: radial-gradient(
     circle,
     var(--cor-marfim) 0 22%,
@@ -41,6 +43,11 @@
     transparent 72%
   );
   border-radius: 50%;
+}
+
+.memoria__centelha {
+  width: 26px;
+  height: 26px;
   filter: drop-shadow(0 0 8px var(--cor-aura));
 }
 
@@ -116,17 +123,15 @@
   opacity: 0.25;
 }
 
-/* A estrela fica no céu, sobre o baú, cintilando; cada uma cintila a seu tempo (`--indice`, escrito pela cena). */
+/* A estrela fica no céu, sobre o baú, pulsando de leve; cada uma a seu tempo (`--indice`, escrito pela cena). */
 .memoria__estrela {
-  filter: drop-shadow(0 0 5px var(--cor-aura));
+  filter: drop-shadow(0 0 8px var(--cor-aura));
 }
 
 .memoria__estrela-ponta {
   display: block;
   width: 100%;
   height: 100%;
-  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
-  background: var(--cor-aura);
   animation: cintilar 1.8s ease-in-out infinite;
   animation-delay: calc(var(--indice, 0) * 0.3s);
 }
@@ -140,7 +145,7 @@
 
   50% {
     opacity: 1;
-    transform: scale(1.3);
+    transform: scale(1.18);
   }
 }
 
