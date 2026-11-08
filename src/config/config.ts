@@ -38,6 +38,25 @@ export const config: ConfigConvite = {
     cartoes: 0.5,
   },
   // Duração a confirmar com o casal (SPEC-17): o convite não diz quando a festa termina.
+  // As pétalas azuis do convite aberto (08/11/2026): caem devagar e sem parar, como as folhas, em posições variadas.
+  petalasDoConvite: {
+    primeiroEm: 1.8,
+    primeiroEmAoPular: 0.6,
+    intervalo: [1.4, 3.2],
+    duracao: [11, 18],
+    balanco: [18, 46],
+    trocasDeLado: [2, 4],
+    giro: 220,
+    largura: [14, 26],
+    opacidade: 0.85,
+    esmaecer: 0.1,
+    virar: [1.6, 2.8],
+    maximo: { completo: 9, leve: 5 },
+  },
+  // O carrossel de fotos do casal (08/11/2026): troca sozinho a cada `intervalo` s, com uma troca suave de `transicao` s
+  // (a foto desliza `deslocamento`% de lado enquanto muda), um zoom lento sobre a foto à vista e um arrastar de pelo menos
+  // `limiteDoGesto` px para passar à mão.
+  carrossel: { intervalo: 4, transicao: 0.9, deslocamento: 8, zoom: 1.06, limiteDoGesto: 40 },
   agenda: { duracaoEmHoras: 6, lembreteEmDias: 1, nomeDoArquivo: 'casamento-isabella-e-david.ics' },
   entrada: {
     seloPeriodo: 3.2,
@@ -115,17 +134,6 @@ export const config: ConfigConvite = {
     blocosDeslocamento: 12,
     leitura: { base: 0.5, porCaractere: 0.024, maximo: 3 },
     folgaDaDobra: 0.05,
-    petalasEm: 3.7,
-    petalas: {
-      minimo: 8,
-      maximo: 12,
-      duracao: 1.6,
-      quedaMinima: 0.4,
-      quedaMaxima: 0.6,
-      balanco: 30,
-      rotacao: 180,
-      largura: '5%',
-    },
     rolar: { aparece: 0.5, periodo: 1.2, deslocamento: 9 },
   },
   historia: {
@@ -160,6 +168,8 @@ export const config: ConfigConvite = {
   },
   bau: {
     dicaSome: 0.2,
+    // A dica do baú: 3 s à vista (com os esmaecimentos), 5 s oculta, e de novo, até o baú ser tocado.
+    dica: { visivel: 3, oculta: 5, some: 0.4 },
     chaveVoa: 0.45,
     chaveEncaixa: 0.25,
     giroDaChave: 0.3,

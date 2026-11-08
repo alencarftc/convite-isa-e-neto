@@ -12,6 +12,7 @@ export const content: ConteudoConvite = {
     abrirEnvelope: 'Abrir o envelope',
     mensagem: 'Mensagem do casal',
     galeria: 'Fotos do casal',
+    fotoDaGaleria: 'Foto {n} de {total}',
     traje: 'Traje',
   },
   entrada: {

@@ -241,28 +241,53 @@ describe('baú e chave (SPEC-04)', () => {
       });
     });
 
-    it('o reforço repete a dica no máximo 3 vezes e depois para (CT-04.5)', async () => {
-      // Relógio manual: contar mudanças numa janela de tempo real falhava com a máquina ocupada.
+    it('a dica aparece por 3 s, some por 5 s e volta, e assim por diante, até o baú ser tocado (08/11/2026)', () => {
+      // Relógio manual: o ciclo dura 8 s de relógio do GSAP, e a máquina ocupada estragaria uma medida em tempo real.
+      const relogio = criarRelogioManual();
+      try {
+        const { cena, el, opacidade } = montar({ toque: true });
+        const { dicaChave } = config.duracoes;
+        const { visivel, oculta } = config.bau.dica;
+        const { inventarioAparece } = config.bau;
+        void cena.run();
+        const ir = (segundo: number) => {
+          relogio.avancar(segundo, 0.002);
+        };
+
+        ir(dicaChave + inventarioAparece + 0.01);
+        expect(el('.bau__dica').textContent).toBe('Toque no baú para usar a chave');
+        expect(opacidade('.bau__dica')).toBeCloseTo(1, 1); // à vista
+
+        ir(visivel - inventarioAparece - 0.01 + 0.01);
+        expect(opacidade('.bau__dica')).toBe(0); // passados os 3 s, apagada
+
+        ir(oculta / 2);
+        expect(opacidade('.bau__dica')).toBe(0); // e continua apagada durante os 5 s
+
+        ir(oculta / 2 + inventarioAparece + 0.02);
+        expect(opacidade('.bau__dica')).toBeCloseTo(1, 1); // e volta
+
+        ir(visivel + oculta); // outra volta inteira: ela não para
+        expect(opacidade('.bau__dica')).toBeCloseTo(1, 1);
+        cena.skip();
+      } finally {
+        relogio.restaurar();
+      }
+    });
+
+    it('o texto da dica só é escrito uma vez: a região aria-live não repete o anúncio a cada volta', () => {
       const relogio = criarRelogioManual();
       try {
         const { cena, el } = montar({ toque: true });
         let mudancas = 0;
         new MutationObserver(() => (mudancas += 1)).observe(el('.bau__dica'), { childList: true });
         void cena.run();
-        /** Anda 1 s do relógio do GSAP em passos curtos, dando a vez às promessas entre um passo e outro. */
-        const andarUmSegundo = async () => {
-          for (let i = 0; i < 100; i += 1) {
-            relogio.avancar(0.01, 0.01);
-            await Promise.resolve();
-          }
-          await Promise.resolve();
-        };
 
-        await andarUmSegundo(); // dicaChave 0,05 + 3 × reforcoDica 0,15, com folga
-        expect(mudancas).toBe(1 + config.bau.reforco.maximo);
+        relogio.avancar(3 * (config.bau.dica.visivel + config.bau.dica.oculta), 0.005);
 
-        await andarUmSegundo();
-        expect(mudancas).toBe(1 + config.bau.reforco.maximo);
+        expect(el('.bau__dica').textContent).toBe('Toque no baú para usar a chave');
+        cena.skip();
+        expect(mudancas).toBeLessThanOrEqual(1);
       } finally {
         relogio.restaurar();
       }

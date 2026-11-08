@@ -61,7 +61,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
   let partes: Partes | undefined;
   let petalas: HTMLImageElement[] = [];
   let ociosas: gsap.core.Animation[] = [];
-  let agendamentos: gsap.core.Tween[] = [];
+  let agendamentos: gsap.core.Animation[] = [];
   let linhaDoTempo: gsap.core.Timeline | undefined;
   let ouvintes: AbortController | undefined;
   let reforcos = 0;
@@ -167,13 +167,30 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
     );
   }
 
-  function mostrarDica(): void {
+  /**
+   * A dica aparece, fica `dica.visivel` s à vista (o esmaecimento de entrada e o de saída incluídos), some por
+   * `dica.oculta` s e volta, e assim por diante, até o baú ser tocado (08/11/2026). O texto só é escrito quando muda: a
+   * região `aria-live` não repete o anúncio a cada volta.
+   */
+  function iniciarCicloDaDica(atraso: number): void {
     const { dica } = montar();
-    dica.textContent = estado.toque ? conteudo.dicas.chaveCelular : conteudo.dicas.chaveComputador;
-    gsap.fromTo(
-      dica,
-      { opacity: 0 },
-      { opacity: 1, duration: parametros.inventarioAparece, ease: curvas.saida },
+    const { visivel, oculta, some } = parametros.dica;
+    const escrever = () => {
+      const texto = estado.toque ? conteudo.dicas.chaveCelular : conteudo.dicas.chaveComputador;
+      if (dica.textContent !== texto) dica.textContent = texto;
+    };
+    agendamentos.push(
+      gsap
+        .timeline({ delay: atraso, repeat: -1 })
+        .call(escrever, [], 0)
+        .fromTo(
+          dica,
+          { opacity: 0 },
+          { opacity: 1, duration: parametros.inventarioAparece, ease: curvas.saida },
+          0,
+        )
+        .to(dica, { opacity: 0, duration: some, ease: curvas.saida }, visivel - some)
+        .set({}, {}, visivel + oculta),
     );
   }
 
@@ -183,7 +200,6 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
       gsap.delayedCall(duracoes.reforcoDica, () => {
         reforcos += 1;
         pulsar(parametros.reforco.escala, parametros.reforco.duracao, parametros.reforco.pulsos);
-        mostrarDica();
         agendarReforco();
       }),
     );
@@ -192,7 +208,7 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
   /** Qualquer interação adia o reforço: ele só vale para quem está parado. */
   function reiniciarReforco(): void {
     limparAgendamentos();
-    agendamentos.push(gsap.delayedCall(duracoes.dicaChave, mostrarDica));
+    iniciarCicloDaDica(duracoes.dicaChave);
     agendarReforco();
   }
 

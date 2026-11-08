@@ -1,7 +1,6 @@
 import gsap from 'gsap';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { chuvaDePetalas } from '@/presentation/petalas/chuva-de-petalas';
 import { criarPetala, removerPetalas } from '@/presentation/petalas/petalas';
 import { soltarPetalas } from '@/presentation/petalas/soltar-petalas';
 
@@ -84,63 +83,6 @@ describe('soltarPetalas (SPEC-04 RF-04.9, reaproveitada na SPEC-06)', () => {
     expect(conteiner.querySelectorAll('.petala')).toHaveLength(0);
     expect(linha.duration()).toBe(0);
     expect(gsap.getTweensOf('.petala')).toHaveLength(0);
-  });
-});
-
-const chuva = {
-  largura: '5%',
-  altura: 800,
-  quedaMinima: 0.4,
-  quedaMaxima: 0.6,
-  balanco: 30,
-  rotacao: 180,
-  duracao: 0.05,
-  curva: 'power2.out',
-};
-
-describe('chuvaDePetalas (SPEC-06, "Pétalas")', () => {
-  it('cria a quantidade pedida de pétalas, decorativas, no alto, a partir das variações prontas', () => {
-    chuvaDePetalas({
-      ...chuva,
-      conteiner,
-      imagens: [imagemPronta(true), imagemPronta(false), imagemPronta(true)],
-      quantidade: 6,
-    });
-
-    const petalas = conteiner.querySelectorAll<HTMLElement>('.petala.petala--chuva');
-    expect(petalas).toHaveLength(6);
-    for (const petala of petalas) {
-      expect(petala.getAttribute('aria-hidden')).toBe('true');
-      expect(petala.style.top).toBe('0px');
-      expect(petala.style.width).toBe('5%');
-      expect(Number.parseFloat(petala.style.left)).toBeGreaterThanOrEqual(5);
-      expect(Number.parseFloat(petala.style.left)).toBeLessThanOrEqual(95);
-    }
-  });
-
-  it('cada pétala cai e se remove sozinha no fim', async () => {
-    const linha = chuvaDePetalas({
-      ...chuva,
-      conteiner,
-      imagens: [imagemPronta(true)],
-      quantidade: 4,
-    });
-
-    await linha.then();
-
-    expect(conteiner.querySelectorAll('.petala')).toHaveLength(0);
-  });
-
-  it('sem nenhuma variação pronta, não faz nada', () => {
-    const linha = chuvaDePetalas({
-      ...chuva,
-      conteiner,
-      imagens: [imagemPronta(false)],
-      quantidade: 5,
-    });
-
-    expect(conteiner.querySelectorAll('.petala')).toHaveLength(0);
-    expect(linha.duration()).toBe(0);
   });
 });
 

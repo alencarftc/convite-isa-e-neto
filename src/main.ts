@@ -62,6 +62,7 @@ import { criarCenaViva } from '@/presentation/vida/cena-viva';
 import { criarEsquilo } from '@/presentation/vida/esquilo';
 import { criarFolhas } from '@/presentation/vida/folhas';
 import { criarPassaros } from '@/presentation/vida/passaros';
+import { criarPetalasDoConvite } from '@/presentation/vida/petalas-do-convite';
 
 const raiz = document.querySelector<HTMLElement>('#app');
 if (!raiz) throw new Error('Elemento #app não encontrado no index.html');
@@ -148,6 +149,15 @@ const cenaViva = criarCenaViva({
   },
 });
 
+// As pétalas azuis do convite aberto caem devagar e sem parar, como as folhas (08/11/2026).
+const petalasDoConvite = criarPetalasDoConvite({
+  corpo: document.body,
+  config,
+  estado,
+  eventos,
+  capacidades,
+});
+
 // Cada spec de cena (SPEC-03 a SPEC-06) acrescenta a sua aqui, na ordem do caminho.
 const etapas: readonly EtapaDoConvite[] = [
   {
@@ -186,6 +196,7 @@ const orquestrador = criarOrquestrador({
           relogio,
           obterInformacoes: criarObterInformacoes({ relogio, config, conteudo: content }),
           animar: !estado.reduzido,
+          reduzido: estado.reduzido,
           // "Salvar na agenda" baixa o .ics onde o navegador baixa; senão, abre o Google Agenda (SPEC-17).
           baixaArquivos: capacidades.baixaArquivos(),
         },
@@ -246,6 +257,7 @@ import.meta.hot?.dispose(() => {
   removerBotaoPular();
   pararDeOuvirSaidaEVolta();
   cenaViva.destruir();
+  petalasDoConvite.destruir();
   removerBotaoSom();
   audioDoConvite.destruir();
   orquestrador.destruir();
