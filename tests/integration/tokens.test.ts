@@ -80,6 +80,16 @@ describe('tokens.css (SPEC-09, SPEC-01)', () => {
     expect(carta).toMatch(/forced-colors:\s*active/);
   });
 
+  it('a página não rola de lado: o gesto horizontal não arrasta html nem body, e o zoom por pinça segue livre (08/11/2026)', () => {
+    const base = readFileSync(
+      join(import.meta.dirname, '..', '..', 'src', 'styles', 'base.css'),
+      'utf8',
+    );
+
+    expect(base).toMatch(/html,\s*body\s*\{[^}]*touch-action:\s*pan-y pinch-zoom;/);
+    expect(base).not.toMatch(/user-scalable|maximum-scale/);
+  });
+
   it('dourado e serenidade são decoração: abaixo de 3:1 sobre marfim (só o "&" e a data da carta, a pedido do casal, o usam em texto)', () => {
     expect(razaoDeContraste(cor('cor-dourado'), cor('cor-marfim'))).toBeLessThan(3.5);
     expect(razaoDeContraste(cor('cor-serenidade'), cor('cor-marfim'))).toBeLessThan(3);
