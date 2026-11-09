@@ -29,6 +29,16 @@ body {
   margin: 0;
 }
 
+/*
+ * Nunca há rolagem de lado (08/11/2026): o gesto na horizontal não arrasta a página, em nenhum navegador de celular; a rolagem
+ * vertical e o zoom por pinça seguem (o zoom nunca é bloqueado). Quem precisa do gesto lateral (o carrossel de fotos, o selo)
+ * o pede no próprio elemento.
+ */
+html,
+body {
+  touch-action: pan-y pinch-zoom;
+}
+
 :focus-visible {
   outline: 3px solid var(--cor-dourado);
   outline-offset: 3px;
