@@ -24,7 +24,7 @@ A confirmação é um Google Forms por família (forms.gle/yviZrELgrH2zrRGc7), c
 | "Sim, estaremos lá!" | Vai à seção 2: quantas pessoas e nome e idade de cada uma; depois, ao recado | — |
 | "Infelizmente não poderemos ir" | Vai direto ao recado | — |
 | Envia | Vê "Recebemos sua resposta. Obrigado por fazer parte da nossa história!" | Uma linha nova aparece na planilha em segundos; a aba "Resumo" atualiza |
-| A partir de 01/01/2027 | Vê "As confirmações foram encerradas em 31 de dezembro de 2026." | A lista está fechada |
+| A partir de 13/12/2026 | Vê "As confirmações foram encerradas em 12 de dezembro de 2026." | A lista está fechada |
 
 ## Requisitos funcionais
 
@@ -32,7 +32,7 @@ A confirmação é um Google Forms por família (forms.gle/yviZrELgrH2zrRGc7), c
 - **RF-11.2** A planilha é compartilhada com Isabella e David como editores (ou leitores, se você preferir controlar as mudanças); nunca com link público, porque tem telefones e nomes de crianças.
 - **RF-11.3** Uma aba "Resumo" mostra: famílias que vão, famílias que não vão, total de pessoas confirmadas, respostas com "8 ou mais" (para conferir a lista de nomes) e a data da última resposta.
 - **RF-11.4** Na aba de respostas, uma formatação condicional destaca linhas com o mesmo WhatsApp repetido, para o casal decidir qual vale.
-- **RF-11.5** O encerramento automático em 01/01/2027 às 00h (UTC−3) já está agendado pelo script (gatilho `encerrarConfirmacoes`). Confira em script.google.com › Acionadores que ele existe.
+- **RF-11.5** O encerramento automático em 13/12/2026 às 00h (UTC−3) já está agendado pelo script (gatilho `encerrarConfirmacoes`). Confira em script.google.com › Acionadores que ele existe.
 - **RF-11.6** As respostas de teste são apagadas da planilha e do formulário (Respostas › Excluir todas as respostas) antes do envio aos convidados.
 
 ## Requisitos não funcionais
@@ -78,14 +78,14 @@ Textos do formulário em "Textos do convite" e no script, no documento de requis
 | "8 ou mais" | Conta como 8 no total; a linha 4 do resumo aponta para conferência |
 | Lista de nomes com quantidade diferente da informada | Vale a lista de nomes; o casal corrige a quantidade na planilha |
 | Alguém tenta responder depois do prazo | O formulário mostra a mensagem de encerramento |
-| O gatilho de encerramento não rodou | Em 01/01/2027, fechar manualmente: Respostas › desligar "Aceitando respostas" |
+| O gatilho de encerramento não rodou | Em 13/12/2026, fechar manualmente: Respostas › desligar "Aceitando respostas" |
 
 ## Casos de teste
 
 - **CT-11.1** Responder com "Sim", 3 pessoas e uma lista de 3 nomes com idades; conferir a linha na planilha e o resumo (1 família, 3 pessoas). *(CA-11.1.1, CA-11.2.1, CA-11.3.1)*
 - **CT-11.2** Responder com "Não": o formulário pula para o recado; o resumo conta 1 família que não vai. *(CA-11.1.2)*
 - **CT-11.3** Responder de novo com o mesmo WhatsApp: as duas linhas ficam destacadas. *(CA-11.3.2)*
-- **CT-11.4** Em script.google.com › Acionadores, conferir o gatilho `encerrarConfirmacoes` para 01/01/2027. *(CA-11.4.1)*
+- **CT-11.4** Em script.google.com › Acionadores, conferir o gatilho `encerrarConfirmacoes` para 13/12/2026. *(CA-11.4.1)*
 - **CT-11.5** Apagar as respostas de teste e conferir o resumo zerado antes do envio. *(CA-12.3.2)*
 
 ## Questões em aberto

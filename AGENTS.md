@@ -9,7 +9,7 @@ Convite digital interativo do casamento de **Isabella Vaz e David Neto** (22/01/
 Benevides–PA). Site estático de página única, enviado por WhatsApp (um link por família): uma abertura
 cinematográfica de ~30 s num bosque pintado (névoa → baú com chave → 5 balões com fotos → envelope com
 selo → carta), depois contagem regressiva, mensagem, dress code, "Confirmar presença" (Google Forms,
-até 31/12/2026) e "Como chegar".
+até 12/12/2026) e "Como chegar".
 
 **Prazos:** pronto e testado até **10/11/2026**; envio até **15/11/2026**. Depois do envio quase nada
 pode mudar (o WhatsApp guarda a prévia do link), então erro tem de ser pego antes: confie nos gates.
@@ -105,6 +105,12 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
 - `?data=AAAA-MM-DDTHH:MM` simula a data **só em desenvolvimento** (testa os 4 estados da SPEC-07).
 - `typescript` está em 6.0.x (typescript-eslint ainda não suporta 7); `lint-staged` em 16.x (Node).
 - O convite é **um só link por família**, sem personalização por convidado.
+- `estado.computador` é o **mouse**, em qualquer formato de janela (ADR-0036): o desktop nunca vira a composição do celular ao
+  estreitar o navegador. A CSS do desktop vive nas classes `--computador`, sem condição de orientação; para ver a cena do
+  celular no computador, emule toque (`pointer: coarse`).
+- O CSS entra por `src/styles/index.css` (ligado no `<head>`; o build o embute no HTML), **não** pelo `main.ts` (ADR-0037). URLs que
+  vão para variáveis CSS (`--papel`) precisam ser completas, porque o navegador as resolve pelo arquivo de estilos.
+- `pnpm arte -- --so-computador` regenera só a pintura mestre 16:9, o primeiro plano e o chão do desktop.
 
 ## Estado atual
 

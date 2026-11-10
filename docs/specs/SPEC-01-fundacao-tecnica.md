@@ -134,7 +134,7 @@ export const state = {
 // src/config.js
 export const config = {
   casamento: '2027-01-22T17:00:00-03:00',
-  prazoConfirmacao: '2026-12-31T23:59:59-03:00',
+  prazoConfirmacao: '2026-12-12T23:59:59-03:00',
   links: {
     formulario: 'https://forms.gle/yviZrELgrH2zrRGc7',
     mapa: 'https://www.google.com/maps/search/?api=1&query=R.+Na%C3%A7%C3%B5es+Unidas%2C+407+-+Benevides%2C+PA%2C+68795-000',

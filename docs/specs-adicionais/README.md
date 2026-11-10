@@ -23,7 +23,7 @@ foi implementado no código. As citações abaixo apontam para a seção do docu
 | Fé no texto: Eclesiastes, Mateus 19:6, 1 Coríntios 13:7, agradecimento a Deus | Carta e mensagem do casal, textos idênticos aos aprovados (conferidos nos testes)                                                      |
 | Great Vibes + letra "padrão"                                                  | Great Vibes nos nomes, Cormorant Garamond no resto, servidas do próprio site                                                           |
 | 12 informações essenciais, menos lista de presentes                           | Nomes, data, hora, local, mensagem, versículo, dress code, confirmação, mapa e contagem (SPEC-06/07). **Exceção: fotografias, ver B1** |
-| Confirmação com nome e idade de cada pessoa, até 31/12/2026                   | Formulário publicado, botão que some pela data, texto de prazo conferido contra `config` (SPEC-07/11)                                  |
+| Confirmação com nome e idade de cada pessoa, até 12/12/2026                   | Formulário publicado, botão que some pela data, texto de prazo conferido contra `config` (SPEC-07/11)                                  |
 | Envio por WhatsApp, prévia com imagem, título e descrição                     | Metadados gerados de um só lugar (SPEC-10)                                                                                             |
 | Não forçar o convidado                                                        | Abre sozinha em 4 s sem toque, "Pular" na segunda visita, tudo funciona sem som e sem animação (SPEC-06/09)                            |
 
