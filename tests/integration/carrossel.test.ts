@@ -174,8 +174,10 @@ describe('o carrossel de fotos do casal (08/11/2026)', () => {
         vistas.push(atual());
       }
 
-      expect(vistas.slice(0, total)).toEqual([1, 2, 3, 4, 5, 0]);
-      expect(vistas.slice(total)).toEqual([1, 2, 3, 4, 5, 0]);
+      // 1, 2, …, total − 1 e de volta ao 0, não importa quantas fotos o casal tenha mandado
+      const umaVolta = [...Array.from({ length: total - 1 }, (_, i) => i + 1), 0];
+      expect(vistas.slice(0, total)).toEqual(umaVolta);
+      expect(vistas.slice(total)).toEqual(umaVolta);
       carrossel.destruir();
     });
 
