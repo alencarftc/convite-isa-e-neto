@@ -36,7 +36,7 @@ O casamento é na sexta-feira, 22/01/2027, às 17h. O briefing trazia 2026 por e
 | Endereço | R. Nações Unidas, 407 – Benevides, PA, 68795-000 | Confirmado; base para o mapa |
 | Dress code | Esporte fino | — |
 | Bênção dos pais | Incluir | Pais da noiva: Marcelo André Pinto da Silva e Elizabete de Farias Vaz. Pais do noivo: Sara Raquel Coimbra Cardoso e Ronaldo Silva Damasceno |
-| Confirmação de presença | Até 31/12/2026 | Formulário externo, aberto por botão no fim do convite; pede nome e idade de cada acompanhante, crianças incluídas |
+| Confirmação de presença | Até 12/12/2026 | Formulário externo, aberto por botão no fim do convite; pede nome e idade de cada acompanhante, crianças incluídas |
 | Lista de presentes | Não haverá | Definido pelo casal em 25/10/2026 |
 | Site do casamento | Não vai existir por enquanto | Todo o conteúdo fica no convite |
 | Redes sociais | @isah_nicoly e @_neto085 | — |
@@ -183,7 +183,7 @@ A lista acima segue a ordem do formulário, não uma ordem de importância nem d
 
 **Não marcada como essencial:** "História do casal". Ainda assim, a noiva pede que o convite "conte um pouco da história no decorrer da leitura" — ver Tensões.
 
-**Dependências [I]:** a mensagem do casal será escrita por você; não haverá lista de presentes; a confirmação de presença vai até 31/12/2026, por um formulário externo.
+**Dependências [I]:** a mensagem do casal será escrita por você; não haverá lista de presentes; a confirmação de presença vai até 12/12/2026, por um formulário externo.
 
 ### Prioridades do casal
 
@@ -357,10 +357,10 @@ As 27 decisões estão tomadas desde 25/10/2026, e o rascunho 2 é o roteiro apr
 | 16 | Música e efeitos sonoros |  | Ambiente do bosque; "Bondade de Deus" na história; "Ousado Amor" no convite; versões instrumentais com licença |
 | 17 | Família ao redor |  | Não como figuras; presente na bênção dos pais |
 | 18 | Convite personalizado |  | Não: o convite é por família, com um único link para todos |
-| 19 | Confirmação de presença |  | Google Forms por família até 31/12/2026: nome da família, WhatsApp, presença, número de pessoas, nome e idade de cada pessoa (crianças incluídas) e recado opcional; publicado em forms.gle/yviZrELgrH2zrRGc7 |
+| 19 | Confirmação de presença |  | Google Forms por família até 12/12/2026: nome da família, WhatsApp, presença, número de pessoas, nome e idade de cada pessoa (crianças incluídas) e recado opcional; publicado em forms.gle/yviZrELgrH2zrRGc7 |
 | 20 | Lista de presentes |  | Não haverá |
 | 21 | Mapa |  | Botão "Como chegar" abre o endereço no aplicativo de mapas |
-| 22 | Contagem regressiva |  | Até 22/01/2027 às 17h; "É hoje!" no dia; agradecimento depois; confirmação encerrada após 31/12/2026 |
+| 22 | Contagem regressiva |  | Até 22/01/2027 às 17h; "É hoje!" no dia; agradecimento depois; confirmação encerrada após 12/12/2026 |
 | 23 | Hospedagem e prévia |  | GitHub Pages; prévia 1200×630 com o bosque e as iniciais, título e descrição definidos |
 | 24 | Sem som ou com animação reduzida |  | Funciona inteiro sem som; com animação reduzida, esmaecimentos curtos e carta direto |
 | 25 | Prazo de entrega |  | Pronto e testado até 10/11/2026; envio até 15/11/2026 |
@@ -444,7 +444,7 @@ O rascunho 2 mantém seus quatro passos e fecha a animação em 30 s, sem contar
 
 - **Na carta:** versículo principal no topo, bênção dos pais, nomes de Isabella Vaz e David Neto, frase do convite, data, horário e local, e Mateus 19:6 como fecho.
 - **Abaixo da carta:** contagem regressiva, mensagem do casal (com o agradecimento a Deus e um verso do louvor escolhido), dress code e os botões.
-- **Botões:** "Confirmar presença" em destaque, com o prazo de 31/12/2026, e "Como chegar" como secundário.
+- **Botões:** "Confirmar presença" em destaque, com o prazo de 12/12/2026, e "Como chegar" como secundário.
 - **Sempre visíveis:** um botão de som (ligar e desligar) e, depois da primeira visita, um "Pular para o convite". Quem volta para ver o mapa ou confirmar presença não precisa rever a abertura.
 
 ### Respostas propostas para as decisões em aberto
@@ -463,13 +463,13 @@ Os números seguem a tabela Decisões do roteiro. Os textos bíblicos citados s�
 | 16 | Música | Passo 3: "Bondade de Deus", que fala de gratidão ao longo da vida, como a história nos balões. Passo 5: "Ousado Amor", no clímax. De preferência versões instrumentais, que não disputam atenção com as frases. Usar gravação com licença ou versão própria | As duas músicas que a noiva citou; "gratidão" está na frase mais importante do briefing |
 | 17 | Família ao redor | Não como figuras; a família está na bênção dos pais | Mais personagens geradas aumentam o risco de inconsistência |
 | 18 | Convite personalizado | Substituída em 26/10/2026: convite por família, com um único link e sem personalização | "Entregando uma parte para cada convidado" e "verdadeiramente convidado" |
-| 19 | Formulário | Google Forms com nome, presença (sim ou não), número de pessoas, nome e idade de cada acompanhante (crianças incluídas), WhatsApp e recado opcional aos noivos; prazo de 31/12/2026 na descrição; respostas numa planilha | Botão para formulário externo (decidido) |
+| 19 | Formulário | Google Forms com nome, presença (sim ou não), número de pessoas, nome e idade de cada acompanhante (crianças incluídas), WhatsApp e recado opcional aos noivos; prazo de 12/12/2026 na descrição; respostas numa planilha | Botão para formulário externo (decidido) |
 | 20 | Lista de presentes | Não haverá lista de presentes (definido pelo casal) | "Link externo ou outra página" |
 | 21 | Mapa | Botão "Como chegar" que abre o endereço no aplicativo de mapas, sem mapa embutido na página | Mais leve no celular; o endereço já está confirmado |
-| 22 | Contagem regressiva | Até 22/01/2027 às 17h: dias, horas e minutos. No dia: "É hoje!". Depois: uma mensagem de agradecimento. A confirmação sai do ar depois de 31/12/2026, com aviso de prazo encerrado | O link continua no WhatsApp dos convidados depois do casamento |
+| 22 | Contagem regressiva | Até 22/01/2027 às 17h: dias, horas e minutos. No dia: "É hoje!". Depois: uma mensagem de agradecimento. A confirmação sai do ar depois de 12/12/2026, com aviso de prazo encerrado | O link continua no WhatsApp dos convidados depois do casamento |
 | 23 | Hospedagem e prévia | Hospedar como o convite base (GitHub Pages, gratuito); domínio próprio é opcional. Prévia no WhatsApp: imagem 1200×630 com o bosque e as iniciais, título "Isabella & David — Convite de casamento", descrição "Toque para abrir seu convite" | O WhatsApp guarda a prévia do link; ela precisa estar pronta antes do primeiro envio |
 | 24 | Sem som ou com animação reduzida | O convite funciona inteiro sem som. Com a animação reduzida ativada no aparelho, as transições viram esmaecimentos curtos e a carta aparece direto | Experiência no celular e acessibilidade |
-| 25 | Prazo de entrega | Convite pronto e testado até 10/11/2026 e enviado até 15/11/2026, deixando cerca de seis semanas para confirmar presença | "O quanto antes" e o prazo de 31/12/2026 |
+| 25 | Prazo de entrega | Convite pronto e testado até 10/11/2026 e enviado até 15/11/2026, deixando cerca de seis semanas para confirmar presença | "O quanto antes" e o prazo de 12/12/2026 |
 | 27 | Azul Serenidade | #91A8D0, confirmado pelo casal | Paleta definida pelo casal |
 
 ### Paleta proposta
@@ -515,15 +515,15 @@ O tom é leve, romântico e tradicional, com um toque divertido. A fé aparece p
 
 ### Balões da história
 
-Cinco frases de até 8 palavras, uma por balão, cada uma com uma foto. O briefing só traz um fato da história, o pedido em Salinas. Por isso, as frases 1 a 3 não citam fatos específicos e podem ser ajustadas quando as fotos chegarem.
+Cinco frases de até 8 palavras, uma por memória que sobe do baú (ADR-0026; antes, uma por balão). Sequência escolhida em 09/11/2026, sem citar lugar nem fatos específicos da história (Salinas não é mencionada):
 
 1. Tudo começou de um jeito simples.
-2. Viramos amigos, parceiros e um só time.
-3. Entre risadas e orações, o amor cresceu.
-4. Em Salinas, à beira-mar, veio o pedido.
-5. E o nosso sonho ganhou um sim.
+2. Deus foi cuidando de cada detalhe.
+3. Aos poucos, a amizade virou amor.
+4. E o que era sonho virou promessa.
+5. E queremos celebrar essa promessa com você.
 
-A ordem segue as palavras que a noiva usou: "leve", "divertida" e "parceiros" (1 e 2), a fé (3), o pedido (4) e a "realização de um sonho" (5).
+A ordem vai do começo simples (1) à fé e à gratidão (2), ao amor que cresce (3), à "realização de um sonho" que a noiva citou (4) e ao convite ao convidado, que passa para a carta (5). Versão anterior (aprovada em 25/10/2026): "Viramos amigos, parceiros e um só time.", "Entre risadas e orações, o amor cresceu.", "Em Salinas, à beira-mar, veio o pedido." e "E o nosso sonho ganhou um sim."
 
 ### A carta
 
@@ -569,11 +569,11 @@ Aprendemos juntos que o amor "tudo sofre, tudo crê, tudo espera, tudo suporta" 
 
 Você faz parte da nossa história, e a sua presença é o nosso maior presente.
 
-[Um verso do louvor escolhido, em itálico, com o nome da música]
+Desde quando me levanto, até eu me deitar, eu cantarei da bondade de Deus.
 
 Com carinho, Isabella & David
 
-"A sua presença é o nosso maior presente" conversa com a decisão de não ter lista de presentes. O verso do louvor fica para você inserir: não reproduzo trechos de letras de música, que têm direitos autorais.
+"A sua presença é o nosso maior presente" conversa com a decisão de não ter lista de presentes. O verso do louvor é um trecho curto de "Bondade de Deus", em itálico e sem crédito (escolhido em 10/11/2026 entre três louvores que o casal enviou).
 
 **Dress code**
 
@@ -584,9 +584,9 @@ Traje: esporte fino
 | Elemento | Texto |
 | --- | --- |
 | Botão principal | Confirmar presença |
-| Abaixo do botão | Confirme até 31 de dezembro de 2026. |
+| Abaixo do botão | Confirme até 12 de dezembro de 2026. |
 | Botão secundário | Como chegar |
-| Depois de 31/12/2026 | As confirmações foram encerradas em 31 de dezembro de 2026. |
+| Depois de 12/12/2026 | As confirmações foram encerradas em 12 de dezembro de 2026. |
 
 ### Prévia do WhatsApp
 
@@ -600,7 +600,7 @@ Traje: esporte fino
 
 **Título:** Confirmação de presença — Isabella & David
 
-**Descrição:** Que alegria ter vocês com a gente! Confirmem a presença da família até 31 de dezembro de 2026. Sexta-feira, 22 de janeiro de 2027, às 17h, no Sítio Olinda, em Benevides (PA).
+**Descrição:** Que alegria ter vocês com a gente! Confirmem a presença da família até 12 de dezembro de 2026. Sexta-feira, 22 de janeiro de 2027, às 17h, no Sítio Olinda, em Benevides (PA).
 
 | Seção | Pergunta | Tipo | Obrigatória |
 | --- | --- | --- | --- |
@@ -611,7 +611,7 @@ Traje: esporte fino
 | 2. Quem vai | Nome e idade de cada pessoa que vai | Parágrafo; ajuda: "Uma pessoa por linha, incluindo você" | Sim |
 | 3. Recado | Quer deixar um recado para Isabella e David? | Parágrafo | Não |
 
-Quem responde "Infelizmente não poderemos ir" pula direto para o recado. As respostas vão para a planilha "Confirmações — Isabella & David", e o formulário para de aceitar respostas sozinho em 01/01/2027, à meia-noite.
+Quem responde "Infelizmente não poderemos ir" pula direto para o recado. As respostas vão para a planilha "Confirmações — Isabella & David", e o formulário para de aceitar respostas sozinho em 13/12/2026, à meia-noite.
 
 **Mensagem após o envio:** Recebemos sua resposta. Obrigado por fazer parte da nossa história!
 
@@ -633,15 +633,15 @@ O script abaixo cria o formulário inteiro na sua conta Google: perguntas, seç�
  * Execute criarFormularioConfirmacao() uma vez em script.google.com.
  */
 
-const PRAZO_ENCERRAMENTO = new Date('2027-01-01T00:00:00-03:00');
-const MENSAGEM_ENCERRADO = 'As confirmações foram encerradas em 31 de dezembro de 2026.';
+const PRAZO_ENCERRAMENTO = new Date('2026-12-13T00:00:00-03:00');
+const MENSAGEM_ENCERRADO = 'As confirmações foram encerradas em 12 de dezembro de 2026.';
 
 function criarFormularioConfirmacao() {
   const form = FormApp.create('Confirmação de presença — Isabella & David');
 
   form
     .setDescription(
-      'Que alegria ter vocês com a gente! Confirmem a presença da família até 31 de dezembro de 2026.\n\n' +
+      'Que alegria ter vocês com a gente! Confirmem a presença da família até 12 de dezembro de 2026.\n\n' +
       'Sexta-feira, 22 de janeiro de 2027, às 17h\n' +
       'Sítio Olinda — R. Nações Unidas, 407, Benevides (PA)'
     )
@@ -951,7 +951,7 @@ Três itens dependem do casal; os demais são decisões e textos seus. Nenhum im
 - Escrever a mensagem do casal, o agradecimento a Deus e os demais textos
 - Escolher as passagens bíblicas e a principal
 - Escolher a música entre as opções do casal
-- Definir o meio de confirmação de presença (prazo: 31/12/2026)
+- Definir o meio de confirmação de presença (prazo: 12/12/2026)
 - Definir se o convite é igual para todos ou varia por convidado
 
 ## Checklist para validar o roteiro
@@ -994,7 +994,7 @@ Um roteiro atende ao briefing quando passa em todos os itens abaixo; cada um vem
 - Nomes, data, horário e local
 - Mensagem do casal, versículo e bênção dos pais
 - Dress code (esporte fino)
-- Confirmação de presença (até 31/12/2026, com nome e idade dos acompanhantes), mapa e contagem regressiva
+- Confirmação de presença (até 12/12/2026, com nome e idade dos acompanhantes), mapa e contagem regressiva
 
 ### Prioridades
 

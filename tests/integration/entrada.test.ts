@@ -10,6 +10,7 @@ import { criarCenaEntrada } from '@/presentation/entrada/cena-entrada';
 import { criarCarregamentoFalso } from './suporte/carregamento-falso';
 import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
 import { montarIndexHtml, textoDoIndexHtml } from './suporte/index-html';
+import { criarRelogioManual } from './suporte/relogio-gsap';
 
 function montar(opcoes: OpcoesDoEstadoFalso = {}) {
   montarIndexHtml();
@@ -64,6 +65,16 @@ describe('cena de entrada (SPEC-02)', () => {
       cena.init();
 
       expect(el('.entrada__nomes').textContent).toBe(content.entrada.nomes);
+    });
+
+    it('os nomes da entrada ficam numa linha só, "Isabella & David", sem elemento que os quebre (01/11/2026)', () => {
+      const { cena, el } = montar();
+      expect(el('.entrada__nomes').children).toHaveLength(0); // o primeiro quadro, do index.html
+
+      cena.init();
+
+      expect(el('.entrada__nomes').children).toHaveLength(0);
+      expect(el('.entrada__nomes').textContent).toBe('Isabella & David');
     });
 
     it('sem a seção .entrada no HTML, falha com mensagem clara', () => {
@@ -125,14 +136,20 @@ describe('cena de entrada (SPEC-02)', () => {
       expect(selo?.nextElementSibling?.className).toBe('entrada__nomes');
     });
 
-    it('init monta a imagem de config.imagens.selo e as iniciais de content.envelope (RF-16.5)', () => {
-      const { cena, el } = montar();
+    it('init monta o selo inteiro (uma imagem só) com a imagem de config.imagens.selo, decorativa e sem texto (RF-16.5)', () => {
+      const { cena } = montar();
 
       cena.init();
 
-      expect(el('.entrada__selo-imagem').getAttribute('src')).toBe(config.imagens.selo);
-      expect(el('.entrada__iniciais').textContent).toBe(content.envelope.iniciais);
-      expect(el('.entrada__selo-imagem').getAttribute('alt')).toBe('');
+      const imagens = [
+        ...document.querySelectorAll<HTMLImageElement>('.entrada__selo .selo__imagem'),
+      ];
+      expect(imagens).toHaveLength(1);
+      expect(imagens[0]?.getAttribute('src')).toBe(config.imagens.selo);
+      expect(imagens[0]?.getAttribute('alt')).toBe('');
+      expect(document.querySelector('.selo__metade')).toBeNull(); // o selo não se parte (31/10/2026)
+      expect(document.querySelector('.entrada__iniciais')).toBeNull(); // as siglas vêm na arte
+      expect(document.querySelector('.entrada__selo')?.textContent).toBe('');
     });
 
     it('o selo aparece quando a imagem chega, sem esperar nem atrasar "Toque para entrar" (CT-16.4)', async () => {
@@ -140,7 +157,7 @@ describe('cena de entrada (SPEC-02)', () => {
       cena.init();
       expect(Number(el('.entrada__selo').style.opacity || 0)).toBe(0);
 
-      el('.entrada__selo-imagem').dispatchEvent(new Event('load'));
+      el('.entrada__selo .selo__imagem').dispatchEvent(new Event('load'));
 
       await vi.waitFor(() => {
         expect(Number(el('.entrada__selo').style.opacity)).toBe(1);
@@ -210,6 +227,73 @@ describe('cena de entrada (SPEC-02)', () => {
       expect(tocar.disabled).toBe(true);
     });
 
+    it('ao tocar, o selo se solta inteiro (levanta, cresce e some), um clarão acende e os nomes se desfazem (ADR-0012)', async () => {
+      const { botao, el, execucao, concluirImagens } = await ateOToque();
+      let brilhoMaximo = 0;
+      const olhar = setInterval(() => {
+        brilhoMaximo = Math.max(
+          brilhoMaximo,
+          Number(gsap.getProperty(el('.selo__brilho'), 'opacity')),
+        );
+      }, 5);
+
+      botao('.entrada__tocar').click();
+      concluirImagens();
+      await execucao;
+      await vi.waitFor(
+        () => {
+          expect(Number(gsap.getProperty(el('.entrada__selo .selo__imagem'), 'opacity'))).toBe(0);
+          expect(Number(gsap.getProperty(el('.entrada__nomes'), 'opacity'))).toBe(0);
+        },
+        { timeout: 4000 },
+      );
+      clearInterval(olhar);
+
+      expect(brilhoMaximo).toBeGreaterThan(0.3);
+      expect(Number(gsap.getProperty(el('.entrada__nomes'), 'y'))).toBeLessThan(0); // os nomes subiram
+      // O selo subiu e cresceu ao se soltar, mas nunca foi partido nem girou além do giro configurado.
+      const imagem = el('.entrada__selo .selo__imagem');
+      expect(Number(gsap.getProperty(imagem, 'y'))).toBeLessThan(0);
+      expect(Number(gsap.getProperty(imagem, 'scale'))).toBeGreaterThan(1);
+      expect(Math.abs(Number(gsap.getProperty(imagem, 'rotation')))).toBeLessThanOrEqual(
+        config.entrada.saida.solta.giro + 1e-6,
+      );
+    });
+
+    it('a névoa só pode abrir quando o selo se solta: o run espera config.entrada.saida.nevoaEm', async () => {
+      // Relógio manual: medir o tempo real falhava com a máquina ocupada (o conjunto todo roda junto).
+      const relogio = criarRelogioManual();
+      try {
+        const { botao, execucao, concluirImagens } = await ateOToque();
+        let resolvida = false;
+        void execucao.then(() => {
+          resolvida = true;
+        });
+
+        botao('.entrada__tocar').click();
+        concluirImagens();
+        relogio.avancar(config.entrada.saida.nevoaEm - 0.05, 0.01);
+        await Promise.resolve();
+        await Promise.resolve();
+        expect(resolvida).toBe(false); // o selo ainda não se soltou
+
+        relogio.avancar(5, 0.05);
+        await expect(execucao).resolves.toBe('entrar');
+      } finally {
+        relogio.restaurar();
+      }
+    });
+
+    it('com animação reduzida, o toque só esmaece: o selo não se solta nem o clarão acende', async () => {
+      const { botao, el, execucao } = await ateOToque({ reduzido: true });
+
+      botao('.entrada__tocar').click();
+      await execucao;
+
+      expect(gsap.getTweensOf(el('.selo__brilho'))).toHaveLength(0);
+      expect(gsap.getTweensOf(el('.entrada__selo .selo__imagem'))).toHaveLength(0);
+    });
+
     it('com animação reduzida, o toque não espera o bosque', async () => {
       const { botao, execucao } = await ateOToque({ reduzido: true });
 
@@ -220,13 +304,13 @@ describe('cena de entrada (SPEC-02)', () => {
 
     it('depois do toque, começa o carregamento secundário (RF-02.7)', async () => {
       const { botao, baixadas, concluirImagens } = await ateOToque();
-      expect(baixadas).not.toContain('assets/provisorio/bau-aberto.svg');
+      expect(baixadas).not.toContain('assets/objects/09-bau-aberto.webp');
 
       botao('.entrada__tocar').click();
       concluirImagens();
 
       await vi.waitFor(() => {
-        expect(baixadas).toContain('assets/provisorio/bau-aberto.svg');
+        expect(baixadas).toContain('assets/objects/09-bau-aberto.webp');
       });
     });
   });
@@ -292,7 +376,7 @@ describe('cena de entrada (SPEC-02)', () => {
 
     girar('horizontal');
 
-    expect(baixadas.some((url) => url.includes('ceu-16x9'))).toBe(true);
+    expect(baixadas.some((url) => url.includes('ceu-baunilha-16x9'))).toBe(true);
   });
 
   it('skip esconde a entrada; destroy devolve o primeiro quadro (HMR)', () => {

@@ -8,12 +8,23 @@ import type { UnidadesDeTempo } from '../contagem/contagem-regressiva';
 /** Um balão da história (SPEC-05, RF-05.1): a frase e a foto que a acompanha. */
 export interface BalaoDoConvite {
   readonly frase: string;
-  /** Caminho da foto, relativo à página. */
+  /** Caminho da foto, relativo à página; vazio enquanto a foto não chega (a frase fica dentro da nuvem). */
   readonly foto: string;
   /** Texto alternativo da foto (RF-05.8); entre colchetes enquanto a foto não chega. */
   readonly alt: string;
   /** Ponto de foco do recorte circular, como `50% 35%`. */
   readonly foco: string;
+}
+
+/** Uma foto do carrossel do casal (02/11/2026, em carrossel desde 08/11/2026): o arquivo, o texto alternativo e o tamanho dele, para reservar o lugar. */
+export interface FotoDaGaleria {
+  /** Caminho da foto, relativo à página (`photos/galeria-1.webp`). */
+  readonly foto: string;
+  /** Texto alternativo: descreve a foto para o leitor de tela. */
+  readonly alt: string;
+  /** Largura e altura do arquivo, em pixels: a página reserva o espaço antes de a foto chegar (sem pulo no rolar). */
+  readonly largura: number;
+  readonly altura: number;
 }
 
 /** A carta, bloco a bloco (SPEC-06, "Layout da carta"). Textos aprovados em docs/requisitos.md. */
@@ -45,18 +56,21 @@ export interface ConteudoConvite {
     readonly abrirBau: string;
     /** Nome acessível da região que reúne os balões. */
     readonly historia: string;
-    /** Nome acessível do botão transparente que acelera a história. */
-    readonly avancarHistoria: string;
     /** Nome acessível do botão que cobre o envelope (SPEC-06, RF-06.3). */
     readonly abrirEnvelope: string;
+    /** Nome acessível da mini-galeria de fotos do casal, abaixo da mensagem. */
+    readonly galeria: string;
+    /** Nome acessível de cada foto do carrossel, com `{n}` e `{total}`. */
+    readonly fotoDaGaleria: string;
     /** Títulos dos cartões das informações (SPEC-07); a spec deixa em aberto se ficam visíveis. */
     readonly mensagem: string;
     readonly traje: string;
   };
   readonly envelope: {
-    /** Escrito no envelope, acima do selo. */
-    readonly para: string;
-    /** Iniciais no selo; são texto, não imagem (RF-06.2). */
+    /**
+     * Iniciais do selo. Vêm em relevo na própria imagem do selo (arte gerada, ADR-0012), então não
+     * existem como texto na página: o selo é decorativo e o botão do envelope tem nome acessível.
+     */
     readonly iniciais: string;
   };
   readonly entrada: {
@@ -73,17 +87,30 @@ export interface ConteudoConvite {
     readonly pular: string;
     /** Atalho para leitor de tela e teclado: visível só com foco (SPEC-09, RF-09.4). */
     readonly atalho: string;
+    /** Dica do baú, com a chave guardada no inventário (SPEC-04; ADR-0012). */
     readonly chaveComputador: string;
     readonly chaveCelular: string;
-    readonly avancar: string;
     readonly selo: string;
     readonly rolar: string;
+    /**
+     * Nome do botão que pausa e retoma o movimento da cena (SPEC-18, US-13.6; WCAG 2.2.2). Entre colchetes
+     * até o casal aprovar o texto.
+     */
+    readonly pausarAnimacao: string;
+    readonly retomarAnimacao: string;
   };
   readonly carta: CartaDoConvite;
   /** O que aparece na prévia do link no WhatsApp e na aba do navegador (SPEC-10, RF-10.1). */
   readonly previa: {
     readonly titulo: string;
+    /** O texto curto da prévia do WhatsApp e das redes (`og:description`): o que o casal aprovou. */
     readonly descricao: string;
+    /** O trecho que o Google mostra sob o título (`<meta name="description">`): diz o que é, quando e onde (SEO, 09/11/2026). */
+    readonly descricaoParaBusca: string;
+    /** Descrição da imagem da prévia, para quem não a vê (`og:image:alt`). */
+    readonly descricaoDaImagem: string;
+    /** O nome do evento nos dados estruturados do Google (`schema.org/Event`). */
+    readonly nomeDoEvento: string;
   };
   /** Mensagem do casal, abaixo da contagem (SPEC-07, RF-07.7). */
   readonly mensagem: {
@@ -99,6 +126,8 @@ export interface ConteudoConvite {
   readonly dressCode: string;
   /** Os balões da história, na ordem em que aparecem (SPEC-05). */
   readonly baloes: readonly BalaoDoConvite[];
+  /** O carrossel de fotos do casal, abaixo da mensagem do convite aberto; vazio, o cartão não aparece. */
+  readonly galeria: readonly FotoDaGaleria[];
   readonly contagem: {
     /** Modelo com `{dias}`, `{horas}` e `{minutos}`. */
     readonly antes: string;

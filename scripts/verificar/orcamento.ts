@@ -18,39 +18,54 @@ const MB = 1024 * KB;
 /** Limite de cada imagem do manifesto, na orientação em que ela é baixada. */
 export const LIMITE_DAS_IMAGENS: Readonly<Record<ChaveDeImagem, number>> = {
   ceu: 300 * KB, // 02
-  lago: 150 * KB, // 04
+  lago: 520 * KB, // 04 (computador, até 150 kB) e a cena mestre em retrato (celular)
   arvores: 300 * KB, // 05
   primeiroPlano: 250 * KB, // 06
   bauFechado: 150 * KB, // 08
   chave: 50 * KB, // 10
   bauAberto: 150 * KB, // 09
   ceuPorDoSol: 300 * KB, // 03
-  balaoA: 80 * KB, // 11a
-  balaoB: 80 * KB,
-  balaoC: 80 * KB,
   envelopeFechado: 120 * KB, // 12
   envelopeAberto: 120 * KB, // 13
   papelCarta: 150 * KB, // 14
-  selo: 40 * KB, // 15
+  papelMiolo: 60 * KB, // 14 · ladrilho do meio do papel, repetido na vertical sob o texto
+  chao: 5 * KB, // continuação da borda do primeiro plano sob a carta (imagem minúscula, ampliada pelo navegador)
+  selo: 60 * KB, // 15 · aparece grande na entrada e no envelope
   petalaA: 15 * KB, // 16a
   petalaB: 15 * KB,
   petalaC: 15 * KB,
   casal: 150 * KB, // 17
-  cursorChave: 10 * KB, // 48 px, derivado da 10
+  folhaA: 15 * KB, // 20a
+  folhaB: 15 * KB,
+  folhaC: 15 * KB,
+  esquiloEncolhido: 25 * KB, // 21a
+  esquiloEsticado: 25 * KB, // 21b
+};
+
+/**
+ * Limite da variante `computador` de uma imagem, quando difere do da chave: o chão do computador é uma faixa de gramado
+ * da pintura (uns 100 kB), enquanto o das outras orientações é uma imagem minúscula ampliada pelo navegador.
+ */
+export const LIMITE_DA_VARIANTE_DO_COMPUTADOR: Readonly<Partial<Record<ChaveDeImagem, number>>> = {
+  chao: 160 * KB,
 };
 
 /** Fotos dos balões (SPEC-05, RNF-05.3), prévia do link (SPEC-10, RF-10.2) e fontes (RNF da SPEC-02). */
 export const LIMITE_DE_FOTO = 120 * KB;
+/** Fotos da mini-galeria do casal (02/11/2026): menores, porque são duas por linha. */
+export const LIMITE_DE_FOTO_DA_GALERIA = 110 * KB;
 export const LIMITE_DA_PREVIA = 300 * KB;
 export const LIMITE_DE_FONTE = 50 * KB;
 
 /** Áudio, por arquivo (SPEC-08, "Arquivos de áudio"). */
 export const LIMITE_DOS_AUDIOS: Readonly<Record<string, number>> = {
   'audio/ambiente.mp3': 400 * KB,
+  'audio/harpa.mp3': 40 * KB, // glissando de harpa de uns 1,7 s, estéreo, 128 kbps
   'audio/fechadura.mp3': 20 * KB,
   'audio/tampa.mp3': 25 * KB,
+  'audio/fada.mp3': 60 * KB, // loop de poeira de fada de uns 2,6 s, estéreo, 128 kbps
   'audio/selo.mp3': 20 * KB,
-  'audio/musica-1.mp3': 1 * MB + 100 * KB, // "cerca de 1 MB"
+  'audio/musica-1.mp3': 3 * MB + 100 * KB, // "Bondade de Deus" inteira, de 4 min, a 96 kbps (a spec previa cerca de 1 MB)
   'audio/musica-2.mp3': 3 * MB, // "cerca de 2,9 MB"
 };
 
@@ -79,7 +94,7 @@ function pesoDaImagem(arte: ConfigConvite['imagens'][ChaveDeImagem], tamanhoDe: 
  */
 export function validarPeso(
   config: ConfigConvite,
-  conteudo: Pick<ConteudoConvite, 'baloes'>,
+  conteudo: Pick<ConteudoConvite, 'baloes' | 'galeria'>,
   arquivosDeAudio: readonly string[],
   fontes: readonly string[],
   tamanhoDe: TamanhoDe,
@@ -100,11 +115,19 @@ export function validarPeso(
     ConfigConvite['imagens'][ChaveDeImagem],
   ][]) {
     for (const url of urlsDaImagem(arte)) {
-      conferir(`config.imagens.${chave}`, url, LIMITE_DAS_IMAGENS[chave]);
+      const doComputador = typeof arte !== 'string' && arte.computador === url;
+      const limite = doComputador
+        ? (LIMITE_DA_VARIANTE_DO_COMPUTADOR[chave] ?? LIMITE_DAS_IMAGENS[chave])
+        : LIMITE_DAS_IMAGENS[chave];
+      conferir(`config.imagens.${chave}`, url, limite);
     }
   }
   conteudo.baloes.forEach((balao, indice) => {
-    conferir(`content.baloes[${String(indice)}].foto`, balao.foto, LIMITE_DE_FOTO);
+    if (balao.foto !== '')
+      conferir(`content.baloes[${String(indice)}].foto`, balao.foto, LIMITE_DE_FOTO);
+  });
+  conteudo.galeria.forEach((foto, indice) => {
+    conferir(`content.galeria[${String(indice)}].foto`, foto.foto, LIMITE_DE_FOTO_DA_GALERIA);
   });
   conferir('config.publicacao.imagemDaPrevia', config.publicacao.imagemDaPrevia, LIMITE_DA_PREVIA);
   for (const fonte of fontes) conferir('fonte', fonte, LIMITE_DE_FONTE);
@@ -128,6 +151,7 @@ export function validarPeso(
   const todos = [
     ...Object.values(config.imagens).map((arte) => pesoDaImagem(arte, tamanhoDe)),
     ...conteudo.baloes.map((balao) => tamanhoDe(balao.foto) ?? 0),
+    ...conteudo.galeria.map((foto) => tamanhoDe(foto.foto) ?? 0),
     ...arquivosDeAudio.map((audio) => tamanhoDe(audio) ?? 0),
     ...fontes.map((fonte) => tamanhoDe(fonte) ?? 0),
   ].reduce((soma, peso) => soma + peso, 0);
@@ -153,7 +177,8 @@ export function encontrarArquivosCitados(
     for (const [, caminho] of texto.matchAll(
       /(?:url\(\s*['"]?|href=")\/([^'")\s]+\.[a-z0-9]+)/gi,
     )) {
-      if (caminho) citados.push({ origem, caminho });
+      // `/src/…` é código-fonte que o Vite processa (o CSS ligado no <head>, 09/11/2026), e não um arquivo de `public/`.
+      if (caminho && !caminho.startsWith('src/')) citados.push({ origem, caminho });
     }
   }
   return citados;

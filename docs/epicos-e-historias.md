@@ -11,7 +11,7 @@ O convite está dividido em 12 épicos e 52 histórias de usuário, cada uma com
 | Persona | Quem é | O que precisa | Contexto de uso |
 | --- | --- | --- | --- |
 | **Convidado** | Um membro de cada família convidada, de qualquer idade, inclusive pessoas pouco acostumadas com tecnologia | Sentir-se verdadeiramente convidado, entender o convite sem esforço e confirmar a presença da família | Recebe o link pelo WhatsApp e abre no celular, muitas vezes no navegador interno do aplicativo, às vezes sem fone, em lugar barulhento ou com o aparelho no silencioso |
-| **Casal** | Isabella Vaz e David Neto | Que cada família sinta o amor, a alegria e a gratidão que eles estão vivendo, e saber quem vai | Acompanha as confirmações pela planilha até 31/12/2026 |
+| **Casal** | Isabella Vaz e David Neto | Que cada família sinta o amor, a alegria e a gratidão que eles estão vivendo, e saber quem vai | Acompanha as confirmações pela planilha até 12/12/2026 |
 | **Desenvolvedor** | Felipe, que constrói, publica e mantém o convite | Uma base organizada para montar a experiência, trocar textos e links sem quebrar a animação e publicar com segurança | Desenvolve entre 03 e 08/11/2026, testa até 10/11 e envia até 15/11 |
 
 ## Como ler
@@ -41,7 +41,7 @@ Os épicos seguem a ordem em que o convidado vive a experiência, com a fundaç�
 | EP-08 | Áudio | Ambiente, efeitos e as duas músicas, com controle do convidado | Convidado | Must | 5 | 11 | SPEC-08 |
 | EP-09 | Acessibilidade e alternativas | Funcionar para todos: sem animação, sem som, com leitor de tela, em caso de falha | Convidado | Must | 5 | 13 | SPEC-09 |
 | EP-10 | Compartilhamento e publicação | Prévia bonita no WhatsApp e publicação segura | Convidado, Desenvolvedor | Must | 4 | 8 | SPEC-10 |
-| EP-11 | Confirmação de presença | Coletar e acompanhar as confirmações por família até 31/12/2026 | Convidado, Casal | Must | 4 | 6 | SPEC-11 |
+| EP-11 | Confirmação de presença | Coletar e acompanhar as confirmações por família até 12/12/2026 | Convidado, Casal | Must | 4 | 6 | SPEC-11 |
 | EP-12 | Desempenho e qualidade | Abrir rápido em 4G e funcionar no navegador do WhatsApp | Convidado, Desenvolvedor | Must | 3 | 8 | SPEC-12 |
 
 ## Histórias de usuário
@@ -193,11 +193,11 @@ Os épicos seguem a ordem em que o convidado vive a experiência, com a fundaç�
 - **CA-07.1.3** A contagem atualiza a cada minuto e usa singular e plural corretos (1 dia, 1 hora, 1 minuto).
 - **CA-07.2.1** A mensagem do casal é idêntica à aprovada, com o verso do louvor já inserido.
 - **CA-07.2.2** O dress code aparece como "Traje: esporte fino".
-- **CA-07.3.1** O botão principal "Confirmar presença" tem abaixo "Confirme até 31 de dezembro de 2026." e altura de pelo menos 48 px.
+- **CA-07.3.1** O botão principal "Confirmar presença" tem abaixo "Confirme até 12 de dezembro de 2026." e altura de pelo menos 48 px.
 - **CA-07.3.2** O botão abre forms.gle/yviZrELgrH2zrRGc7 fora do convite (nova aba ou navegador), sem perder o convite.
 - **CA-07.4.1** O botão "Como chegar" abre R. Nações Unidas, 407, Benevides (PA) no aplicativo de mapas do aparelho ou no Google Maps.
-- **CA-07.5.1** Até 31/12/2026 às 23h59 (UTC−3), o botão de confirmação está ativo.
-- **CA-07.5.2** De 01/01/2027 até o casamento, o botão dá lugar a "As confirmações foram encerradas em 31 de dezembro de 2026.".
+- **CA-07.5.1** Até 12/12/2026 às 23h59 (UTC−3), o botão de confirmação está ativo.
+- **CA-07.5.2** De 13/12/2026 até o casamento, o botão dá lugar a "As confirmações foram encerradas em 12 de dezembro de 2026.".
 - **CA-07.5.3** Em 22/01/2027, a contagem dá lugar a "É hoje! Nos vemos às 17h.".
 - **CA-07.5.4** A partir de 23/01/2027, aparece "Obrigado por fazer parte da nossa história. Com amor, Isabella & David", sem contagem nem botão de confirmação.
 - **CA-07.5.5** Os quatro estados podem ser testados com uma data simulada, só no ambiente de desenvolvimento.
@@ -279,7 +279,7 @@ Os épicos seguem a ordem em que o convidado vive a experiência, com a fundaç�
 - **CA-11.2.1** Cada resposta aparece como uma linha na planilha "Confirmações — Isabella & David" em poucos segundos, e o casal tem acesso a ela.
 - **CA-11.3.1** A aba "Resumo" mostra quantas famílias vão, quantas não vão e o total de pessoas confirmadas.
 - **CA-11.3.2** Respostas repetidas com o mesmo WhatsApp ficam destacadas para revisão.
-- **CA-11.4.1** A partir de 01/01/2027 à meia-noite (UTC−3), o formulário não aceita respostas e mostra "As confirmações foram encerradas em 31 de dezembro de 2026.". *Situação: agendado pelo script.*
+- **CA-11.4.1** A partir de 13/12/2026 à meia-noite (UTC−3), o formulário não aceita respostas e mostra "As confirmações foram encerradas em 12 de dezembro de 2026.". *Situação: agendado pelo script.*
 
 ### EP-12 · Desempenho e qualidade
 

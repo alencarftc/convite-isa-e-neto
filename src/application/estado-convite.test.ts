@@ -49,6 +49,31 @@ describe('criarEstado', () => {
     expect(estado.orientacao).toBe('vertical');
   });
 
+  it('"computador" é o mouse, em qualquer formato de janela, e nunca vale no toque (09/11/2026)', () => {
+    const mouse = ambienteFalso({ toque: false });
+    const estadoDoMouse = criarEstado({
+      preferencias: preferenciasFalsas(),
+      ambiente: mouse.ambiente,
+    });
+    const toque = ambienteFalso({ toque: true });
+    const estadoDoToque = criarEstado({
+      preferencias: preferenciasFalsas(),
+      ambiente: toque.ambiente,
+    });
+
+    // De pé (a janela do navegador mais alta que larga) o computador segue sendo computador: a cena só se adapta.
+    expect(estadoDoMouse.orientacao).toBe('vertical');
+    expect(estadoDoMouse.computador).toBe(true);
+    mouse.girar('horizontal');
+    expect(estadoDoMouse.computador).toBe(true);
+    mouse.girar('vertical');
+    expect(estadoDoMouse.computador).toBe(true);
+
+    expect(estadoDoToque.computador).toBe(false);
+    toque.girar('horizontal');
+    expect(estadoDoToque.computador).toBe(false); // celular deitado e tablet
+  });
+
   it('lê som e visita das preferências e o resto do ambiente', () => {
     const { ambiente } = ambienteFalso({ reduzido: true, toque: true });
     const preferencias = preferenciasFalsas({ 'convite:som': false, 'convite:visitado': true });
@@ -133,6 +158,45 @@ describe('criarEstado', () => {
     estado.aoMudar(escuta);
 
     estado.definirSom(true);
+
+    expect(preferencias.gravar).not.toHaveBeenCalled();
+    expect(escuta).not.toHaveBeenCalled();
+  });
+
+  it('o movimento nasce ligado e lembra a escolha da visita anterior (CT-18.13)', () => {
+    const { ambiente } = ambienteFalso();
+
+    expect(criarEstado({ preferencias: preferenciasFalsas(), ambiente }).movimentoLigado).toBe(
+      true,
+    );
+    expect(
+      criarEstado({ preferencias: preferenciasFalsas({ 'convite:movimento': false }), ambiente })
+        .movimentoLigado,
+    ).toBe(false);
+  });
+
+  it('definirMovimento guarda a escolha, lembra para a próxima visita e avisa (CT-18.13)', () => {
+    const { ambiente } = ambienteFalso();
+    const preferencias = preferenciasFalsas();
+    const estado = criarEstado({ preferencias, ambiente });
+    const escuta = vi.fn();
+    estado.aoMudar(escuta);
+
+    estado.definirMovimento(false);
+
+    expect(estado.movimentoLigado).toBe(false);
+    expect(preferencias.gravar).toHaveBeenCalledWith('convite:movimento', false);
+    expect(escuta).toHaveBeenCalledTimes(1);
+  });
+
+  it('definirMovimento com o valor que já vale não grava nem avisa', () => {
+    const { ambiente } = ambienteFalso();
+    const preferencias = preferenciasFalsas();
+    const estado = criarEstado({ preferencias, ambiente });
+    const escuta = vi.fn();
+    estado.aoMudar(escuta);
+
+    estado.definirMovimento(true);
 
     expect(preferencias.gravar).not.toHaveBeenCalled();
     expect(escuta).not.toHaveBeenCalled();

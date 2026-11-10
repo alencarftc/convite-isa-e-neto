@@ -3,7 +3,7 @@ import type { Howl, HowlerGlobal, HowlOptions } from 'howler';
 import type { AudioPort, NomeDeEfeito } from '@/application/ports/audio';
 import type { ConfigConvite } from '@/domain/config/config-convite';
 
-type Som = Pick<Howl, 'play' | 'pause' | 'stop' | 'fade' | 'seek' | 'volume'>;
+type Som = Pick<Howl, 'play' | 'pause' | 'stop' | 'fade' | 'seek' | 'volume' | 'once'>;
 
 /** O que o adaptador usa do Howler.js; a raiz de composição entrega `{ Howl, Howler }`. */
 export interface BibliotecaDeAudio {
@@ -20,11 +20,13 @@ export interface DependenciasDoAudioHowler {
   readonly sessaoDeAudio?: { type: string } | undefined;
 }
 
-/** Os seis arquivos de áudio (SPEC-08, "Arquivos de áudio"); `pnpm verificar` confere que existem. */
+/** Os oito arquivos de áudio (SPEC-08, "Arquivos de áudio", mais a fada e a harpa); `pnpm verificar` confere que existem. */
 export const ARQUIVOS_DE_AUDIO: readonly string[] = [
   'audio/ambiente.mp3',
+  'audio/harpa.mp3',
   'audio/fechadura.mp3',
   'audio/tampa.mp3',
+  'audio/fada.mp3',
   'audio/selo.mp3',
   'audio/musica-1.mp3',
   'audio/musica-2.mp3',
@@ -33,14 +35,16 @@ export const ARQUIVOS_DE_AUDIO: readonly string[] = [
 /** Caminhos relativos à página, para funcionar em qualquer subpasta do GitHub Pages (RF-01.2). */
 const ARQUIVOS = {
   ambiente: 'audio/ambiente.mp3',
+  harpa: 'audio/harpa.mp3',
   fechadura: 'audio/fechadura.mp3',
   tampa: 'audio/tampa.mp3',
+  fada: 'audio/fada.mp3',
   selo: 'audio/selo.mp3',
   musica1: 'audio/musica-1.mp3',
   musica2: 'audio/musica-2.mp3',
 } as const;
 
-const NOMES_DE_EFEITO: readonly NomeDeEfeito[] = ['fechadura', 'tampa', 'selo'];
+const NOMES_DE_EFEITO: readonly NomeDeEfeito[] = ['harpa', 'fechadura', 'tampa', 'selo'];
 
 const emMilissegundos = (segundos: number): number => segundos * 1000;
 
@@ -61,12 +65,17 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
   let ambienteCarregado = false;
   let volumeDoAmbiente = 0;
   const efeitos: Partial<Record<NomeDeEfeito, Som>> = {};
+  let fada: Som | undefined;
+  let fadaIniciada = false;
+  let fadaSaindo = false;
   let musica1: Som | undefined;
   let musica2: Som | undefined;
   let idMusica1: number | undefined;
   let idMusica2: number | undefined;
   let musica1Saindo = false;
+  let musica1Terminou = false;
   let musica2Terminou = false;
+  let musica2Falhou = false;
   let pausadas: readonly ('musica1' | 'musica2')[] = [];
 
   /** Qualquer falha de som vira aviso; nada aqui pode quebrar a animação. */
@@ -86,11 +95,28 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
     }
   }
 
-  function entrarNoTrecho(musica: Som, inicio: number): number {
+  function entrarNoTrecho(musica: Som, inicio: number, segundos: number): number {
     if (inicio > 0) musica.seek(inicio);
     const id = musica.play();
-    musica.fade(0, volumes.musica, emMilissegundos(transicoes.musica));
+    // No elemento <audio> o `play` fica travado até o navegador deixar tocar, e um `fade` pedido nessa hora fica
+    // preso na fila do Howler e nunca roda (a música tocaria em volume 0): a subida começa quando o `play` acontece.
+    musica.once(
+      'play',
+      () => {
+        seguro(() => {
+          musica.fade(0, volumes.musica, emMilissegundos(segundos));
+        });
+      },
+      id,
+    );
     return id;
+  }
+
+  /** A música 1 sobe devagar e o ambiente baixa; só a primeira chamada vale. */
+  function iniciarMusica1(): void {
+    if (!musica1 || idMusica1 !== undefined) return;
+    mudarAmbiente(volumes.ambienteSobMusica, transicoes.ambienteSobMusica);
+    idMusica1 = entrarNoTrecho(musica1, trechos.inicio1, transicoes.entradaDaMusica1);
   }
 
   function criarAmbiente(): Som {
@@ -122,6 +148,24 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
     });
   }
 
+  /** A poeira de fada é um loop curto e sem emenda; sobe e desce por `fade`, e o `onfade` da saída a para de vez. */
+  function criarFada(): Som {
+    const som: Som = new Howl({
+      src: [ARQUIVOS.fada],
+      loop: true,
+      volume: 0,
+      onfade: () => {
+        seguro(() => {
+          if (fadaSaindo) som.stop();
+        });
+      },
+      onloaderror: (_id, erro) => {
+        avisar(erro);
+      },
+    });
+    return som;
+  }
+
   function criarMusica1(): Som {
     const som: Som = new Howl({
       src: [ARQUIVOS.musica1],
@@ -132,6 +176,13 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
       onfade: () => {
         seguro(() => {
           if (musica1Saindo) som.stop();
+        });
+      },
+      // Quando ela acaba sem a música 2 ter tomado o lugar, o ambiente volta ao volume normal.
+      onend: () => {
+        seguro(() => {
+          musica1Terminou = true;
+          if (!musica1Saindo) mudarAmbiente(volumes.ambiente, transicoes.retornoDoAmbiente);
         });
       },
       onloaderror: (_id, erro) => {
@@ -154,6 +205,7 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
         });
       },
       onloaderror: (_id, erro) => {
+        musica2Falhou = true;
         avisar(erro);
       },
     });
@@ -173,6 +225,7 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
         volumeDoAmbiente = volumes.ambiente;
         ambiente = criarAmbiente();
         for (const nome of NOMES_DE_EFEITO) efeitos[nome] = criarEfeito(nome);
+        fada = criarFada();
         musica1 = criarMusica1();
         musica2 = criarMusica2();
       });
@@ -184,17 +237,36 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
       });
     },
 
-    musica1() {
+    iniciarFada() {
       seguro(() => {
-        if (!musica1 || idMusica1 !== undefined) return;
-        mudarAmbiente(volumes.ambienteSobMusica, transicoes.ambienteSobMusica);
-        idMusica1 = entrarNoTrecho(musica1, trechos.inicio1);
+        if (!fada || fadaIniciada) return;
+        fadaIniciada = true;
+        fada.play();
+        // Se a fada ainda carrega, o `play` e o `fade` ficam na fila do Howler e ela entra quando chegar.
+        fada.fade(0, volumes.fada, emMilissegundos(transicoes.entradaDaFada));
       });
+    },
+
+    encerrarFada() {
+      seguro(() => {
+        if (!fada || !fadaIniciada || fadaSaindo) return;
+        fadaSaindo = true;
+        fada.fade(fada.volume(), 0, emMilissegundos(transicoes.saidaDaFada));
+      });
+    },
+
+    musica1() {
+      seguro(iniciarMusica1);
     },
 
     musica2() {
       seguro(() => {
         if (!musica2 || idMusica2 !== undefined) return;
+        // Sem a música 2 (o arquivo não existe ou não carregou), a música 1 segue tocando, ou começa agora (pulo).
+        if (musica2Falhou) {
+          iniciarMusica1();
+          return;
+        }
         mudarAmbiente(volumes.ambienteSobMusica, transicoes.ambienteSobMusica);
         if (musica1) {
           musica1Saindo = true;
@@ -202,7 +274,7 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
           // e ela não chega a soar: só a música 2 toca.
           musica1.fade(musica1.volume(), 0, emMilissegundos(transicoes.musica));
         }
-        idMusica2 = entrarNoTrecho(musica2, trechos.inicio2);
+        idMusica2 = entrarNoTrecho(musica2, trechos.inicio2, transicoes.musica);
       });
     },
 
@@ -217,7 +289,8 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
       seguro(() => {
         Howler.mute(true);
         const tocando: ('musica1' | 'musica2')[] = [];
-        if (musica1 && idMusica1 !== undefined && !musica1Saindo) tocando.push('musica1');
+        if (musica1 && idMusica1 !== undefined && !musica1Saindo && !musica1Terminou)
+          tocando.push('musica1');
         if (musica2 && idMusica2 !== undefined && !musica2Terminou) tocando.push('musica2');
         for (const nome of tocando) {
           if (nome === 'musica1') musica1?.pause(idMusica1);
@@ -241,7 +314,7 @@ export function criarAudioHowler(dependencias: DependenciasDoAudioHowler): Audio
     parar() {
       seguro(() => {
         Howler.mute(true);
-        for (const som of [ambiente, musica1, musica2]) som?.stop();
+        for (const som of [ambiente, fada, musica1, musica2]) som?.stop();
       });
     },
   };

@@ -11,30 +11,35 @@ const config = {
   duracoes: { limiteCritico: 8, limiteSeguranca: 20, novaTentativaDeImagem: 1 },
   imagens: {
     ceu: { vertical: 'ceu-v', horizontal: 'ceu-h' },
-    lago: { vertical: 'lago-v', horizontal: 'lago-h' },
-    arvores: { vertical: 'arvores-v', horizontal: 'arvores-h' },
-    primeiroPlano: { vertical: 'frente-v', horizontal: 'frente-h' },
+    lago: { vertical: 'lago-v', horizontal: 'lago-h', computador: 'lago-c' },
+    arvores: { vertical: 'arvores-v', horizontal: 'arvores-h', computador: 'arvores-c' },
+    primeiroPlano: { vertical: 'frente-v', horizontal: 'frente-h', computador: 'frente-c' },
     bauFechado: 'bau-fechado',
     chave: 'chave',
     bauAberto: 'bau-aberto',
     petalaA: 'petala-a',
     petalaB: 'petala-b',
     petalaC: 'petala-c',
-    cursorChave: 'cursor-chave',
-    balaoA: 'balao-a',
-    balaoB: 'balao-b',
-    balaoC: 'balao-c',
     envelopeFechado: 'envelope-fechado',
     envelopeAberto: 'envelope-aberto',
     selo: 'selo',
     papelCarta: 'papel-carta',
+    papelMiolo: 'papel-miolo',
+    chao: { vertical: 'chao-v', horizontal: 'chao-h' },
     casal: 'casal',
+    folhaA: 'folha-a',
+    folhaB: 'folha-b',
+    folhaC: 'folha-c',
+    esquiloEncolhido: 'esquilo-encolhido',
+    esquiloEsticado: 'esquilo-esticado',
     ceuPorDoSol: { vertical: 'sol-v', horizontal: 'sol-h' },
   },
 } as unknown as Pick<ConfigConvite, 'duracoes' | 'imagens'>;
 
 /** Imagens falsas: cada download fica pendente até o teste liberar; `falhasPorUrl` diz quantas vezes cada um falha. */
-function cenario(opcoes: { falhasPorUrl?: Record<string, number>; fotos?: string[] } = {}) {
+function cenario(
+  opcoes: { falhasPorUrl?: Record<string, number>; fotos?: string[]; computador?: boolean } = {},
+) {
   const pendentes: { url: string; prioridade: PrioridadeDeImagem; liberar: () => void }[] = [];
   const chamadas: string[] = [];
   const falhasRestantes = new Map(Object.entries(opcoes.falhasPorUrl ?? {}));
@@ -80,7 +85,13 @@ function cenario(opcoes: { falhasPorUrl?: Record<string, number>; fotos?: string
   }
 
   return {
-    carregamento: criarCarregamento({ imagens, temporizador, config, fotos: opcoes.fotos ?? [] }),
+    carregamento: criarCarregamento({
+      imagens,
+      temporizador,
+      config,
+      fotos: opcoes.fotos ?? [],
+      computador: opcoes.computador ?? false,
+    }),
     pendentes,
     chamadas,
     liberarTodos,
@@ -101,6 +112,35 @@ describe('criarCarregamento', () => {
       );
       expect(pendentes.every((p) => p.prioridade === 'alta')).toBe(true);
       expect(pendentes).toHaveLength(CHAVES_CRITICAS.length);
+    });
+
+    it('no computador, na horizontal, baixa a pintura mestre (variante do computador) no lugar das camadas (09/11/2026)', async () => {
+      const { carregamento, pendentes } = cenario({ computador: true });
+
+      void carregamento.criticoPronto('horizontal');
+      await Promise.resolve();
+
+      expect(pendentes.map((p) => p.url).sort()).toEqual(
+        ['ceu-h', 'lago-c', 'arvores-c', 'frente-c', 'bau-fechado', 'chave'].sort(),
+      );
+    });
+
+    it('no computador, numa janela de pé, baixa a mesma pintura mestre 16:9 (a janela estreita não vira o celular); sem o computador, cada orientação tem a sua', async () => {
+      const dePe = cenario({ computador: true });
+      const celularDePe = cenario({ computador: false });
+      const celularDeitado = cenario({ computador: false });
+
+      void dePe.carregamento.criticoPronto('vertical');
+      void celularDePe.carregamento.criticoPronto('vertical');
+      void celularDeitado.carregamento.criticoPronto('horizontal');
+      await Promise.resolve();
+
+      expect(dePe.pendentes.map((p) => p.url)).toContain('lago-c');
+      expect(dePe.pendentes.map((p) => p.url)).not.toContain('lago-v');
+      expect(celularDePe.pendentes.map((p) => p.url)).toContain('lago-v');
+      expect(celularDePe.pendentes.map((p) => p.url)).not.toContain('lago-c');
+      expect(celularDeitado.pendentes.map((p) => p.url)).toContain('lago-h');
+      expect(celularDeitado.pendentes.map((p) => p.url)).not.toContain('lago-c');
     });
 
     it('criticoPronto só resolve quando todas terminam, sem ausentes se tudo deu certo', async () => {
@@ -218,28 +258,28 @@ describe('criarCarregamento', () => {
 
       carregamento.secundario('horizontal');
       await Promise.resolve();
-      // Primeiro grupo: baú aberto, pétalas, cursor da chave e balões; o céu do pôr do sol espera.
-      expect(chamadas).toEqual([
-        'bau-aberto',
-        'petala-a',
-        'petala-b',
-        'petala-c',
-        'cursor-chave',
-        'balao-a',
-        'balao-b',
-        'balao-c',
-      ]);
+      // Primeiro grupo: baú aberto e pétalas; o céu do pôr do sol espera.
+      expect(chamadas).toEqual(['bau-aberto', 'petala-a', 'petala-b', 'petala-c']);
       expect(pendentes[0]?.prioridade).toBe('baixa');
 
-      // Cada grupo só começa quando o anterior termina: céu do pôr do sol, depois carta, depois casal.
+      // Cada grupo só começa quando o anterior termina: a cena viva (folhas e esquilo, épico 13), o céu do pôr do
+      // sol, depois a carta, depois o casal.
       const aposOGrupo = async (esperado: string[]) => {
         for (const pendente of pendentes.splice(0)) pendente.liberar();
         await vi.waitFor(() => {
           expect(chamadas.slice(-esperado.length)).toEqual(esperado);
         });
       };
+      await aposOGrupo(['folha-a', 'folha-b', 'folha-c', 'esquilo-encolhido', 'esquilo-esticado']);
       await aposOGrupo(['sol-h']);
-      await aposOGrupo(['envelope-fechado', 'envelope-aberto', 'selo', 'papel-carta']);
+      await aposOGrupo([
+        'envelope-fechado',
+        'envelope-aberto',
+        'selo',
+        'papel-carta',
+        'papel-miolo',
+        'chao-h',
+      ]);
       await aposOGrupo(['casal']);
     });
 
@@ -255,10 +295,6 @@ describe('criarCarregamento', () => {
         'petala-a',
         'petala-b',
         'petala-c',
-        'cursor-chave',
-        'balao-a',
-        'balao-b',
-        'balao-c',
         'foto-1',
         'foto-2',
       ]);

@@ -8,6 +8,12 @@
       "port": 5173
     },
     {
+      "name": "dev-rede",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev:rede"],
+      "port": 5173
+    },
+    {
       "name": "preview",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["preview"],

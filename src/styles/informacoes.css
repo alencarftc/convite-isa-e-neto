@@ -18,6 +18,11 @@
   box-shadow: var(--sombra-cartao);
 }
 
+/* Computador (09/11/2026): os cartões acompanham a carta, mais larga (carta.css, `.conteudo--computador`). */
+.conteudo--computador .cartao {
+  width: min(92vw, 640px);
+}
+
 .cartao--contagem p,
 .cartao--agradecimento p {
   margin: 0;
@@ -53,6 +58,89 @@
 .cartao--mensagem :last-child,
 .cartao--traje :last-child {
   margin-bottom: 0;
+}
+
+/*
+ * O carrossel de fotos do casal (08/11/2026): um quadro 4:5 em que as fotos trocam sozinhas, cada uma inteira sobre um fundo
+ * desfocado dela mesma, com filete dourado e a sombra dos cartões; abaixo, um pontinho por foto (cada um com a área de toque
+ * de 44 px). A rolagem vertical da página segue livre sobre o quadro. Só `transform` e `opacity` se animam.
+ */
+.cartao--galeria {
+  padding: var(--espaco-3);
+}
+
+.carrossel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.carrossel__quadro {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  touch-action: pan-y;
+  background: var(--cor-dourado-15);
+  border: 1px solid var(--cor-dourado-55);
+  border-radius: 14px;
+  box-shadow: var(--sombra-cartao);
+}
+
+.carrossel__slide {
+  position: absolute;
+  inset: 0;
+  will-change: transform, opacity;
+}
+
+.carrossel__fundo,
+.carrossel__foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+}
+
+.carrossel__fundo {
+  object-fit: cover;
+  filter: blur(18px) saturate(0.9);
+  opacity: 0.85;
+  transform: scale(1.15);
+}
+
+.carrossel__foto {
+  object-fit: contain;
+  will-change: transform;
+}
+
+.carrossel__pontos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.carrossel__ponto {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.carrossel__ponto-marca {
+  width: 9px;
+  height: 9px;
+  background: var(--cor-dourado-55);
+  border-radius: 50%;
+}
+
+.carrossel__ponto[aria-current='true'] .carrossel__ponto-marca {
+  background: var(--cor-dourado);
+  transform: scale(1.4);
 }
 
 .mensagem__verso {

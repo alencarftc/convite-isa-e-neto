@@ -47,4 +47,32 @@ describe('catálogo de imagens', () => {
     expect(urlDaImagem(arte, 'horizontal')).toBe('a-16x9.webp');
     expect(urlsDaImagem(arte)).toEqual(['a-9x16.webp', 'a-16x9.webp']);
   });
+
+  describe('variante do computador (09/11/2026)', () => {
+    const arte = {
+      vertical: 'a-9x16.webp',
+      horizontal: 'a-16x9.webp',
+      computador: 'a-mestre.webp',
+    };
+
+    it('quem usa mouse a escolhe em qualquer orientação (a janela estreita não vira o celular); o toque segue a orientação', () => {
+      expect(urlDaImagem(arte, 'horizontal', true)).toBe('a-mestre.webp');
+      expect(urlDaImagem(arte, 'vertical', true)).toBe('a-mestre.webp');
+      expect(urlDaImagem(arte, 'horizontal', false)).toBe('a-16x9.webp');
+      expect(urlDaImagem(arte, 'horizontal')).toBe('a-16x9.webp');
+      expect(urlDaImagem(arte, 'vertical')).toBe('a-9x16.webp');
+    });
+
+    it('arte sem a variante usa a horizontal no computador, em qualquer orientação; a única ignora o pedido', () => {
+      const semVariante = { vertical: 'v.webp', horizontal: 'h.webp' };
+
+      expect(urlDaImagem(semVariante, 'horizontal', true)).toBe('h.webp');
+      expect(urlDaImagem(semVariante, 'vertical', true)).toBe('h.webp');
+      expect(urlDaImagem('a.webp', 'horizontal', true)).toBe('a.webp');
+    });
+
+    it('todos os arquivos da arte incluem o do computador, para o peso e a existência serem conferidos', () => {
+      expect(urlsDaImagem(arte)).toEqual(['a-9x16.webp', 'a-16x9.webp', 'a-mestre.webp']);
+    });
+  });
 });

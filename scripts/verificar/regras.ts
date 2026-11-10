@@ -158,7 +158,11 @@ export function encontrarUrlsExternas(
   );
 }
 
-/** Arte provisória (SVG gerado por `pnpm arte:provisoria`) não pode ir para o ar (docs/decisions/0006). */
+/**
+ * Arte provisória (SVG gerado por `pnpm arte:provisoria`) não pode ir para o ar (docs/decisions/0006), e as fotos
+ * dos balões, que saíram em 31/10/2026 enquanto as do casal não chegam, continuam pendentes: sem foto o balão
+ * mostra só a frase dentro da nuvem, mas a publicação espera as fotos.
+ */
 export function validarArteDefinitiva(
   config: ConfigConvite,
   conteudo: Pick<ConteudoConvite, 'baloes'>,
@@ -172,34 +176,52 @@ export function validarArteDefinitiva(
       url: balao.foto,
     })),
   ];
-  return arquivos
+  const provisorias = arquivos
     .filter(({ url }) => url.includes('/provisorio/'))
     .map(({ origem, url }) => ({
       regra: 'arte-provisoria',
       mensagem: `${origem} ainda aponta para a arte provisória: "${url}"`,
     }));
+  const semFoto = conteudo.baloes.flatMap((balao, indice) =>
+    balao.foto === ''
+      ? [
+          {
+            regra: 'foto-pendente',
+            mensagem: `content.baloes[${String(indice)}].foto está vazia: as fotos do casal ainda não chegaram`,
+          },
+        ]
+      : [],
+  );
+  return [...provisorias, ...semFoto];
 }
 
 /** Todo arquivo citado precisa existir em `public/` (imagens do manifesto e os MP3). */
 export function validarArquivos(
   config: ConfigConvite,
-  conteudo: Pick<ConteudoConvite, 'baloes'>,
+  conteudo: Pick<ConteudoConvite, 'baloes' | 'galeria'>,
   arquivosDeAudio: readonly string[],
   existe: (caminho: string) => boolean,
 ): Problema[] {
   const imagens = Object.entries(config.imagens).flatMap(([chave, arte]) =>
     urlsDaImagem(arte).map((url) => ({ origem: `config.imagens.${chave}`, url })),
   );
-  const fotos = conteudo.baloes.map((balao, indice) => ({
-    origem: `content.baloes[${String(indice)}].foto`,
-    url: balao.foto,
+  // Balão sem foto (as do casal ainda não chegaram) não cita arquivo: quem acusa é `validarArteDefinitiva`.
+  const fotos = conteudo.baloes
+    .map((balao, indice) => ({
+      origem: `content.baloes[${String(indice)}].foto`,
+      url: balao.foto,
+    }))
+    .filter(({ url }) => url !== '');
+  const galeria = conteudo.galeria.map((foto, indice) => ({
+    origem: `content.galeria[${String(indice)}].foto`,
+    url: foto.foto,
   }));
   const audios = arquivosDeAudio.map((url) => ({ origem: 'áudio', url }));
   const publicacao = (['imagemDaPrevia', 'icone32', 'iconeApple'] as const).map((chave) => ({
     origem: `config.publicacao.${chave}`,
     url: config.publicacao[chave],
   }));
-  return [...imagens, ...fotos, ...audios, ...publicacao]
+  return [...imagens, ...fotos, ...galeria, ...audios, ...publicacao]
     .filter(({ url }) => !existe(url))
     .map(({ origem, url }) => ({
       regra: 'arquivo-ausente',

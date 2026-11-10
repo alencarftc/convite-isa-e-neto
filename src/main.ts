@@ -2,19 +2,9 @@
  * Raiz de composição: o único lugar que conhece todas as camadas. Instancia os
  * adaptadores de infraestrutura e os entrega aos casos de uso e à apresentação.
  */
-import './styles/tokens.css';
-import './styles/fontes.css';
-import './styles/base.css';
-import './styles/bau.css';
-import './styles/bosque.css';
-import './styles/carta.css';
-import './styles/entrada.css';
-import './styles/historia.css';
-import './styles/historia-estatica.css';
-import './styles/informacoes.css';
-import './styles/botao-som.css';
-import './styles/botao-pular.css';
+// Os estilos vêm de `src/styles/index.css`, ligado no <head> do `index.html` (sem FOUC; ver o próprio arquivo).
 
+import gsap from 'gsap';
 import { Howl, Howler } from 'howler';
 
 import { criarBarramento } from '@/application/barramento-eventos';
@@ -53,6 +43,19 @@ import { criarCenaEntrada } from '@/presentation/entrada/cena-entrada';
 import { refletirFaseNoCorpo } from '@/presentation/fase-no-corpo';
 import { criarCenaHistoria } from '@/presentation/historia/cena-historia';
 import { criarCenaInformacoes } from '@/presentation/informacoes/cena-informacoes';
+import { criarAgua } from '@/presentation/vida/agua';
+import { criarCenaViva } from '@/presentation/vida/cena-viva';
+import { criarEsquilo } from '@/presentation/vida/esquilo';
+import { criarFolhas } from '@/presentation/vida/folhas';
+import { criarPassaros } from '@/presentation/vida/passaros';
+import { criarPetalasDoConvite } from '@/presentation/vida/petalas-do-convite';
+
+// O convite sempre começa do alto: o navegador não restaura a rolagem de uma visita anterior ao recarregar (08/11/2026).
+try {
+  window.history.scrollRestoration = 'manual';
+} catch {
+  // Sem a API (navegador antigo): a carta já desfaz sozinha a rolagem restaurada.
+}
 
 const raiz = document.querySelector<HTMLElement>('#app');
 if (!raiz) throw new Error('Elemento #app não encontrado no index.html');
@@ -112,10 +115,42 @@ const carregamento = criarCarregamento({
   imagens: criarCarregadorDeImagens(),
   temporizador: criarTemporizador(),
   config,
-  fotos: content.baloes.map((balao) => balao.foto),
+  fotos: content.baloes.map((balao) => balao.foto).filter((foto) => foto !== ''),
+  computador: !estado.toque,
 });
 
 const cartaEConvite = criarCartaEConvite({ raiz, conteudo: content, config, estado, eventos });
+
+const capacidades = criarCapacidadesDoNavegador(window);
+// Cena viva (épico 13, SPEC-18): movimentos de ambiente sobre as camadas. Não é uma etapa: ouve o barramento,
+// como o áudio. A SPEC-22 (casal) acrescenta o seu elemento à lista.
+const cenaViva = criarCenaViva({
+  raiz,
+  config,
+  dicas: content.dicas,
+  estado,
+  eventos,
+  capacidades,
+  elementos: [
+    criarAgua({ raiz, config, estado, capacidades, ticker: gsap.ticker }),
+    criarPassaros({ raiz, config }),
+    criarFolhas({ raiz, config, estado }),
+    criarEsquilo({ raiz, config, estado }),
+  ],
+  ticker: gsap.ticker,
+  avisar: (erro) => {
+    console.warn('[convite] cena viva: elemento parado', erro);
+  },
+});
+
+// As pétalas azuis do convite aberto caem devagar e sem parar, como as folhas (08/11/2026).
+const petalasDoConvite = criarPetalasDoConvite({
+  corpo: document.body,
+  config,
+  estado,
+  eventos,
+  capacidades,
+});
 
 // Cada spec de cena (SPEC-03 a SPEC-06) acrescenta a sua aqui, na ordem do caminho.
 const etapas: readonly EtapaDoConvite[] = [
@@ -155,8 +190,9 @@ const orquestrador = criarOrquestrador({
           relogio,
           obterInformacoes: criarObterInformacoes({ relogio, config, conteudo: content }),
           animar: !estado.reduzido,
+          reduzido: estado.reduzido,
           // "Salvar na agenda" baixa o .ics onde o navegador baixa; senão, abre o Google Agenda (SPEC-17).
-          baixaArquivos: criarCapacidadesDoNavegador(window).baixaArquivos(),
+          baixaArquivos: capacidades.baixaArquivos(),
         },
         // As informações rolam abaixo da carta, dentro do `.conteudo` criado por ela (SPEC-06).
         () => raiz.querySelector<HTMLElement>('.conteudo') ?? raiz,
@@ -214,6 +250,8 @@ import.meta.hot?.dispose(() => {
   removerAtalho();
   removerBotaoPular();
   pararDeOuvirSaidaEVolta();
+  cenaViva.destruir();
+  petalasDoConvite.destruir();
   removerBotaoSom();
   audioDoConvite.destruir();
   orquestrador.destruir();

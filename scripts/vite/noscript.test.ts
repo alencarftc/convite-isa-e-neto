@@ -9,6 +9,21 @@ import { gerarNoscript, MARCADOR_DO_NOSCRIPT } from './noscript';
 
 const html = gerarNoscript(content, config);
 
+/**
+ * O conteúdo com as fotos dos balões preenchidas: as do casal ainda não chegaram (as provisórias saíram em
+ * 31/10/2026), e estes testes cobrem o tratamento da foto para quando chegarem.
+ */
+const comFotos = {
+  ...content,
+  baloes: content.baloes.map((balao, indice) => ({
+    ...balao,
+    foto: `photos/foto-${String(indice + 1)}.jpg`,
+    alt: `Descrição da foto ${String(indice + 1)}`,
+    foco: '50% 35%',
+  })),
+};
+const htmlComFotos = gerarNoscript(comFotos, config);
+
 /** Todos os textos (folhas) de um objeto, na ordem do arquivo. */
 function textosDe(valor: unknown): string[] {
   if (typeof valor === 'string') return [valor];
@@ -30,25 +45,34 @@ describe('gerarNoscript (SPEC-09, RF-09.9)', () => {
   });
 
   it('traz as cinco fotos e frases da história, na ordem dos balões, entre a carta e o traje (CT-13.6)', () => {
-    const posicoes = content.baloes.map((balao) => {
-      expect(html).toContain(`<img src="${escapar(balao.foto)}" alt="${escapar(balao.alt)}"`);
-      expect(html).toContain(`<figcaption>${escapar(balao.frase)}</figcaption>`);
-      return html.indexOf(escapar(balao.frase));
+    const posicoes = comFotos.baloes.map((balao) => {
+      expect(htmlComFotos).toContain(
+        `<img src="${escapar(balao.foto)}" alt="${escapar(balao.alt)}"`,
+      );
+      expect(htmlComFotos).toContain(`<figcaption>${escapar(balao.frase)}</figcaption>`);
+      return htmlComFotos.indexOf(escapar(balao.frase));
     });
 
     expect([...posicoes].sort((a, b) => a - b)).toEqual(posicoes);
-    expect(posicoes[0]).toBeGreaterThan(html.indexOf(escapar(content.carta.assinatura)));
-    expect(posicoes[4]).toBeLessThan(html.indexOf(escapar(content.rotulos.traje)));
+    expect(posicoes[0]).toBeGreaterThan(htmlComFotos.indexOf(escapar(content.carta.assinatura)));
+    expect(posicoes[4]).toBeLessThan(htmlComFotos.indexOf(escapar(content.rotulos.traje)));
+  });
+
+  it('sem fotos (as do casal ainda não chegaram), a história traz só as frases, sem imagem vazia', () => {
+    for (const balao of content.baloes) {
+      expect(html).toContain(`<figcaption>${escapar(balao.frase)}</figcaption>`);
+    }
+    expect(html).not.toMatch(/<img /);
   });
 
   it('as fotos da história carregam sob demanda e mantêm o recorte dos balões (RF-13.5, RF-13.4)', () => {
-    const fotos = [...html.matchAll(/<img [^>]*>/g)].map(([tag]) => tag);
+    const fotos = [...htmlComFotos.matchAll(/<img [^>]*>/g)].map(([tag]) => tag);
 
-    expect(fotos).toHaveLength(content.baloes.length);
+    expect(fotos).toHaveLength(comFotos.baloes.length);
     for (const [indice, tag] of fotos.entries()) {
       expect(tag).toContain('loading="lazy"');
       expect(tag).toContain('decoding="async"');
-      expect(tag).toContain(`object-position: ${content.baloes[indice]?.foco ?? ''}`);
+      expect(tag).toContain(`object-position: ${comFotos.baloes[indice]?.foco ?? ''}`);
     }
   });
 

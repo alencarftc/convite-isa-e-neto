@@ -1,0 +1,23 @@
+/*
+ * Selo de cera inteiro (SPEC-06, SPEC-16), na entrada e no envelope: uma imagem só, com as siglas em relevo na
+ * arte. Quem usa define o tamanho e a posição do selo. Só `transform` e `opacity` se animam.
+ */
+.selo__imagem {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Clarão que sai de trás do selo quando ele se solta (na entrada e no envelope). */
+.selo__brilho {
+  position: absolute;
+  inset: -90%;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    var(--cor-aura),
+    var(--cor-dourado-55) 38%,
+    transparent
+  );
+  opacity: 0;
+}

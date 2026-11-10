@@ -12,6 +12,7 @@ import { criarCarregamentoFalso } from './suporte/carregamento-falso';
 import { configRapida } from './suporte/config-rapida';
 import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
 import { montarIndexHtml } from './suporte/index-html';
+import { criarRelogioManual } from './suporte/relogio-gsap';
 
 const config = configRapida(configReal);
 
@@ -25,8 +26,10 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}) {
   const { carregamento } = criarCarregamentoFalso(config, { instantaneo: true });
   const eventos = criarBarramento<EventosConvite>();
   const ordem: string[] = [];
+  eventos.on('bau:tocado', () => ordem.push('tocou'));
   eventos.on('bau:girou', () => ordem.push('girou'));
   eventos.on('bau:abriu', () => ordem.push('abriu'));
+  eventos.on('bau:aberto', () => ordem.push('aberto'));
 
   const bosque = criarCenaBosque({ raiz, config, estado, eventos, carregamento });
   const cena = criarCenaBau({ raiz, conteudo: content, config, estado, eventos });
@@ -61,21 +64,47 @@ afterEach(() => {
 
 describe('baú e chave (SPEC-04)', () => {
   describe('estrutura', () => {
-    it('monta aura, baú fechado e aberto, luz, chave, botão e dica dentro do espaço do bosque', () => {
+    it('monta sombra, aura e realce, baú fechado e aberto, luz, botão e dica dentro do espaço do bosque, sem contorno, anel nem pontos de luz', () => {
       const { el } = montar();
 
       expect(el('.cena .bau .bau__corpo')).toBeTruthy();
       for (const seletor of [
+        '.bau__sombra',
         '.bau__aura',
+        '.bau__aura--realce',
         '.bau__fechado',
         '.bau__aberto',
         '.bau__luz',
-        '.bau__chave .bau__chave-imagem',
         '.bau__botao',
         '.bau__dica',
       ]) {
         expect(el(`.bau ${seletor}`)).toBeTruthy();
       }
+      // Só a aura amarela e o realce do mouse ficam em volta do baú (31/10/2026).
+      for (const removido of [
+        '.bau__contorno',
+        '.bau__onda',
+        '.bau__brilhantes',
+        '.bau__brilhante',
+      ]) {
+        expect(document.querySelector(removido), removido).toBeNull();
+      }
+    });
+
+    it('a chave mora no inventário, na raiz, fora da cena e do baú, escondido dos leitores de tela (ADR-0012)', () => {
+      const { el } = montar();
+
+      expect(el('#app > .inventario .inventario__moldura')).toBeTruthy();
+      expect(el('.inventario .bau__chave .bau__chave-imagem')).toBeTruthy();
+      expect(el('.inventario').getAttribute('aria-hidden')).toBe('true');
+      expect(document.querySelector('.cena .bau__chave')).toBeNull();
+      expect(document.querySelector('.inventario button, .inventario a')).toBeNull();
+    });
+
+    it('a chave não aparece antes do toque de entrada: o inventário nasce invisível', () => {
+      const { opacidade } = montar();
+
+      expect(opacidade('.inventario')).toBe(0);
     });
 
     it('o botão tem nome acessível, nasce desabilitado e a dica é uma região anunciada (RF-04.4, CA-09.3)', () => {
@@ -156,14 +185,19 @@ describe('baú e chave (SPEC-04)', () => {
   });
 
   describe('espera pelo toque', () => {
-    it('habilita o botão só quando o baú começa a esperar, e a chave flutua no celular (RF-04.3, CT-04.2)', async () => {
-      const { cena, botao, opacidade } = montar({ toque: true });
-      void cena.run();
+    it('habilita o botão e o inventário sobe com a chave, no celular e no computador (RF-04.3, CT-04.2)', async () => {
+      for (const toque of [true, false]) {
+        document.body.innerHTML = '';
+        const { cena, botao, opacidade } = montar({ toque });
+        void cena.run();
 
-      expect(botao().disabled).toBe(false);
-      await vi.waitFor(() => {
+        expect(botao().disabled).toBe(false);
+        await vi.waitFor(() => {
+          expect(opacidade('.inventario')).toBe(1);
+        });
         expect(opacidade('.bau__chave')).toBe(1);
-      });
+        cena.destroy();
+      }
     });
 
     it('o foco vai para o botão do baú quando ele passa a aceitar o toque (SPEC-09, RF-09.6)', () => {
@@ -174,58 +208,89 @@ describe('baú e chave (SPEC-04)', () => {
       expect(document.activeElement).toBe(botao());
     });
 
-    it('no computador, a chave é o cursor: a imagem fica oculta e o cursor personalizado liga (RF-04.2)', () => {
-      const { cena, opacidade } = montar({ toque: false });
-      void cena.run();
-
-      expect(opacidade('.bau__chave')).toBe(0);
-      expect(document.body.style.getPropertyValue('--cursor-chave')).toContain('cursor-chave');
-      expect(document.body.style.getPropertyValue('--cursor-chave')).toMatch(/pointer$/);
-    });
-
-    it('no celular não usa cursor de chave', () => {
-      const { cena } = montar({ toque: true });
+    it('não há mais chave como cursor no computador: o cursor continua o do sistema (ADR-0012)', () => {
+      const { cena } = montar({ toque: false });
       void cena.run();
 
       expect(document.body.style.getPropertyValue('--cursor-chave')).toBe('');
+      expect(config.imagens).not.toHaveProperty('cursorChave');
     });
 
-    it('notebook com tela de toque: cursor de chave e chave flutuante ao mesmo tempo (caso de borda)', async () => {
-      const { cena, opacidade } = montar({ toque: false, algumToque: true });
+    it('a aura amarela respira entre o mínimo e o máximo enquanto o baú espera', async () => {
+      const { cena, opacidade } = montar({ toque: true });
       void cena.run();
 
-      expect(document.body.style.getPropertyValue('--cursor-chave')).not.toBe('');
       await vi.waitFor(() => {
-        expect(opacidade('.bau__chave')).toBe(1);
+        expect(opacidade('.bau__aura')).toBeGreaterThanOrEqual(config.bau.aura.minimo - 1e-6);
       });
+      expect(opacidade('.bau__aura')).toBeLessThanOrEqual(config.bau.aura.maximo + 1e-6);
     });
 
-    it('a dica aparece depois de 1,5 s, com o texto do computador ou do celular (RF-04.5)', async () => {
+    it('a dica diz para usar a chave no baú, com o texto do computador ou do celular (RF-04.5)', async () => {
       const celular = montar({ toque: true });
       void celular.cena.run();
       expect(celular.el('.bau__dica').textContent).toBe('');
       await vi.waitFor(() => {
-        expect(celular.el('.bau__dica').textContent).toBe('Toque na chave');
+        expect(celular.el('.bau__dica').textContent).toBe('Toque no baú para usar a chave');
       });
 
       const computador = montar({ toque: false });
       void computador.cena.run();
       await vi.waitFor(() => {
-        expect(computador.el('.bau__dica').textContent).toBe('Use a chave para abrir');
+        expect(computador.el('.bau__dica').textContent).toBe('Clique no baú para usar a chave');
       });
     });
 
-    it('o reforço repete a dica no máximo 3 vezes e depois para (CT-04.5)', async () => {
-      const { cena, el } = montar({ toque: true });
-      let mudancas = 0;
-      new MutationObserver(() => (mudancas += 1)).observe(el('.bau__dica'), { childList: true });
-      void cena.run();
+    it('a dica aparece por 3 s, some por 5 s e volta, e assim por diante, até o baú ser tocado (08/11/2026)', () => {
+      // Relógio manual: o ciclo dura 8 s de relógio do GSAP, e a máquina ocupada estragaria uma medida em tempo real.
+      const relogio = criarRelogioManual();
+      try {
+        const { cena, el, opacidade } = montar({ toque: true });
+        const { dicaChave } = config.duracoes;
+        const { visivel, oculta } = config.bau.dica;
+        const { inventarioAparece } = config.bau;
+        void cena.run();
+        const ir = (segundo: number) => {
+          relogio.avancar(segundo, 0.002);
+        };
 
-      await esperar(900); // dicaChave 0,05 + 3 × reforcoDica 0,15, com folga
+        ir(dicaChave + inventarioAparece + 0.01);
+        expect(el('.bau__dica').textContent).toBe('Toque no baú para usar a chave');
+        expect(opacidade('.bau__dica')).toBeCloseTo(1, 1); // à vista
 
-      expect(mudancas).toBe(1 + config.bau.reforco.maximo);
-      await esperar(400);
-      expect(mudancas).toBe(1 + config.bau.reforco.maximo);
+        ir(visivel - inventarioAparece - 0.01 + 0.01);
+        expect(opacidade('.bau__dica')).toBe(0); // passados os 3 s, apagada
+
+        ir(oculta / 2);
+        expect(opacidade('.bau__dica')).toBe(0); // e continua apagada durante os 5 s
+
+        ir(oculta / 2 + inventarioAparece + 0.02);
+        expect(opacidade('.bau__dica')).toBeCloseTo(1, 1); // e volta
+
+        ir(visivel + oculta); // outra volta inteira: ela não para
+        expect(opacidade('.bau__dica')).toBeCloseTo(1, 1);
+        cena.skip();
+      } finally {
+        relogio.restaurar();
+      }
+    });
+
+    it('o texto da dica só é escrito uma vez: a região aria-live não repete o anúncio a cada volta', () => {
+      const relogio = criarRelogioManual();
+      try {
+        const { cena, el } = montar({ toque: true });
+        let mudancas = 0;
+        new MutationObserver(() => (mudancas += 1)).observe(el('.bau__dica'), { childList: true });
+        void cena.run();
+
+        relogio.avancar(3 * (config.bau.dica.visivel + config.bau.dica.oculta), 0.005);
+
+        expect(el('.bau__dica').textContent).toBe('Toque no baú para usar a chave');
+        cena.skip();
+        expect(mudancas).toBeLessThanOrEqual(1);
+      } finally {
+        relogio.restaurar();
+      }
     });
 
     it('o toque fora do baú não abre: só pulsa (CA-04.2.3)', async () => {
@@ -239,22 +304,22 @@ describe('baú e chave (SPEC-04)', () => {
       expect(estado.fase).not.toBe('bau');
     });
 
-    it('o mouse sobre o botão acende a aura e, ao sair, apaga (CA-04.1.2)', async () => {
+    it('o mouse sobre o botão acende o realce da aura e, ao sair, apaga (CA-04.1.2)', async () => {
       const { cena, botao, opacidade } = montar({ toque: false });
       void cena.run();
 
-      // A aura é um tween de verdade: com a máquina ocupada (o conjunto todo roda junto) ele atrasa.
+      // O realce é um tween de verdade: com a máquina ocupada (o conjunto todo roda junto) ele atrasa.
       botao().dispatchEvent(new Event('pointerenter'));
       await vi.waitFor(
         () => {
-          expect(opacidade('.bau__aura')).toBe(1);
+          expect(opacidade('.bau__aura--realce')).toBe(1);
         },
         { timeout: 4000 },
       );
       botao().dispatchEvent(new Event('pointerleave'));
       await vi.waitFor(
         () => {
-          expect(opacidade('.bau__aura')).toBe(0);
+          expect(opacidade('.bau__aura--realce')).toBe(0);
         },
         { timeout: 4000 },
       );
@@ -271,10 +336,20 @@ describe('baú e chave (SPEC-04)', () => {
       expect(botao().disabled).toBe(true);
       await execucao;
 
-      expect(ordem).toEqual(['girou', 'abriu']);
+      expect(ordem).toEqual(['tocou', 'girou', 'abriu', 'aberto']);
     });
 
-    it('termina com a tampa aberta, a luz assentada em 0,6 e sem chave nem dica', async () => {
+    it('tocar na chave do inventário também usa a chave', async () => {
+      const { cena, el, ordem } = montar({ toque: true });
+      const execucao = cena.run();
+
+      el('.inventario__moldura').click();
+      await execucao;
+
+      expect(ordem).toEqual(['tocou', 'girou', 'abriu', 'aberto']);
+    });
+
+    it('termina com a tampa aberta, a luz assentada em 0,6, sem chave nem dica, com a moldura vazia e a chave girada', async () => {
       const { cena, botao, opacidade } = montar({ toque: true });
       const execucao = cena.run();
 
@@ -282,12 +357,67 @@ describe('baú e chave (SPEC-04)', () => {
       await execucao;
 
       expect(opacidade('.bau__aberto')).toBe(1);
+      // O baú fechado sai: senão as duas silhuetas pareciam dois baús, um atrás do outro (01/11/2026).
+      expect(opacidade('.bau__fechado')).toBe(0);
       expect(opacidade('.bau__luz')).toBeCloseTo(config.bau.opacidadeFinalDaLuz);
       expect(opacidade('.bau__chave')).toBe(0);
       expect(opacidade('.bau__dica')).toBe(0);
-      expect(Number(gsap.getProperty(document.querySelector('.bau__chave'), 'rotation'))).toBe(
-        config.bau.grausDoGiro,
-      );
+      expect(opacidade('.inventario__moldura')).toBe(0);
+      expect(opacidade('.bau__aura')).toBe(0);
+      const chave = document.querySelector('.bau__chave');
+      expect(Number(gsap.getProperty(chave, 'rotationX'))).toBe(config.bau.grausDoGiro);
+      expect(Number(gsap.getProperty(chave, 'rotation'))).toBe(0); // na horizontal
+    });
+
+    it('a chave sai do inventário e a ponta dela termina exatamente na fechadura, na horizontal', async () => {
+      const { cena, botao } = montar({ toque: true });
+      const execucao = cena.run();
+      // O happy-dom não calcula layout: as medidas vêm de caixas combinadas (baú 200 × 150, chave de 54 px).
+      const bau = { left: 100, top: 400, width: 200, height: 150 };
+      const chave = { left: 150, top: 740, width: 76, height: 76 };
+      const caixa = (r: typeof bau) =>
+        ({
+          ...r,
+          right: r.left + r.width,
+          bottom: r.top + r.height,
+          x: r.left,
+          y: r.top,
+        }) as DOMRect;
+      vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (
+        this: Element,
+      ) {
+        if (this.classList.contains('bau__corpo')) return caixa(bau);
+        if (this.classList.contains('bau__chave')) return caixa(chave);
+        return caixa({ left: 0, top: 0, width: 0, height: 0 });
+      });
+      for (const eixo of ['offsetWidth', 'offsetHeight'] as const) {
+        vi.spyOn(HTMLElement.prototype, eixo, 'get').mockImplementation(function (
+          this: HTMLElement,
+        ) {
+          return this.classList.contains('bau__chave') ? 54 : 0;
+        });
+      }
+
+      botao().click();
+      await execucao;
+
+      const m = config.bau.chave;
+      const fechadura = { x: bau.left + bau.width * 0.5, y: bau.top + bau.height * 0.58 }; // sem CSS: o padrão
+      const escala = (m.comprimentoNoBau * bau.width) / (m.comprimento * 54);
+      const partida = { x: chave.left + chave.width / 2, y: chave.top + chave.height / 2 };
+      const el = document.querySelector('.bau__chave');
+      const centro = {
+        x: partida.x + Number(gsap.getProperty(el, 'x')),
+        y: partida.y + Number(gsap.getProperty(el, 'y')),
+      };
+      // Ponta = centro + deslocamento da ponta dentro da caixa, na escala da chave.
+      const ponta = {
+        x: centro.x + (m.ponta.x - 0.5) * 54 * Number(gsap.getProperty(el, 'scaleX')),
+        y: centro.y + (m.ponta.y - 0.5) * 54 * Number(gsap.getProperty(el, 'scaleY')),
+      };
+      expect(Number(gsap.getProperty(el, 'scaleX'))).toBeCloseTo(escala, 5);
+      expect(ponta.x).toBeCloseTo(fechadura.x, 3);
+      expect(ponta.y).toBeCloseTo(fechadura.y, 3);
     });
 
     it('cinco toques seguidos fazem uma única abertura (CT-04.4)', async () => {
@@ -297,24 +427,7 @@ describe('baú e chave (SPEC-04)', () => {
       for (let i = 0; i < 5; i += 1) botao().click();
       await execucao;
 
-      expect(ordem).toEqual(['girou', 'abriu']);
-    });
-
-    it('no computador, a chave sai da ponta do cursor e o cursor volta ao normal', async () => {
-      const { cena, botao } = montar({ toque: false });
-      const execucao = cena.run();
-      expect(document.body.style.getPropertyValue('--cursor-chave')).not.toBe('');
-
-      botao().dispatchEvent(
-        Object.assign(new MouseEvent('click', { bubbles: true }), {
-          detail: 1,
-          clientX: 200,
-          clientY: 300,
-        }),
-      );
-      await execucao;
-
-      expect(document.body.style.getPropertyValue('--cursor-chave')).toBe('');
+      expect(ordem).toEqual(['tocou', 'girou', 'abriu', 'aberto']);
     });
 
     it('Enter ou Espaço (clique sem ponteiro) também abre (RF-04.4, CT-04.6)', async () => {
@@ -324,7 +437,7 @@ describe('baú e chave (SPEC-04)', () => {
       botao().click(); // `detail` zero: ativação por teclado
       await execucao;
 
-      expect(ordem).toEqual(['girou', 'abriu']);
+      expect(ordem).toEqual(['tocou', 'girou', 'abriu', 'aberto']);
     });
 
     it('depois de abrir, o reforço e a dica não voltam', async () => {
@@ -344,18 +457,20 @@ describe('baú e chave (SPEC-04)', () => {
   });
 
   describe('estado final sem animação (RF-04.8)', () => {
-    it('skip deixa o baú aberto, a luz em 0,6, sem chave nem dica e sem cursor', () => {
+    it('skip deixa o baú aberto, a luz em 0,6, sem chave, inventário, aura nem dica', () => {
       const { cena, botao, opacidade } = montar({ toque: false });
       void cena.run();
 
       cena.skip();
 
       expect(opacidade('.bau__aberto')).toBe(1);
+      expect(opacidade('.bau__fechado')).toBe(0);
       expect(opacidade('.bau__luz')).toBeCloseTo(config.bau.opacidadeFinalDaLuz);
       expect(opacidade('.bau__chave')).toBe(0);
+      expect(opacidade('.inventario')).toBe(0);
+      expect(opacidade('.bau__aura')).toBe(0);
       expect(opacidade('.bau__dica')).toBe(0);
       expect(botao().disabled).toBe(true);
-      expect(document.body.style.getPropertyValue('--cursor-chave')).toBe('');
     });
 
     it('skip no meio da abertura interrompe a animação e não deixa timers soltos', async () => {
@@ -367,6 +482,7 @@ describe('baú e chave (SPEC-04)', () => {
       await esperar(120);
 
       expect(ordem).not.toContain('abriu'); // a tampa só abriria em 1,0 × fator
+      expect(ordem).not.toContain('aberto');
     });
 
     it('skip no meio da abertura tira as pétalas que ficaram no ar, em vez de deixá-las congeladas', () => {
@@ -393,14 +509,14 @@ describe('baú e chave (SPEC-04)', () => {
       }).not.toThrow();
     });
 
-    it('destroy remove o baú e o cursor', () => {
+    it('destroy remove o baú e o inventário', () => {
       const { cena } = montar({ toque: false });
       void cena.run();
 
       cena.destroy();
 
       expect(document.querySelector('.bau__corpo')).toBeNull();
-      expect(document.body.style.getPropertyValue('--cursor-chave')).toBe('');
+      expect(document.querySelector('.inventario')).toBeNull();
     });
   });
 });

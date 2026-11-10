@@ -1,0 +1,42 @@
+/* "Pausar animação" ao lado do botão de som (SPEC-18, RF-18.9): 44 × 44 px, fora da área insegura. */
+.botao-movimento {
+  position: fixed;
+  top: max(var(--espaco-3), env(safe-area-inset-top));
+  right: calc(max(var(--espaco-3), env(safe-area-inset-right)) + 44px + var(--espaco-2));
+  z-index: var(--z-interface);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--cor-texto);
+  cursor: pointer;
+  background: var(--cor-marfim);
+  border: 1px solid var(--cor-dourado);
+  border-radius: 50%;
+  box-shadow: var(--sombra-cartao);
+}
+
+.botao-movimento:active {
+  transform: scale(0.96);
+}
+
+.botao-movimento__icone {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+/* Pausada, o botão mostra "retomar" (o triângulo, preenchido); em movimento, "pausar" (as duas barras). */
+.botao-movimento__icone--retomar {
+  fill: currentcolor;
+}
+
+.botao-movimento[data-pausado='false'] .botao-movimento__icone--retomar,
+.botao-movimento[data-pausado='true'] .botao-movimento__icone--pausar {
+  display: none;
+}

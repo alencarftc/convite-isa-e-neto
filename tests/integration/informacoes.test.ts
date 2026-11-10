@@ -78,12 +78,12 @@ describe('bloco de informações (SPEC-07)', () => {
   });
 
   it('depois do prazo: troca o botão pelo aviso de encerramento', () => {
-    const { raiz } = montarEm('2027-01-01T00:00');
+    const { raiz } = montarEm('2026-12-13T00:00');
 
     expect(visivel(raiz, '.botao--principal')).toBe(false);
     expect(visivel(raiz, '.acoes__prazo')).toBe(false);
     expect(raiz.querySelector('.acoes__encerrado')?.textContent).toBe(
-      'As confirmações foram encerradas em 31 de dezembro de 2026.',
+      'As confirmações foram encerradas em 12 de dezembro de 2026.',
     );
     expect(visivel(raiz, '.acoes__encerrado')).toBe(true);
   });
@@ -151,10 +151,10 @@ describe('atualização do bloco (SPEC-07, RF-07.3)', () => {
 
   it('troca o botão pelo aviso quando o prazo vira com o convite aberto', () => {
     vi.useFakeTimers();
-    const { raiz, avancarPara } = montarComRelogioMutavel('2026-12-31T23:59:30-03:00');
+    const { raiz, avancarPara } = montarComRelogioMutavel('2026-12-12T23:59:30-03:00');
     expect(visivel(raiz, '.botao--principal')).toBe(true);
 
-    avancarPara('2027-01-01T00:00:00-03:00');
+    avancarPara('2026-12-13T00:00:00-03:00');
     vi.advanceTimersByTime(30_000);
 
     expect(visivel(raiz, '.botao--principal')).toBe(false);
@@ -162,7 +162,7 @@ describe('atualização do bloco (SPEC-07, RF-07.3)', () => {
   });
 
   it('recalcula quando o convidado volta ao aplicativo', () => {
-    const { raiz, avancarPara } = montarComRelogioMutavel('2026-12-31T23:59:00-03:00');
+    const { raiz, avancarPara } = montarComRelogioMutavel('2026-12-12T23:59:00-03:00');
     expect(visivel(raiz, '.botao--principal')).toBe(true);
 
     avancarPara('2027-01-05T09:00:00-03:00');
@@ -173,7 +173,7 @@ describe('atualização do bloco (SPEC-07, RF-07.3)', () => {
 });
 
 describe('cartões da mensagem e do traje (SPEC-07)', () => {
-  it('vêm na ordem: contagem, agradecimento, mensagem, traje e ações', () => {
+  it('vêm na ordem: contagem, agradecimento, mensagem, galeria, traje e ações', () => {
     const { raiz } = montarEm('2026-11-15T10:00');
 
     const ordem = [...raiz.querySelectorAll('.cartao')].map((c) =>
@@ -184,9 +184,17 @@ describe('cartões da mensagem e do traje (SPEC-07)', () => {
       'cartao--contagem',
       'cartao--agradecimento',
       'cartao--mensagem',
+      'cartao--galeria',
       'cartao--traje',
       'cartao--acoes',
     ]);
+  });
+
+  it('sem fotos na galeria, o cartão dela some (02/11/2026)', () => {
+    const { raiz } = montarEm('2026-11-15T10:00', false, { ...content, galeria: [] });
+
+    expect(visivel(raiz, '.cartao--mensagem')).toBe(true);
+    expect(raiz.querySelector<HTMLElement>('.cartao--galeria')?.hidden).toBe(true);
   });
 
   it('a mensagem traz os três parágrafos aprovados, o verso e a assinatura (CA-07.2.1, CT-07.4)', () => {
@@ -361,7 +369,8 @@ describe('cartões surgem ao entrar na tela (SPEC-07, "Estilo")', () => {
     const contagem = raiz.querySelector<HTMLElement>('.cartao--contagem');
     expect(Number(gsap.getProperty(contagem, 'opacity'))).toBe(0);
     expect(Number(gsap.getProperty(contagem, 'y'))).toBe(config.movimento.deslocamentoDosCartoes);
-    expect(observados).toHaveLength(5);
+    // O carrossel de fotos tem o seu próprio observador (só troca com ele na tela): aqui contam os cartões.
+    expect(observados.filter((alvo) => alvo.classList.contains('cartao'))).toHaveLength(6);
   });
 
   it('ao entrar na tela, o cartão sobe e aparece; os que ficam abaixo seguem escondidos', async () => {
@@ -384,7 +393,7 @@ describe('cartões surgem ao entrar na tela (SPEC-07, "Estilo")', () => {
   it('sem animação (pular, animação reduzida, segurança), tudo já nasce visível', () => {
     const { raiz } = montarEm('2026-11-15T10:00', false);
 
-    expect(observados).toHaveLength(0);
+    expect(observados.filter((alvo) => alvo.classList.contains('cartao'))).toHaveLength(0);
     expect(Number(gsap.getProperty(raiz.querySelector('.cartao--mensagem'), 'opacity'))).toBe(1);
   });
 

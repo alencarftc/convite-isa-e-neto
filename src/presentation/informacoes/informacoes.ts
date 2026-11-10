@@ -7,6 +7,8 @@ import type { ConfigConvite } from '@/domain/config/config-convite';
 import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import { msAteProximoMinuto } from '@/domain/tempo/tempo';
 
+import { montarCarrossel } from './carrossel';
+
 export interface DependenciasInformacoes {
   readonly raiz: HTMLElement;
   readonly conteudo: ConteudoConvite;
@@ -20,6 +22,8 @@ export interface DependenciasInformacoes {
    * Agenda (SPEC-17, RF-17.3). Na dúvida, falso.
    */
   readonly baixaArquivos?: boolean;
+  /** Animação reduzida: o carrossel de fotos não troca sozinho (08/11/2026). */
+  readonly reduzido?: boolean;
 }
 
 export interface InformacoesMontadas {
@@ -141,6 +145,7 @@ export function montarInformacoes(dependencias: DependenciasInformacoes): Inform
     relogio,
     animar = false,
     baixaArquivos = false,
+    reduzido = false,
   } = dependencias;
 
   const secao = document.createElement('section');
@@ -169,6 +174,18 @@ export function montarInformacoes(dependencias: DependenciasInformacoes): Inform
     criarParagrafo('mensagem__assinatura', conteudo.mensagem.assinatura),
   );
 
+  // O carrossel de fotos do casal, logo abaixo da mensagem (08/11/2026); sem fotos, o cartão não existe.
+  const cartaoGaleria = criarCartao('cartao--galeria');
+  const carrossel = montarCarrossel({
+    fotos: conteudo.galeria,
+    rotulo: conteudo.rotulos.galeria,
+    rotuloDaFoto: conteudo.rotulos.fotoDaGaleria,
+    config,
+    reduzido,
+  });
+  cartaoGaleria.append(carrossel.elemento);
+  cartaoGaleria.hidden = conteudo.galeria.length === 0;
+
   const cartaoTraje = criarCartao('cartao--traje');
   cartaoTraje.append(
     criarTitulo(conteudo.rotulos.traje),
@@ -191,7 +208,14 @@ export function montarInformacoes(dependencias: DependenciasInformacoes): Inform
   const botaoAgenda = criarBotaoDaAgenda(conteudo, config, baixaArquivos);
   cartaoAcoes.append(botaoConfirmar, avisoPrazo, avisoEncerrado, botaoComoChegar, botaoAgenda);
 
-  const cartoes = [cartaoContagem, cartaoAgradecimento, cartaoMensagem, cartaoTraje, cartaoAcoes];
+  const cartoes = [
+    cartaoContagem,
+    cartaoAgradecimento,
+    cartaoMensagem,
+    cartaoGaleria,
+    cartaoTraje,
+    cartaoAcoes,
+  ];
   secao.append(...cartoes);
 
   function atualizar(): void {
@@ -237,6 +261,7 @@ export function montarInformacoes(dependencias: DependenciasInformacoes): Inform
     destruir() {
       clearTimeout(temporizador);
       pararDeRevelar();
+      carrossel.destruir();
       document.removeEventListener('visibilitychange', aoVoltarParaOConvite);
       secao.remove();
     },

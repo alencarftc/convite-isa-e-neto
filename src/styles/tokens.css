@@ -2,12 +2,21 @@
 :root {
   --cor-marfim: #f6f3e0; /* fundo da carta e da página */
   --cor-bege: #dbceb0; /* envelope, cartões */
+  --cor-papel: #f6ead7; /* o miolo do papel da carta (imagem 14), medido na arte: preenche o meio da carta sem estirar a textura */
   --cor-serenidade: #91a8d0; /* só decoração: 2,2:1 sobre marfim */
   --cor-dourado: #b18e4a; /* só decoração: 2,8:1 sobre marfim */
-  --cor-texto: #32425d; /* 9,1:1 sobre marfim; 6,5:1 sobre bege */
-  --cor-texto-suave: #4e5f7e; /* 5,8:1 só sobre marfim (4,1:1 sobre bege: não usar) */
-  --cor-chao: #4f6b58; /* base do primeiro plano que fica à mostra quando a cena sobe (SPEC-06); ajustar com a arte final */
+  --cor-texto: #3a2e22; /* tinta marrom-escura: 11,9:1 sobre marfim; 8,4:1 sobre bege */
+  --cor-texto-suave: #4d3e30; /* 9,2:1 sobre marfim; 6,6:1 sobre bege: rótulos finos da carta pedem contraste folgado */
+
+  /*
+   * A tinta da carta, para o texto sobre o papel. Os navegadores que escurecem as páginas por conta própria invertem
+   * o texto escuro (claro sobre o papel, que é imagem e não muda), mesmo com `color-scheme`. Estes cinzas claros eles
+   * não invertem, e `mix-blend-mode: difference` sobre o papel creme devolve a tinta: |papel - cinza| = tinta.
+   */
+  --cor-tinta-sobre-papel: #bcbcb5; /* |#f6ead7 - #bcbcb5| = #3a2e22, a tinta marrom (--cor-texto) */
+  --cor-tinta-suave-sobre-papel: #a9aca7; /* |#f6ead7 - #a9aca7| = #4d3e30 (--cor-texto-suave) */
   --cor-luz: #e5aa6e; /* luz quente do pôr do sol sobre o bosque (SPEC-03) */
+  --cor-passaro: #4a4038; /* pássaros no céu: cinza-castanho escuro, funciona sobre o céu baunilha e o pôr do sol (SPEC-20) */
 
   /* Cores com transparência, pré-calculadas (hex de 8 dígitos): `color-mix()` não existe em aparelhos mais antigos (SPEC-15). */
   --cor-bege-55: #dbceb08c;
@@ -23,10 +32,25 @@
   --cor-marfim-88: #f6f3e0e0;
   --cor-marfim-90: #f6f3e0e6;
   --cor-serenidade-28: #91a8d047;
-  --cor-texto-55: #32425d8c;
+  --cor-texto-55: #3a2e228c;
+  --cor-sombra: #1f2616; /* sombra do chão e do baú: verde-musgo escuro */
+  --cor-sombra-35: #1f261659;
+  --cor-sombra-55: #1f26168c;
+  --cor-sombra-70: #1f2616b3;
+  --cor-contato: #12160a; /* a sombra de contato sob o baú: mais escura que a sombra comum, para ele não flutuar */
+  --cor-contato-25: #12160a40;
+  --cor-contato-60: #12160a99;
+  --cor-contato-90: #12160ae6;
+  --cor-aura: #ffd96b; /* aura do baú: ouro vivo e saturado, que contrasta com o azul do lago e o verde */
+  --cor-aura-90: #ffd96be6;
+  --cor-aura-55: #ffd96b8c;
+  --cor-aura-45: #ffd96b73;
+  --cor-aura-25: #ffd96b40;
+  --cor-aura-12: #ffd96b1f;
+  --cor-brilho: #fff8dc; /* pontos de luz que cintilam */
   --cor-luz-claro: #e8b57f; /* luz 85% sobre marfim */
 
-  --sombra-cartao: 0 4px 20px rgb(50 66 93 / 12%);
+  --sombra-cartao: 0 4px 20px rgb(58 46 34 / 16%);
 
   --fonte-cursiva: 'Great Vibes';
   --fonte-cursiva-reserva: 'Cursiva Reserva', cursive;
@@ -43,14 +67,23 @@
   --espaco-6: 32px;
   --espaco-7: 48px;
 
+  --z-papel: -1; /* as pontas do papel, atrás do texto dentro da própria carta */
   --z-ceu: 0;
+  --z-vida-ceu: var(
+    --z-ceu
+  ); /* pássaros: no céu, logo depois da imagem dele na ordem do DOM (SPEC-18) */
   --z-lago: 10;
   --z-arvores: 20;
+  --z-vida-fundo: 25; /* folhas que caem atrás do baú (cena viva, SPEC-18) */
+  --z-casal-vertical: 24; /* o casal no retrato: à frente das árvores e atrás do esquilo (25), do baú e dos arbustos */
   --z-bau: 30;
   --z-primeiro-plano: 40;
+  --z-vida-chao: 42; /* esquilo e folhas da frente: sobre a grama, abaixo da chave guardada */
+  --z-inventario: 45; /* a chave guardada, no pé da tela: acima da cena inteira, abaixo dos balões */
   --z-baloes: 50;
   --z-carta: 60;
   --z-informacoes: 70;
+  --z-petalas-do-convite: 75; /* as pétalas que caem sobre o convite aberto: acima da carta, abaixo da névoa e dos botões */
   --z-nevoa: 90;
   --z-interface: 100; /* acima da névoa: o botão de som fica à vista desde a entrada (SPEC-08, RF-08.5) */
   --z-atalho: 110; /* "Ir direto ao convite" ao receber foco: fica sobre "Pular", que ocupa o mesmo canto */

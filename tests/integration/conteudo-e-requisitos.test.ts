@@ -24,8 +24,12 @@ const FORA_DOS_REQUISITOS = [
   /^rotulos\./, // nomes acessíveis dos controles: SPEC-04, SPEC-05, SPEC-06, SPEC-07 e SPEC-09
   /^entrada\.aguarde$/, // SPEC-02
   /^dicas\.(atalho|rolar)$/, // SPEC-09 e SPEC-06
+  /^dicas\.(pausar|retomar)Animacao$/, // SPEC-18 (US-13.6): texto novo, entre colchetes até a aprovação do casal
+  /^dicas\.chave(Computador|Celular)$/, // ADR-0012: a chave agora espera no inventário e é usada no baú; o espelho ainda traz o texto antigo
   /^baloes\[\d+\]\.(foto|alt|foco)$/, // arquivos e descrições das fotos: dependem do casal
+  /^galeria\[\d+\]\.(foto|alt)$/, // mini-galeria (ADR-0025): arquivos e descrições das fotos que o casal mandou
   /^botoes\.agenda$/, // texto novo da SPEC-17, ainda sem a aprovação do casal
+  /^previa\.(descricaoParaBusca|descricaoDaImagem|nomeDoEvento)$/, // SEO (ADR-0036): textos novos para buscadores, ainda sem a aprovação do casal
 ];
 
 function folhas(valor: unknown, caminho: string): [string, string][] {

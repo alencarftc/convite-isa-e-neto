@@ -211,7 +211,14 @@ describe('validarConsistenciaDeDatas', () => {
 
 describe('validarArteDefinitiva', () => {
   it('acusa cada imagem que ainda aponta para a arte provisória', () => {
-    const problemas = validarArteDefinitiva(config, content);
+    const comProvisoria = {
+      ...config,
+      imagens: { ...config.imagens, bauFechado: 'assets/provisorio/bau-fechado.svg' },
+    };
+
+    const problemas = validarArteDefinitiva(comProvisoria, content).filter(
+      (p) => p.regra !== 'foto-pendente',
+    );
 
     expect(problemas.length).toBeGreaterThan(0);
     expect(problemas.every((p) => p.regra === 'arte-provisoria')).toBe(true);
@@ -220,10 +227,29 @@ describe('validarArteDefinitiva', () => {
     );
   });
 
-  it('acusa também as fotos dos balões que apontam para a arte provisória', () => {
+  it('a arte gerada, inclusive a das folhas e do esquilo, já não é acusada: restam só as fotos dos balões, pendentes', () => {
     const problemas = validarArteDefinitiva(config, content);
 
-    expect(problemas.map((p) => p.mensagem)).toContainEqual(
+    expect(problemas.length).toBeGreaterThan(0);
+    expect(problemas.every((p) => p.regra === 'foto-pendente')).toBe(true);
+  });
+
+  it('acusa as fotos dos balões que ainda não chegaram (vazias) e as que apontam para a arte provisória', () => {
+    const vazias = validarArteDefinitiva(config, content).filter(
+      (p) => p.regra === 'foto-pendente',
+    );
+    expect(vazias).toHaveLength(content.baloes.length);
+    expect(vazias.map((p) => p.mensagem)).toContainEqual(
+      expect.stringContaining('content.baloes[0].foto'),
+    );
+
+    const provisorias = validarArteDefinitiva(config, {
+      baloes: content.baloes.map((balao, indice) => ({
+        ...balao,
+        foto: `assets/provisorio/foto-${String(indice + 1)}.svg`,
+      })),
+    }).filter((p) => p.regra === 'arte-provisoria');
+    expect(provisorias.map((p) => p.mensagem)).toContainEqual(
       expect.stringContaining('content.baloes[0].foto'),
     );
   });
@@ -254,11 +280,11 @@ describe('validarArquivos', () => {
       config,
       content,
       ['audio/ambiente.mp3'],
-      (caminho) => caminho !== 'audio/ambiente.mp3' && caminho !== 'assets/provisorio/chave.svg',
+      (caminho) => caminho !== 'audio/ambiente.mp3' && caminho !== 'assets/objects/10-chave.webp',
     );
 
     expect(problemas.map((p) => p.mensagem)).toEqual([
-      'config.imagens.chave: "public/assets/provisorio/chave.svg" não existe',
+      'config.imagens.chave: "public/assets/objects/10-chave.webp" não existe',
       'áudio: "public/audio/ambiente.mp3" não existe',
     ]);
     expect(problemas.every((p) => p.regra === 'arquivo-ausente')).toBe(true);
@@ -272,8 +298,8 @@ describe('validarArquivos', () => {
       return true;
     });
 
-    expect(visitados).toContain('assets/provisorio/ceu-9x16.svg');
-    expect(visitados).toContain('assets/provisorio/ceu-16x9.svg');
+    expect(visitados).toContain('assets/scene/02-ceu-baunilha-9x16.webp');
+    expect(visitados).toContain('assets/scene/02-ceu-baunilha-16x9.webp');
   });
 
   it('confere a imagem da prévia e os ícones da publicação (SPEC-10)', () => {
@@ -291,17 +317,53 @@ describe('validarArquivos', () => {
     ]);
   });
 
-  it('confere também os arquivos das fotos dos balões', () => {
+  it('confere também os arquivos das fotos dos balões que já chegaram', () => {
+    const comFotos = {
+      ...content,
+      baloes: content.baloes.map((balao, indice) => ({
+        ...balao,
+        foto: `photos/foto-${String(indice + 1)}.jpg`,
+      })),
+    };
+
     const problemas = validarArquivos(
       config,
-      content,
+      comFotos,
       [],
       (caminho) => !caminho.includes('foto-3'),
     );
 
     expect(problemas.map((p) => p.mensagem)).toEqual([
-      'content.baloes[2].foto: "public/assets/provisorio/foto-3.svg" não existe',
+      'content.baloes[2].foto: "public/photos/foto-3.jpg" não existe',
     ]);
+  });
+
+  it('balão sem foto (as do casal ainda não chegaram) não cita arquivo: quem acusa é a arte definitiva', () => {
+    const visitados: string[] = [];
+
+    validarArquivos(config, content, [], (caminho) => {
+      visitados.push(caminho);
+      return true;
+    });
+
+    expect(
+      visitados.filter(
+        (caminho) =>
+          caminho === '' || (caminho.includes('photos/') && !caminho.includes('galeria')),
+      ),
+    ).toEqual([]);
+  });
+
+  it('as fotos da mini-galeria precisam existir em public/ (02/11/2026)', () => {
+    const problemas = validarArquivos(
+      config,
+      content,
+      [],
+      (caminho) => caminho !== 'photos/galeria-3.webp',
+    );
+
+    expect(problemas.map((p) => p.regra)).toEqual(['arquivo-ausente']);
+    expect(problemas[0]?.mensagem).toContain('content.galeria[2].foto');
   });
 });
 
@@ -316,8 +378,8 @@ describe('verificarTudo', () => {
   it('o conteúdo e as datas atuais passam nas regras de texto, data e link', () => {
     const regras = new Set(verificarTudo(entradas).map((p) => p.regra));
 
-    // Resta a arte provisória e o texto pendente (a descrição das fotos, entre colchetes).
-    expect(regras).toEqual(new Set(['arte-provisoria', 'texto-pendente']));
+    // Restam as fotos que o casal ainda não mandou e o texto pendente (entre colchetes).
+    expect(regras).toEqual(new Set(['foto-pendente', 'texto-pendente']));
   });
 
   it('o endereço do Google Agenda é permitido, e outro serviço de agenda não (SPEC-17, RF-17.3)', () => {
@@ -336,13 +398,17 @@ describe('verificarTudo', () => {
   it('junta os problemas de todas as regras', () => {
     const problemas = verificarTudo({
       ...entradas,
-      config: { ...config, casamento: 'ontem' },
+      config: {
+        ...config,
+        casamento: 'ontem',
+        imagens: { ...config.imagens, chave: 'assets/provisorio/chave.svg' },
+      },
       conteudo: { ...content, rotulos: { ...content.rotulos, informacoes: '[pendente]' } },
       existe: () => false,
     });
 
     expect(new Set(problemas.map((p) => p.regra))).toEqual(
-      new Set(['datas', 'texto-pendente', 'arte-provisoria', 'arquivo-ausente']),
+      new Set(['datas', 'texto-pendente', 'arte-provisoria', 'foto-pendente', 'arquivo-ausente']),
     );
   });
 });

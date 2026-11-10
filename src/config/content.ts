@@ -9,9 +9,10 @@ export const content: ConteudoConvite = {
     informacoes: 'Informações do casamento',
     abrirBau: 'Abrir o baú',
     historia: 'História do casal',
-    avancarHistoria: 'Avançar a história',
     abrirEnvelope: 'Abrir o envelope',
     mensagem: 'Mensagem do casal',
+    galeria: 'Fotos do casal',
+    fotoDaGaleria: 'Foto {n} de {total}',
     traje: 'Traje',
   },
   entrada: {
@@ -21,7 +22,6 @@ export const content: ConteudoConvite = {
     aguarde: 'Preparando o bosque…',
   },
   envelope: {
-    para: 'Para você e sua família',
     iniciais: 'I&D',
   },
   dicas: {
@@ -30,15 +30,23 @@ export const content: ConteudoConvite = {
     somDesligado: 'Som desligado',
     pular: 'Pular para o convite',
     atalho: 'Ir direto ao convite',
-    chaveComputador: 'Use a chave para abrir',
-    chaveCelular: 'Toque na chave',
-    avancar: 'Toque para avançar',
+    chaveComputador: 'Clique no baú para usar a chave',
+    chaveCelular: 'Toque no baú para usar a chave',
     selo: 'Toque no selo',
     rolar: 'Role para ler',
+    // Texto novo da cena viva (SPEC-18, US-13.6), ainda sem a aprovação do casal: entre colchetes, o `pnpm verificar` barra a publicação.
+    pausarAnimacao: '[Pausar animação]',
+    retomarAnimacao: '[Retomar animação]',
   },
   previa: {
     titulo: 'Isabella & David — Convite de casamento',
     descricao: 'Uma carta foi escrita para você. Toque para abrir.',
+    // Textos novos de SEO (09/11/2026), sem aprovação do casal ainda: o `og:description` acima, o aprovado, segue na prévia.
+    descricaoParaBusca:
+      'Convite de casamento de Isabella Vaz e David Neto: 22 de janeiro de 2027, às 17h, no Sítio Olinda, em Benevides (PA). Abra a carta, confirme a presença e veja como chegar.',
+    descricaoDaImagem:
+      'Um baú dourado e o selo I&D num jardim de rosas azuis, à beira de um lago ao pôr do sol.',
+    nomeDoEvento: 'Casamento de Isabella Vaz e David Neto',
   },
   carta: {
     versiculo:
@@ -61,36 +69,38 @@ export const content: ConteudoConvite = {
   },
   // Fotos e descrições dependem do casal (SPEC-05, "Questões em aberto"): os colchetes impedem a
   // publicação (`pnpm verificar`) e as fotos apontam para arte provisória.
+  // Fotos dos balões: pendentes (as do casal ainda não chegaram; as provisórias saíram em 31/10/2026). Sem foto
+  // (`foto: ''`), a frase vive dentro da nuvem. Quando chegarem, preencha `foto`, `alt` (descrição) e `foco`.
   baloes: [
     {
       frase: 'Tudo começou de um jeito simples.',
-      foto: 'assets/provisorio/foto-1.svg',
-      alt: '[descrever a foto 1]',
-      foco: '50% 35%',
+      foto: '',
+      alt: '',
+      foco: '',
     },
     {
-      frase: 'Viramos amigos, parceiros e um só time.',
-      foto: 'assets/provisorio/foto-2.svg',
-      alt: '[descrever a foto 2]',
-      foco: '50% 35%',
+      frase: 'Deus foi cuidando de cada detalhe.',
+      foto: '',
+      alt: '',
+      foco: '',
     },
     {
-      frase: 'Entre risadas e orações, o amor cresceu.',
-      foto: 'assets/provisorio/foto-3.svg',
-      alt: '[descrever a foto 3]',
-      foco: '50% 35%',
+      frase: 'Aos poucos, a amizade virou amor.',
+      foto: '',
+      alt: '',
+      foco: '',
     },
     {
-      frase: 'Em Salinas, à beira-mar, veio o pedido.',
-      foto: 'assets/provisorio/foto-4.svg',
-      alt: '[descrever a foto 4]',
-      foco: '50% 35%',
+      frase: 'E o que era sonho virou promessa.',
+      foto: '',
+      alt: '',
+      foco: '',
     },
     {
-      frase: 'E o nosso sonho ganhou um sim.',
-      foto: 'assets/provisorio/foto-5.svg',
-      alt: '[descrever a foto 5]',
-      foco: '50% 35%',
+      frase: 'E queremos celebrar essa promessa com você.',
+      foto: '',
+      alt: '',
+      foco: '',
     },
   ],
   contagem: {
@@ -109,18 +119,51 @@ export const content: ConteudoConvite = {
       'Aprendemos juntos que o amor "tudo sofre, tudo crê, tudo espera, tudo suporta" (1 Coríntios 13:7). É esse amor que queremos celebrar com quem caminhou ao nosso lado.',
       'Você faz parte da nossa história, e a sua presença é o nosso maior presente.',
     ],
-    // Pendência do casal: não reproduzimos letra de música (direitos autorais). O `pnpm verificar`
-    // barra a publicação enquanto estiver entre colchetes.
-    versoLouvor: '[Um verso do louvor escolhido, em itálico, com o nome da música]',
+    // Verso de "Bondade de Deus" (a música que toca ao abrir o baú), escolhido em 10/11/2026 entre três louvores que o casal
+    // enviou; sem crédito, a pedido do casal. Sai em itálico (`.mensagem__verso`).
+    versoLouvor: 'Desde quando me levanto, até eu me deitar, eu cantarei da bondade de Deus.',
     assinatura: 'Com carinho, Isabella & David',
   },
+  // Carrossel de fotos do casal (ensaio, 09/11/2026), abaixo da mensagem. Os arquivos são os de `public/photos/`.
+  galeria: [
+    {
+      foto: 'photos/galeria-1.webp',
+      alt: 'Foto em preto e branco: o casal de branco, de mãos dadas e bem juntinhos, ela sorrindo de olhos baixos.',
+      largura: 508,
+      altura: 900,
+    },
+    {
+      foto: 'photos/galeria-2.webp',
+      alt: 'O casal de branco, abraçado e sorrindo para a câmera, ela com a mão no ombro dele.',
+      largura: 601,
+      altura: 900,
+    },
+    {
+      foto: 'photos/galeria-3.webp',
+      alt: 'O casal de branco abraçado numa passarela cercada de folhagem: ele beija o rosto dela, que sorri de olhos fechados.',
+      largura: 601,
+      altura: 900,
+    },
+    {
+      foto: 'photos/galeria-4.webp',
+      alt: 'O casal de branco num beco: ele olha para ela, que se inclina sobre o ombro dele com um sorriso discreto.',
+      largura: 900,
+      altura: 601,
+    },
+    {
+      foto: 'photos/galeria-5.webp',
+      alt: 'O casal de branco num beco de paredes antigas: ela sorri para a câmera e ele a beija no rosto.',
+      largura: 900,
+      altura: 601,
+    },
+  ],
   dressCode: 'Esporte fino',
   botoes: {
     confirmar: 'Confirmar presença',
-    prazo: 'Confirme até 31 de dezembro de 2026.',
+    prazo: 'Confirme até 12 de dezembro de 2026.',
     comoChegar: 'Como chegar',
     // Texto novo (SPEC-17), ainda sem aprovação do casal: ver docs/specs-adicionais/SPEC-17-salvar-na-agenda.md.
     agenda: 'Salvar na agenda',
-    encerrado: 'As confirmações foram encerradas em 31 de dezembro de 2026.',
+    encerrado: 'As confirmações foram encerradas em 12 de dezembro de 2026.',
   },
 };

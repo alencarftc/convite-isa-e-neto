@@ -9,7 +9,7 @@ Convite digital interativo do casamento de **Isabella Vaz e David Neto** (22/01/
 Benevides–PA). Site estático de página única, enviado por WhatsApp (um link por família): uma abertura
 cinematográfica de ~30 s num bosque pintado (névoa → baú com chave → 5 balões com fotos → envelope com
 selo → carta), depois contagem regressiva, mensagem, dress code, "Confirmar presença" (Google Forms,
-até 31/12/2026) e "Como chegar".
+até 12/12/2026) e "Como chegar".
 
 **Prazos:** pronto e testado até **10/11/2026**; envio até **15/11/2026**. Depois do envio quase nada
 pode mudar (o WhatsApp guarda a prévia do link), então erro tem de ser pego antes: confie nos gates.
@@ -86,7 +86,7 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
 - Não adicione dependência sem necessidade: o bundle tem orçamento (JS ≤ 120 kB gzip; crítico ≤ 1,8 MB).
 - Não importe `infrastructure` na `presentation`, nem DOM/biblioteca no `domain`/`application`.
 - Não escreva texto do convite "de cabeça": copie de `docs/requisitos.md` ("Textos do convite").
-  Não reproduza letra de música (o verso do louvor é pendência do casal).
+  Não reproduza letra de música além do verso curto que o casal escolheu (`content.mensagem.versoLouvor`).
 - Não use fonte, imagem ou som de fora do que a documentação define; assets são gerados/licenciados.
 - Não bloqueie zoom, não autoexecute áudio antes do toque de entrada, não ignore `prefers-reduced-motion`.
 - Não peça imagem de etapa no `init()` da cena (ela roda antes do toque e baixaria tudo de uma vez): use
@@ -105,12 +105,32 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
 - `?data=AAAA-MM-DDTHH:MM` simula a data **só em desenvolvimento** (testa os 4 estados da SPEC-07).
 - `typescript` está em 6.0.x (typescript-eslint ainda não suporta 7); `lint-staged` em 16.x (Node).
 - O convite é **um só link por família**, sem personalização por convidado.
+- `estado.computador` é o **mouse**, em qualquer formato de janela (ADR-0036): o desktop nunca vira a composição do celular ao
+  estreitar o navegador. A CSS do desktop vive nas classes `--computador`, sem condição de orientação; para ver a cena do
+  celular no computador, emule toque (`pointer: coarse`).
+- O CSS entra por `src/styles/index.css` (ligado no `<head>`; o build o embute no HTML), **não** pelo `main.ts` (ADR-0037). URLs que
+  vão para variáveis CSS (`--papel`) precisam ser completas, porque o navegador as resolve pelo arquivo de estilos.
+- `pnpm arte -- --so-computador` regenera só a pintura mestre 16:9, o primeiro plano e o chão do desktop.
 
 ## Estado atual
+
+**Branch `feat/cena-viva` (teste, 01/11/2026):** épico 13, "Cena viva", **implementado** (SPEC-18 a 21: água com WebGL,
+folhas, pássaros e esquilo, com o botão "Pausar animação"), sobre a arte final e os ajustes da ADR-0012. O casal sentado e
+vivo (SPEC-22) foi **revertido** depois do teste no celular: a cena voltou à imagem 17 (em pé). Comece por
+[docs/specs-cena-viva/README.md](docs/specs-cena-viva/README.md) (situação, orçamento e o que falta), pela
+[ADR-0013](docs/decisions/0013-cena-viva-em-codigo-e-webgl.md) e pela
+[ADR-0014](docs/decisions/0014-ajustes-da-cena-viva-no-celular.md) e [ADR-0015](docs/decisions/0015-cena-vertical-da-pintura-mestre-e-aviso-de-tema.md)
+(os ajustes do teste no celular: selo inteiro, envelope que espera o toque, papel da carta com textura do início ao fim, "&"
+da carta em linha própria; e, na ADR-0015, a **cena vertical é a pintura mestre 9:16 sem o céu**, os balões vêm um de cada vez
+por 5 s com a frase numa placa legível, e o convite declara `color-scheme: dark`; como o navegador do casal ignora isso e escurece por conta própria, o texto da carta é um cinza claro misturado por diferença ao papel, que dá a tinta marrom sem ser invertido: [ADR-0016](docs/decisions/0016-tinta-da-carta-contra-o-escurecimento-forcado.md)). As branches de cada spec saíram desta e voltaram para
+ela, nunca para a `main`. A cena viva é um componente que ouve o barramento (`criarCenaViva`, em `presentation/vida/`), não
+uma etapa; os elementos seguem o contrato `ElementoDeVida`; tudo se move no relógio do GSAP (nos testes,
+`tests/integration/suporte/relogio-gsap.ts` o avança à mão). As imagens 20a–c e 21a–b ainda são arte provisória, e as fotos
+dos balões estão vazias (`pnpm verificar` as acusa como `foto-pendente`).
 
 Feito: ferramentas e CI; SPEC-01 completa (barramento, fases, estado, orquestrador, contrato `Cena`,
 modo de segurança); fatia vertical da SPEC-07 (contagem e estados por data, botões). SPEC-08 (porta de áudio, Howler,
 botão de som; faltam os MP3). SPEC-02 (entrada e carregamento, com arte
-provisória). SPEC-03 (bosque em camadas, névoa, profundidade). SPEC-04 (baú e chave, abertura em 2 s). SPEC-05 (balões, foto, frase, aceleração). SPEC-06 (envelope, selo, carta, abertura em 7 s). SPEC-07 completa (mensagem, traje, cartões ao rolar). SPEC-11 (consistência de datas no `verificar`, lista de conferência da planilha). SPEC-09 (acessibilidade, segurança, noscript). SPEC-10 (publicação, prévia), SPEC-12 (orçamento de peso, matriz de testes). As 12 specs têm código, e também as specs adicionais 13 a 17 (`docs/specs-adicionais/`): a revisão do código (ADR-0010) corrigiu 14 defeitos de acessibilidade, carregamento e compatibilidade. Falta o conteúdo do casal, os testes em aparelhos reais e a aprovação do texto "Salvar na agenda".
-Pendências de conteúdo: fotos dos balões, imagens geradas, músicas licenciadas, verso do louvor, URL
+provisória). SPEC-03 (bosque em camadas, névoa, profundidade). SPEC-04 (baú e chave, abertura em 2 s). SPEC-05 (balões, foto, frase). SPEC-06 (envelope, selo, carta, abertura em 7 s). SPEC-07 completa (mensagem, traje, cartões ao rolar). SPEC-11 (consistência de datas no `verificar`, lista de conferência da planilha). SPEC-09 (acessibilidade, segurança, noscript). SPEC-10 (publicação, prévia), SPEC-12 (orçamento de peso, matriz de testes). As 12 specs têm código, e também as specs adicionais 13 a 17 (`docs/specs-adicionais/`): a revisão do código (ADR-0010) corrigiu 14 defeitos de acessibilidade, carregamento e compatibilidade. A arte gerada já está integrada (`pnpm arte`, ADR-0011) e os ajustes de experiência pedidos depois dos testes no celular também (ADR-0012: nada acelera por toque, "Pular" desde a primeira visita, chave no inventário, carta revelada bloco a bloco). Na branch da cena viva, as folhas e o esquilo definitivos já estão no lugar da arte provisória e os sons de ambiente, da tampa e da poeira de fada (`ambiente`, `tampa` e `fada.mp3`) entraram (ADR-0020 e ADR-0021; a ADR-0023 acrescenta "Bondade de Deus", `musica-1.mp3`, que toca ao tocar no baú, e a ADR-0024, a harpa (`harpa.mp3`) no primeiro toque e a fada que se esvai devagar; a ADR-0025 põe uma mini-galeria de seis fotos do casal abaixo da mensagem; a ADR-0026 troca os balões por memórias em luz (centelha → cartão → poeira → estrela → envelope); a ADR-0027 põe as fotos em carrossel animado, a dica do baú em ciclo (3 s à vista, 5 s oculta), "Role para ler" como primeiro texto e as pétalas caindo sem parar; a ADR-0028 faz cair um pouco mais de pétalas e as folhas verdes pararem quando o convite abre; a ADR-0022 deixa o casal maior, o esquilo menor e faz o baú sumir quando o envelope aparece). Falta o conteúdo do casal (fotos dos balões, os outros 4 MP3, verso do louvor), os testes em aparelhos reais e a aprovação do texto "Salvar na agenda".
+Pendências de conteúdo: fotos dos balões (e descrições), músicas licenciadas, URL
 publicada (lista em `docs/documentacao.md`).

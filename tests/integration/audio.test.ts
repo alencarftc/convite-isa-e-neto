@@ -37,6 +37,8 @@ function montar(armazenamento = armazenamentoEmMemoria()) {
   const audio = {
     desbloquear: vi.fn(),
     efeito: vi.fn(),
+    iniciarFada: vi.fn(),
+    encerrarFada: vi.fn(),
     musica1: vi.fn(),
     musica2: vi.fn(),
     ligar: vi.fn(),

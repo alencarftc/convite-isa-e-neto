@@ -9,8 +9,7 @@ decidido antes do primeiro envio**. A spec completa está em
 
 1. Um envio para `main` dispara o workflow.
 2. `pnpm verificar` roda primeiro (texto pendente, datas, links, endereço publicado, serviços externos, arte
-   provisória, arquivos ausentes). **Hoje ele falha de propósito**: faltam as imagens geradas, as fotos, os MP3,
-   o verso do louvor e as imagens da prévia. Enquanto falhar, nada vai ao ar.
+   provisória, arquivos ausentes). **Hoje ele falha de propósito**: faltam as fotos, os MP3 e as pendências de texto. Enquanto falhar, nada vai ao ar.
 3. `pnpm check` roda os gates de código e gera `dist/`.
 4. `dist/` é publicado; o endereço do passo `deploy` aparece no GitHub.
 
@@ -26,19 +25,19 @@ Se o build falhar, a versão anterior continua no ar (CT-10.4).
 
 ## Antes do primeiro envio (até 10/11/2026; envio até 15/11/2026)
 
-| #   | Passo                                                                                                                                                                  | Quem        | Feito |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ----- |
-| 1   | Decidir o endereço: o provável é `https://alencarftc.github.io/convite-isa-e-neto/` (já em `config.publicacao.url`). **Não renomear o repositório depois do envio.**   | casal       | ☐     |
-| 2   | Decidir se haverá domínio próprio (`public/CNAME`, registro CNAME para `alencarftc.github.io`, "Enforce HTTPS"); se sim, atualizar `config.publicacao.url`.            | casal       | ☐     |
-| 3   | Em Settings › Pages do repositório, escolher a fonte **GitHub Actions**.                                                                                               | responsável | ☐     |
-| 4   | Criar a imagem da prévia `public/og-image.jpg` (1200 × 630, até 300 KB): cena 16:9 recortada, selo com I&D e "Isabella & David" em Great Vibes (texto aplicado à mão). | casal       | ☐     |
-| 5   | Criar `public/favicon/favicon-32.png` e `public/favicon/apple-touch-icon.png` (180 px) com o selo e as iniciais.                                                       | casal       | ☐     |
-| 6   | Trocar a arte provisória, as fotos e os MP3 pelos definitivos (`pnpm verificar` lista o que falta) e preencher o verso do louvor e as descrições das fotos.            | casal       | ☐     |
-| 7   | Rodar `pnpm verificar` e `pnpm check` até passarem.                                                                                                                    | responsável | ☐     |
-| 8   | Colar o link numa conversa de teste no WhatsApp (iPhone e Android): imagem, título e descrição corretos (CT-10.1).                                                     | casal       | ☐     |
-| 9   | Conferir o ícone na aba e, no iPhone, na tela inicial (CT-10.2).                                                                                                       | casal       | ☐     |
-| 10  | Completar o checklist de testes da SPEC-12 e marcar a versão (`pnpm changeset version`, `pnpm release:tag`; a tag `v1.0` é a do envio).                                | responsável | ☐     |
-| 11  | Enviar uma mensagem por família; decidir o texto que acompanha o link (questão em aberto).                                                                             | casal       | ☐     |
+| #   | Passo                                                                                                                                                                                     | Quem        | Feito |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | ----- |
+| 1   | Decidir o endereço: o provável é `https://alencarftc.github.io/convite-isa-e-neto/` (já em `config.publicacao.url`). **Não renomear o repositório depois do envio.**                      | casal       | ☐     |
+| 2   | Decidir se haverá domínio próprio (`public/CNAME`, registro CNAME para `alencarftc.github.io`, "Enforce HTTPS"); se sim, atualizar `config.publicacao.url`.                               | casal       | ☐     |
+| 3   | Em Settings › Pages do repositório, escolher a fonte **GitHub Actions**.                                                                                                                  | responsável | ☐     |
+| 4   | Criar a imagem da prévia `public/og-image.jpg` (1200 × 630, até 300 KB): cena 16:9 recortada, selo com I&D e "Isabella & David" em Great Vibes (texto aplicado à mão).                    | casal       | ☐     |
+| 5   | Criar `public/favicon/favicon-32.png` e `public/favicon/apple-touch-icon.png` (180 px) com o selo e as iniciais.                                                                          | casal       | ☐     |
+| 6   | Trocar a arte provisória, as fotos e os MP3 pelos definitivos (`pnpm verificar` lista o que falta) e preencher as descrições das fotos (o verso do louvor já está em `content.mensagem`). | casal       | ☐     |
+| 7   | Rodar `pnpm verificar` e `pnpm check` até passarem.                                                                                                                                       | responsável | ☐     |
+| 8   | Colar o link numa conversa de teste no WhatsApp (iPhone e Android): imagem, título e descrição corretos (CT-10.1).                                                                        | casal       | ☐     |
+| 9   | Conferir o ícone na aba e, no iPhone, na tela inicial (CT-10.2).                                                                                                                          | casal       | ☐     |
+| 10  | Completar o checklist de testes da SPEC-12 e marcar a versão (`pnpm changeset version`, `pnpm release:tag`; a tag `v1.0` é a do envio).                                                   | responsável | ☐     |
+| 11  | Enviar uma mensagem por família; decidir o texto que acompanha o link (questão em aberto).                                                                                                | casal       | ☐     |
 
 ## Depois do envio
 
