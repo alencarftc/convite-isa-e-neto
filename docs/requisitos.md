@@ -467,7 +467,7 @@ Os números seguem a tabela Decisões do roteiro. Os textos bíblicos citados s�
 | 20 | Lista de presentes | Não haverá lista de presentes (definido pelo casal) | "Link externo ou outra página" |
 | 21 | Mapa | Botão "Como chegar" que abre o endereço no aplicativo de mapas, sem mapa embutido na página | Mais leve no celular; o endereço já está confirmado |
 | 22 | Contagem regressiva | Até 22/01/2027 às 17h: dias, horas e minutos. No dia: "É hoje!". Depois: uma mensagem de agradecimento. A confirmação sai do ar depois de 12/12/2026, com aviso de prazo encerrado | O link continua no WhatsApp dos convidados depois do casamento |
-| 23 | Hospedagem e prévia | Hospedar como o convite base (GitHub Pages, gratuito); domínio próprio é opcional. Prévia no WhatsApp: imagem 1200×630 com o bosque e as iniciais, título "Isabella & David — Convite de casamento", descrição "Toque para abrir seu convite" | O WhatsApp guarda a prévia do link; ela precisa estar pronta antes do primeiro envio |
+| 23 | Hospedagem e prévia | Hospedar como o convite base (GitHub Pages, gratuito); domínio próprio é opcional. Prévia no WhatsApp: imagem 1200×630 só com o selo das iniciais (atualizado em 10/11/2026, ADR-0040), título "Isabella & David — Convite especial", descrição "Uma carta foi escrita para você. Toque no baú para abrir." | O WhatsApp guarda a prévia do link; ela precisa estar pronta antes do primeiro envio |
 | 24 | Sem som ou com animação reduzida | O convite funciona inteiro sem som. Com a animação reduzida ativada no aparelho, as transições viram esmaecimentos curtos e a carta aparece direto | Experiência no celular e acessibilidade |
 | 25 | Prazo de entrega | Convite pronto e testado até 10/11/2026 e enviado até 15/11/2026, deixando cerca de seis semanas para confirmar presença | "O quanto antes" e o prazo de 12/12/2026 |
 | 27 | Azul Serenidade | #91A8D0, confirmado pelo casal | Paleta definida pelo casal |
@@ -592,8 +592,8 @@ Traje: esporte fino
 
 | Campo | Texto |
 | --- | --- |
-| Título | Isabella & David — Convite de casamento |
-| Descrição | Uma carta foi escrita para você. Toque para abrir. |
+| Título | Isabella & David — Convite especial |
+| Descrição | Uma carta foi escrita para você. Toque no baú para abrir. |
 | Imagem | O bosque com o baú e as iniciais I&D, 1200×630 |
 
 ### Formulário de confirmação

@@ -34,7 +34,7 @@ export function separarEndereco(endereco: string): { rua: string; cidade: string
 }
 
 /**
- * Dados estruturados do Google (`schema.org/Event`, 09/11/2026): o casamento como evento, com data, local e endereço, para
+ * Dados estruturados do Google (`schema.org/Event`, 09/11/2026): o convite como evento (sem dizer "casamento": é a surpresa, ADR-0040), com data, local e endereço, para
  * o convite poder aparecer com data e lugar nos resultados. Só usa o que `content` e `config` já têm.
  */
 export function gerarDadosEstruturados(conteudo: ConteudoConvite, config: ConfigConvite): object {

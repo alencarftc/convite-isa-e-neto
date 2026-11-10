@@ -8,7 +8,7 @@ export const config: ConfigConvite = {
     // O endereço do convite é o domínio próprio do casal (09/11/2026); o WhatsApp guarda a prévia, então ele não deve mudar
     // depois do envio. No GitHub Pages: domínio personalizado nas configurações do repositório e o arquivo public/CNAME.
     url: 'https://isabellaeneto.com.br/',
-    imagemDaPrevia: 'og-image.jpg',
+    imagemDaPrevia: 'og-image-v2.jpg',
     icone32: 'favicon/favicon-32.png',
     iconeApple: 'favicon/apple-touch-icon.png',
     indexavel: true,

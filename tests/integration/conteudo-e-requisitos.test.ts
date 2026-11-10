@@ -70,6 +70,6 @@ describe('content.ts e "Textos do convite" de docs/requisitos.md', () => {
   });
 
   it('um texto trocado seria apanhado: o teste não é vazio', () => {
-    expect(documento).not.toContain(normalizar('Isabella & David — Convite de casamentos'));
+    expect(documento).not.toContain(normalizar('Isabella & David — Convite especiais'));
   });
 });

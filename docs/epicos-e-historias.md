@@ -256,7 +256,7 @@ Os épicos seguem a ordem em que o convidado vive a experiência, com a fundaç�
 
 **Critérios de aceite**
 
-- **CA-10.1.1** Ao colar o link no WhatsApp, aparece a imagem 1200 × 630 (bosque com o selo I&D), o título "Isabella & David — Convite de casamento" e a descrição "Uma carta foi escrita para você. Toque para abrir.".
+- **CA-10.1.1** Ao colar o link no WhatsApp, aparece a imagem 1200 × 630 (só o selo I&D), o título "Isabella & David — Convite especial" e a descrição "Uma carta foi escrita para você. Toque no baú para abrir.".
 - **CA-10.1.2** A imagem da prévia pesa até 300 KB e é indicada por endereço completo com `https://`.
 - **CA-10.2.1** A aba do navegador mostra o selo com I&D e o título do convite; ao salvar na tela inicial do iPhone, aparece o ícone de 180 px.
 - **CA-10.3.1** Um envio para a branch `main` publica o site no GitHub Pages em até 5 min, por GitHub Actions, com endereço `https`.

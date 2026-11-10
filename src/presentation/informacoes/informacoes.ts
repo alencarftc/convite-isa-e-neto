@@ -46,6 +46,16 @@ function criarParagrafo(classe: string, texto: string): HTMLParagraphElement {
   return paragrafo;
 }
 
+/** O verso do louvor é uma citação (`<blockquote>`), com o texto num parágrafo dentro dela (10/11/2026). */
+function criarCitacao(classe: string, texto: string): HTMLQuoteElement {
+  const citacao = document.createElement('blockquote');
+  citacao.className = classe;
+  const paragrafo = document.createElement('p');
+  paragrafo.textContent = texto;
+  citacao.append(paragrafo);
+  return citacao;
+}
+
 function criarTitulo(texto: string): HTMLHeadingElement {
   const titulo = document.createElement('h3');
   titulo.className = 'cartao__titulo';
@@ -170,7 +180,7 @@ export function montarInformacoes(dependencias: DependenciasInformacoes): Inform
     // Verso vazio: o parágrafo não existe, sem linha em branco (SPEC-14, RF-14.5).
     ...(conteudo.mensagem.versoLouvor === ''
       ? []
-      : [criarParagrafo('mensagem__verso', conteudo.mensagem.versoLouvor)]),
+      : [criarCitacao('mensagem__verso', conteudo.mensagem.versoLouvor)]),
     criarParagrafo('mensagem__assinatura', conteudo.mensagem.assinatura),
   );
 
