@@ -28,9 +28,9 @@ jobs:
     name: Verificar e gerar o site
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4 # versão vem do campo packageManager
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6 # versão vem do campo packageManager
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -49,7 +49,7 @@ jobs:
           site foi publicado mesmo assim. Defina a variável BLOQUEAR_COM_PENDENCIAS=true para barrar."
       - name: Gates de código e build
         run: pnpm check
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: site
           path: dist
@@ -65,13 +65,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: site
           path: ${{ runner.temp }}/site
       - name: Conferir que o site está completo
         run: test -f "$RUNNER_TEMP/site/index.html" && test -f "$RUNNER_TEMP/site/.htaccess"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Gravar o site na branch main-dist (sem force push)
         env:
           SIMULACAO: ${{ inputs.simulacao }}
