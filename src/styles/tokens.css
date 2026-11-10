@@ -5,6 +5,7 @@
   --cor-papel: #f6ead7; /* o miolo do papel da carta (imagem 14), medido na arte: preenche o meio da carta sem estirar a textura */
   --cor-serenidade: #91a8d0; /* só decoração: 2,2:1 sobre marfim */
   --cor-dourado: #b18e4a; /* só decoração: 2,8:1 sobre marfim */
+  --cor-dourado-forte: #946f2e; /* a data e a hora da carta: 4,1:1 sobre marfim, ainda dourado */
   --cor-texto: #3a2e22; /* tinta marrom-escura: 11,9:1 sobre marfim; 8,4:1 sobre bege */
   --cor-texto-suave: #4d3e30; /* 9,2:1 sobre marfim; 6,6:1 sobre bege: rótulos finos da carta pedem contraste folgado */
 

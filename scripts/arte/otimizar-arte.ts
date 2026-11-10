@@ -724,54 +724,45 @@ async function selos(): Promise<void> {
   }
 }
 
-/** Prévia do WhatsApp (1200 × 630): o bosque, o selo com as iniciais e o baú. */
+/**
+ * Prévia do WhatsApp (1200 × 630): só o selo com as iniciais, sobre o marfim da carta (ADR-0040). Nem o bosque nem o baú
+ * aparecem: o casamento e a cena são a surpresa. O arquivo tem sufixo de versão (`-v2`) porque o WhatsApp guarda a prévia
+ * antiga pelo endereço da imagem (RF-10.6).
+ */
 async function previa(): Promise<void> {
   const largura = 1200;
   const altura = 630;
-  const cenaMestre = join(originais, '01-cena-mestre-16x9.png');
-  const meta = await sharp(cenaMestre).metadata();
-  const alturaDoRecorte = Math.round((meta.width * altura) / largura);
-  const fundo = await sharp(cenaMestre)
-    .removeAlpha()
-    .extract({
-      left: 0,
-      top: Math.round((meta.height - alturaDoRecorte) * 0.7),
-      width: meta.width,
-      height: alturaDoRecorte,
-    })
-    .resize(largura, altura)
+  const alturaDoSelo = 470;
+  const selo = await sharp(join(originais, '15-selo.png'))
+    .trim()
+    .resize({ height: alturaDoSelo, fit: 'inside' })
+    .png()
     .toBuffer();
-
-  const bau = await sharp(join(publico, 'assets/objects/08-bau-fechado.webp'))
-    .resize({ width: 330 })
-    .toBuffer();
-  const bauMeta = await sharp(bau).metadata();
-  const larguraDoSelo = 270;
-  const selo = await sharp(join(publico, 'assets/objects/15-selo.webp'))
-    .resize({ width: larguraDoSelo })
-    .toBuffer();
-  const brilho = Buffer.from(
+  const medida = await sharp(selo).metadata();
+  const esquerda = Math.round((largura - medida.width) / 2);
+  const topo = Math.round((altura - medida.height) / 2) - 6;
+  const fundo = Buffer.from(
     `<svg xmlns="http://www.w3.org/2000/svg" width="${String(largura)}" height="${String(altura)}">` +
-      `<defs><radialGradient id="b" cx="50%" cy="30%" r="38%"><stop offset="0" stop-color="#f6f3e0" stop-opacity="0.85"/><stop offset="1" stop-color="#f6f3e0" stop-opacity="0"/></radialGradient></defs>` +
-      `<rect width="100%" height="100%" fill="url(#b)"/></svg>`,
+      `<defs><radialGradient id="f" cx="50%" cy="48%" r="78%"><stop offset="0" stop-color="#fbf9ec"/><stop offset="1" stop-color="#e4dcbc"/></radialGradient>` +
+      `<filter id="s" x="-30%" y="-200%" width="160%" height="500%"><feGaussianBlur stdDeviation="16"/></filter></defs>` +
+      `<rect width="100%" height="100%" fill="url(#f)"/>` +
+      `<ellipse cx="${String(largura / 2)}" cy="${String(topo + medida.height - 18)}" rx="${String(medida.width * 0.36)}" ry="20" fill="#3a2e22" fill-opacity="0.3" filter="url(#s)"/></svg>`,
   );
   const jpg = await sharp(fundo)
-    .composite([
-      { input: brilho },
-      { input: selo, left: Math.round((largura - larguraDoSelo) / 2), top: 36 },
-      {
-        input: bau,
-        left: Math.round((largura - 330) / 2),
-        top: altura - bauMeta.height - 24,
-      },
-    ])
-    .jpeg({ quality: 82, mozjpeg: true })
+    .composite([{ input: selo, left: esquerda, top: topo }])
+    .jpeg({ quality: 86, mozjpeg: true })
     .toBuffer();
-  escrever(join(publico, 'og-image.jpg'), jpg);
-  console.log(`  og-image.jpg                       1200 x 630  ${kb(jpg.length)}`);
+  escrever(join(publico, 'og-image-v2.jpg'), jpg);
+  console.log(`  og-image-v2.jpg                    1200 x 630  ${kb(jpg.length)}`);
 }
 
 async function main(): Promise<void> {
+  // `pnpm arte -- --so-previa`: só a imagem da prévia do WhatsApp.
+  if (process.argv.includes('--so-previa')) {
+    console.log('Prévia');
+    await previa();
+    return;
+  }
   // `pnpm arte -- --so-computador`: só a cena e o primeiro plano do computador, sem refazer o resto.
   if (process.argv.includes('--so-computador')) {
     console.log('Cena do computador');

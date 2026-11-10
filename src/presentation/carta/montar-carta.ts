@@ -99,6 +99,18 @@ export function montarCarta(carta: CartaDoConvite, papel: PapelDaCarta): HTMLEle
     criar('span', 'carta__bloco carta__nome', carta.nomes.noivo),
   );
 
+  // A data é o que os convidados mais procuram, os idosos sobretudo (10/11/2026): o dia e a hora são linhas próprias e a
+  // hora vem em destaque. O texto segue o de `content` ("DIA · DATA · HORA": o último " · " fica oculto na CSS).
+  const data = criar('p', 'carta__bloco carta__data');
+  const corte = carta.data.lastIndexOf(' · ');
+  if (corte === -1) {
+    data.textContent = carta.data;
+  } else {
+    const hora = criar('span', 'carta__hora');
+    hora.append(criar('span', 'carta__ponto', ' · '), carta.data.slice(corte + 3));
+    data.append(criar('span', 'carta__dia', carta.data.slice(0, corte)), hora);
+  }
+
   const local = criar('div', 'carta__bloco carta__local');
   local.append(
     criar('p', '', carta.cerimonia),
@@ -115,7 +127,7 @@ export function montarCarta(carta: CartaDoConvite, papel: PapelDaCarta): HTMLEle
     pais,
     titulo,
     criar('p', 'carta__bloco carta__convite', carta.convite),
-    criar('p', 'carta__bloco carta__data', carta.data),
+    data,
     local,
     criarFilete(),
     criar('p', 'carta__bloco carta__versiculo', carta.fecho),

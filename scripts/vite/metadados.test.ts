@@ -26,13 +26,11 @@ const comIndexacao = (indexavel: boolean): ConfigConvite => ({
 
 describe('gerarMetadados (SPEC-10, RF-10.1 e RF-10.3)', () => {
   it('traz título e descrição da prévia, iguais aos de content (CT-10.1)', () => {
-    expect(html).toContain('<title>Isabella &amp; David — Convite de casamento</title>');
+    expect(html).toContain('<title>Isabella &amp; David — Convite especial</title>');
     expect(html).toContain(
-      'property="og:description" content="Uma carta foi escrita para você. Toque para abrir."',
+      'property="og:description" content="Uma carta foi escrita para você. Toque no baú para abrir."',
     );
-    expect(html).toContain(
-      'property="og:title" content="Isabella &amp; David — Convite de casamento"',
-    );
+    expect(html).toContain('property="og:title" content="Isabella &amp; David — Convite especial"');
   });
 
   it('og:url e og:image levam o endereço completo, com https:// (prévia não aceita caminho relativo)', () => {
@@ -67,6 +65,25 @@ describe('gerarMetadados (SPEC-10, RF-10.1 e RF-10.3)', () => {
 
     expect(perigoso).toContain('content="A &quot;B&quot; &amp; &lt;C&gt;"');
     expect(perigoso).toContain('<title>A "B" &amp; &lt;C&gt;</title>');
+  });
+});
+
+describe('convite surpresa (10/11/2026, ADR-0040)', () => {
+  it('nenhum metadado fala em "casamento": ele é a surpresa que a carta revela', () => {
+    expect(html).not.toMatch(/casamento/i);
+    expect(JSON.stringify(gerarDadosEstruturados(content, config))).not.toMatch(/casamento/i);
+  });
+
+  it('o título e a descrição falam em "convite especial" e mandam tocar no baú', () => {
+    expect(content.previa.titulo).toContain('Convite especial');
+    expect(content.previa.descricao).toContain('Toque no baú para abrir');
+    expect(content.previa.descricaoParaBusca).toContain('convite especial');
+  });
+
+  it('a imagem da prévia é só o selo, com nome versionado para o WhatsApp não reusar a antiga', () => {
+    expect(config.publicacao.imagemDaPrevia).toBe('og-image-v2.jpg');
+    expect(html).toContain('og-image-v2.jpg');
+    expect(content.previa.descricaoDaImagem).not.toMatch(/baú|lago|jardim|casamento/i);
   });
 });
 

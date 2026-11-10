@@ -212,6 +212,15 @@ describe('cartões da mensagem e do traje (SPEC-07)', () => {
     );
   });
 
+  it('o verso do louvor é uma citação: um <blockquote> com o texto num parágrafo (10/11/2026)', () => {
+    const { raiz } = montarEm('2026-11-15T10:00');
+
+    const citacao = raiz.querySelector('.cartao--mensagem .mensagem__verso');
+
+    expect(citacao?.tagName).toBe('BLOCKQUOTE');
+    expect(citacao?.querySelector(':scope > p')?.textContent).toBe(content.mensagem.versoLouvor);
+  });
+
   it('verso do louvor vazio: o parágrafo não é criado e a mensagem termina na assinatura (CT-14.4)', () => {
     const { raiz } = montarEm('2026-11-15T10:00', false, {
       ...content,

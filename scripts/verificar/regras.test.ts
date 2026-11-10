@@ -307,11 +307,11 @@ describe('validarArquivos', () => {
       config,
       content,
       [],
-      (caminho) => !caminho.startsWith('favicon/') && caminho !== 'og-image.jpg',
+      (caminho) => !caminho.startsWith('favicon/') && caminho !== 'og-image-v2.jpg',
     );
 
     expect(problemas.map((p) => p.mensagem)).toEqual([
-      'config.publicacao.imagemDaPrevia: "public/og-image.jpg" não existe',
+      'config.publicacao.imagemDaPrevia: "public/og-image-v2.jpg" não existe',
       'config.publicacao.icone32: "public/favicon/favicon-32.png" não existe',
       'config.publicacao.iconeApple: "public/favicon/apple-touch-icon.png" não existe',
     ]);

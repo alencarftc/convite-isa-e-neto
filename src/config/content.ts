@@ -39,14 +39,14 @@ export const content: ConteudoConvite = {
     retomarAnimacao: '[Retomar animação]',
   },
   previa: {
-    titulo: 'Isabella & David — Convite de casamento',
-    descricao: 'Uma carta foi escrita para você. Toque para abrir.',
-    // Textos novos de SEO (09/11/2026), sem aprovação do casal ainda: o `og:description` acima, o aprovado, segue na prévia.
+    titulo: 'Isabella & David — Convite especial',
+    descricao: 'Uma carta foi escrita para você. Toque no baú para abrir.',
+    // Os metadados (título, descrição, busca, imagem, evento) nunca dizem "casamento": ele é a surpresa que a carta revela
+    // (ADR-0040). Os textos de busca são de 09/11/2026 e 10/11/2026, sem aprovação do casal ainda.
     descricaoParaBusca:
-      'Convite de casamento de Isabella Vaz e David Neto: 22 de janeiro de 2027, às 17h, no Sítio Olinda, em Benevides (PA). Abra a carta, confirme a presença e veja como chegar.',
-    descricaoDaImagem:
-      'Um baú dourado e o selo I&D num jardim de rosas azuis, à beira de um lago ao pôr do sol.',
-    nomeDoEvento: 'Casamento de Isabella Vaz e David Neto',
+      'Um convite especial de Isabella Vaz e David Neto, para 22 de janeiro de 2027, às 17h, no Sítio Olinda, em Benevides (PA). Toque no baú para abrir e confirme a presença.',
+    descricaoDaImagem: 'O selo azul com as iniciais I&D em dourado.',
+    nomeDoEvento: 'Convite especial de Isabella Vaz e David Neto',
   },
   carta: {
     versiculo:

@@ -153,6 +153,17 @@ describe('montarCarta (SPEC-06, "Layout da carta")', () => {
     ]);
   });
 
+  it('a data e a hora são destaque: o dia numa linha, a hora noutra, e o texto segue o de content (10/11/2026)', () => {
+    const data = artigo().querySelector<HTMLElement>('.carta__data');
+
+    expect(data?.textContent).toBe(content.carta.data);
+    expect(data?.querySelector('.carta__dia')?.textContent).toBe(
+      'SEXTA-FEIRA · 22 DE JANEIRO DE 2027',
+    );
+    expect(data?.querySelector('.carta__hora')?.textContent).toBe(' · 17H');
+    expect(data?.querySelector('.carta__hora .carta__ponto')?.textContent).toBe(' · ');
+  });
+
   it('o título é o foco da abertura e o "&" é dourado (RF-06.10)', () => {
     const titulo = artigo().querySelector<HTMLElement>('#carta-titulo');
 

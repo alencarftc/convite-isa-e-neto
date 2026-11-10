@@ -53,7 +53,7 @@ convite-isabella-david/
 │   │   └── photos/         # fotos reais dos balões
 │   ├── audio/              # ambiente, efeitos, música 1, música 2
 │   ├── fonts/              # Great Vibes, Cormorant Garamond
-│   ├── og-image.jpg        # prévia do WhatsApp, 1200×630
+│   ├── og-image-v2.jpg        # prévia do WhatsApp, 1200×630
 │   └── favicon/            # ícones 32 e 180 px
 ├── src/
 │   ├── main.js             # inicialização e ordem das cenas
@@ -165,7 +165,7 @@ Os prompts e as regras de geração das imagens estão na seção "Imagens a ger
 | --- | --- | --- |
 | `photos/foto-1.jpg` a `foto-5.jpg` | Fotos reais dos balões (pendentes com o casal) |  |
 | `fonts/` | Great Vibes e Cormorant Garamond, em WOFF2 |  |
-| `og-image.jpg` | Prévia do WhatsApp, 1200×630 |  |
+| `og-image-v2.jpg` | Prévia do WhatsApp, 1200×630 |  |
 | `favicon/` | Selo com I&D, 32 e 180 px |  |
 | Cursor | Chave em 48 px, derivada da imagem 10 |  |
 
@@ -237,13 +237,13 @@ O convite só se conecta a dois serviços externos, ambos por link: o formulári
 **Metadados da prévia do WhatsApp**
 
 ```html
-<title>Isabella & David — Convite de casamento</title>
-<meta name="description" content="Uma carta foi escrita para você. Toque para abrir.">
+<title>Isabella & David — Convite especial</title>
+<meta name="description" content="Uma carta foi escrita para você. Toque no baú para abrir.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
-<meta property="og:title" content="Isabella & David — Convite de casamento">
-<meta property="og:description" content="Uma carta foi escrita para você. Toque para abrir.">
-<meta property="og:image" content="[URL publicada]/og-image.jpg">
+<meta property="og:title" content="Isabella & David — Convite especial">
+<meta property="og:description" content="Uma carta foi escrita para você. Toque no baú para abrir.">
+<meta property="og:image" content="[URL publicada]/og-image-v2.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:url" content="[URL publicada]">

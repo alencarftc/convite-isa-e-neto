@@ -415,11 +415,38 @@
   font-size: var(--texto-corpo);
 }
 
+/*
+ * A data e a hora em destaque (10/11/2026), porque muitos convidados, os idosos sobretudo, querem saber logo quando será:
+ * maiores, em negrito, num dourado mais escuro (4,1:1) e entre dois filetes dourados; o dia numa linha e a hora, ainda maior,
+ * na seguinte. O " · " antes da hora só existe para o texto copiado e lido seguir o de `content`.
+ */
 .carta__data {
-  font-size: 15px;
-  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: 0.7em;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
+  border-block: 1px solid var(--cor-dourado-70);
+}
+
+.carta__dia {
+  display: block;
+  text-wrap: balance;
+}
+
+.carta__hora {
+  display: block;
+  font-size: 1.75em;
+  line-height: 1.15;
+  letter-spacing: 0.1em;
+}
+
+.carta__ponto {
+  display: none;
 }
 
 .carta__assinatura {
@@ -448,9 +475,13 @@
  * O "&" do título e a data com a hora ficam dourados (pedido do casal, 02/11/2026), fora da mistura, que os viraria
  * azuis. O dourado médio não é invertido pelo escurecimento forçado, mas é só decoração e destaque: 2,6:1 sobre o papel.
  */
-.carta__bloco.carta__e,
-.carta__bloco.carta__data {
+.carta__bloco.carta__e {
   color: var(--cor-dourado);
+  mix-blend-mode: normal;
+}
+
+.carta__bloco.carta__data {
+  color: var(--cor-dourado-forte);
   mix-blend-mode: normal;
 }
 
@@ -513,7 +544,7 @@ body[data-fase='seguranca'] .conteudo {
 }
 
 .conteudo--computador .carta__data {
-  font-size: clamp(15px, 2.4vw, 17px);
+  font-size: clamp(17px, 2.6vw, 21px);
 }
 
 .conteudo--computador .carta__assinatura {
@@ -522,4 +553,39 @@ body[data-fase='seguranca'] .conteudo {
 
 .conteudo--computador .carta__filete {
   width: min(60%, 274px);
+}
+
+/*
+ * Janela larga (a partir de 900 px, 10/11/2026): a carta chega a 780 px e o nome da noiva fica à esquerda e o do noivo à
+ * direita, com o "&" dourado no meio, em vez de um sobre o outro. Numa janela mais estreita eles seguem empilhados.
+ */
+@media (min-width: 900px) {
+  .conteudo--computador {
+    --texto-nomes: clamp(44px, 3.9vw, 54px);
+  }
+
+  .conteudo--computador .carta {
+    --carta-largura: min(92vw, 780px);
+  }
+
+  .conteudo--computador .carta__nomes {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    column-gap: 0.3em;
+    align-items: baseline;
+    word-spacing: 0.12em;
+    white-space: nowrap;
+  }
+
+  .conteudo--computador .carta__nomes .carta__nome:first-child {
+    justify-self: start;
+  }
+
+  .conteudo--computador .carta__nomes .carta__nome:last-child {
+    justify-self: end;
+  }
+
+  .conteudo--computador .carta__e {
+    margin-block: 0;
+  }
 }
