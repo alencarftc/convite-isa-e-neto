@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
 import { alvosDoBuild } from './scripts/vite/alvo';
+import { pluginCssEmLinha } from './scripts/vite/css-em-linha';
 import { pluginMetadados } from './scripts/vite/metadados';
 import { pluginNoscript } from './scripts/vite/noscript';
 import { pluginPlanoB } from './scripts/vite/plano-b';
@@ -19,6 +20,7 @@ export default defineConfig({
     pluginMetadados(content, config),
     pluginPlanoB(content, config),
     pluginNoscript(content, config),
+    pluginCssEmLinha(),
   ],
   // Caminhos relativos: o build funciona em qualquer subpasta do GitHub Pages (RF-01.2).
   base: './',

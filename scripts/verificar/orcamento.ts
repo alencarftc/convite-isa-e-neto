@@ -42,6 +42,14 @@ export const LIMITE_DAS_IMAGENS: Readonly<Record<ChaveDeImagem, number>> = {
   esquiloEsticado: 25 * KB, // 21b
 };
 
+/**
+ * Limite da variante `computador` de uma imagem, quando difere do da chave: o chão do computador é uma faixa de gramado
+ * da pintura (uns 100 kB), enquanto o das outras orientações é uma imagem minúscula ampliada pelo navegador.
+ */
+export const LIMITE_DA_VARIANTE_DO_COMPUTADOR: Readonly<Partial<Record<ChaveDeImagem, number>>> = {
+  chao: 160 * KB,
+};
+
 /** Fotos dos balões (SPEC-05, RNF-05.3), prévia do link (SPEC-10, RF-10.2) e fontes (RNF da SPEC-02). */
 export const LIMITE_DE_FOTO = 120 * KB;
 /** Fotos da mini-galeria do casal (02/11/2026): menores, porque são duas por linha. */
@@ -107,7 +115,11 @@ export function validarPeso(
     ConfigConvite['imagens'][ChaveDeImagem],
   ][]) {
     for (const url of urlsDaImagem(arte)) {
-      conferir(`config.imagens.${chave}`, url, LIMITE_DAS_IMAGENS[chave]);
+      const doComputador = typeof arte !== 'string' && arte.computador === url;
+      const limite = doComputador
+        ? (LIMITE_DA_VARIANTE_DO_COMPUTADOR[chave] ?? LIMITE_DAS_IMAGENS[chave])
+        : LIMITE_DAS_IMAGENS[chave];
+      conferir(`config.imagens.${chave}`, url, limite);
     }
   }
   conteudo.baloes.forEach((balao, indice) => {
@@ -165,7 +177,8 @@ export function encontrarArquivosCitados(
     for (const [, caminho] of texto.matchAll(
       /(?:url\(\s*['"]?|href=")\/([^'")\s]+\.[a-z0-9]+)/gi,
     )) {
-      if (caminho) citados.push({ origem, caminho });
+      // `/src/…` é código-fonte que o Vite processa (o CSS ligado no <head>, 09/11/2026), e não um arquivo de `public/`.
+      if (caminho && !caminho.startsWith('src/')) citados.push({ origem, caminho });
     }
   }
   return citados;
