@@ -367,8 +367,8 @@ export const config: ConfigConvite = {
     // No computador a base que a carta deixa à mostra é uma faixa de gramado da própria pintura (09/11/2026), e não um verde
     // chapado: um retalho do gramado ladrilhado, que continua a borda de baixo da pintura.
     chao: {
-      vertical: 'assets/scene/06-chao-9x16.webp',
-      horizontal: 'assets/scene/06-chao-16x9.webp',
+      vertical: 'assets/scene/06-chao-celular.webp',
+      horizontal: 'assets/scene/06-chao-celular.webp',
       computador: 'assets/scene/06-chao-computador.webp',
     },
     bauFechado: 'assets/objects/08-bau-fechado.webp',

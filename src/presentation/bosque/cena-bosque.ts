@@ -184,9 +184,13 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
         janela: window,
       });
       profundidade = derivando;
-      // "Pausar animação" (SPEC-18, RF-18.9) congela a deriva junto com a cena viva; vale desde o começo.
+      // "Pausar animação" (SPEC-18, RF-18.9) congela a deriva junto com a cena viva; vale desde o começo. A deriva também
+      // para quando o convite abre (10/11/2026): a carta cobre a cena, o estado final dela não tem profundidade (RF-03.6) e um
+      // tween infinito movendo camadas enormes por trás da carta, a 60 quadros por segundo, esquentava o aparelho e fazia a
+      // tela piscar depois de um tempo parada.
       const seguirMovimento = () => {
-        if (estado.movimentoLigado) derivando.retomar();
+        const convitePronto = ['aguardando-selo', 'convite', 'informacoes'].includes(estado.fase);
+        if (estado.movimentoLigado && !convitePronto) derivando.retomar();
         else derivando.pausar();
       };
       seguirMovimento();

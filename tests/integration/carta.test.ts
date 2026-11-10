@@ -153,15 +153,15 @@ describe('montarCarta (SPEC-06, "Layout da carta")', () => {
     ]);
   });
 
-  it('a data e a hora são destaque: o dia numa linha, a hora noutra, e o texto segue o de content (10/11/2026)', () => {
+  it('a data e a hora são destaque: um quadro com o dia da semana, o número do dia, o mês e a hora, e o texto segue o de content (10/11/2026)', () => {
     const data = artigo().querySelector<HTMLElement>('.carta__data');
 
     expect(data?.textContent).toBe(content.carta.data);
-    expect(data?.querySelector('.carta__dia')?.textContent).toBe(
-      'SEXTA-FEIRA · 22 DE JANEIRO DE 2027',
-    );
-    expect(data?.querySelector('.carta__hora')?.textContent).toBe(' · 17H');
-    expect(data?.querySelector('.carta__hora .carta__ponto')?.textContent).toBe(' · ');
+    expect(data?.querySelector('.carta__semana')?.textContent).toBe('SEXTA-FEIRA');
+    expect(data?.querySelector('.carta__numero')?.textContent).toBe('22');
+    expect(data?.querySelector('.carta__mes')?.textContent).toBe(' DE JANEIRO DE 2027');
+    expect(data?.querySelector('.carta__hora')?.textContent).toBe('17H');
+    expect(data?.querySelectorAll('.carta__ponto')).toHaveLength(2);
   });
 
   it('o título é o foco da abertura e o "&" é dourado (RF-06.10)', () => {
@@ -318,12 +318,14 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(raiz.querySelector(':scope > .convite__rolar')).toBeNull();
     });
 
-    it('o chão sob a cena é uma faixa de imagem minúscula, escondida até a cena subir, e não um espelho do primeiro plano (31/10/2026)', () => {
+    it('o chão sob a cena é uma faixa de gramado nítido, escondida até a cena subir, e não um espelho do primeiro plano nem uma imagem ampliada (10/11/2026)', () => {
       const { el } = montar();
 
       expect(document.querySelector('.convite__chao .camada--frente')).toBeNull(); // sem espelho duplicado
-      const imagem = el('.convite__chao .convite__chao-imagem');
+      expect(document.querySelector('.convite__chao-imagem')).toBeNull(); // nada de imagem minúscula ampliada
+      const imagem = el('.convite__chao .convite__chao-faixa .convite__chao-trecho');
       expect(imagem.getAttribute('data-src')).toBe(urlDaImagem(config.imagens.chao, 'vertical'));
+      expect(imagem.getAttribute('data-src')).toMatch(/06-chao-celular\.webp$/);
       expect(el('.convite__chao').getAttribute('aria-hidden')).toBe('true');
       expect(Number(gsap.getProperty(el('.convite__chao'), 'opacity'))).toBe(0);
     });
@@ -341,11 +343,13 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(el('.conteudo').classList.contains('conteudo--computador')).toBe(true);
     });
 
-    it('com toque (celular e tablet) o chão e o envelope são os de antes, sem faixa de pintura', () => {
+    it('com toque (celular e tablet) o chão é a faixa do celular e o envelope é o de antes', () => {
       const { el } = montar({ toque: true, orientacao: 'horizontal' });
 
       expect(el('.convite__chao').classList.contains('convite__chao--computador')).toBe(false);
-      expect(document.querySelector('.convite__chao-faixa')).toBeNull();
+      expect(el('.convite__chao-trecho').getAttribute('data-src')).toMatch(
+        /06-chao-celular\.webp$/,
+      );
       expect(el('.envelope').classList.contains('envelope--computador')).toBe(false);
       expect(el('.conteudo').classList.contains('conteudo--computador')).toBe(false);
     });
@@ -353,7 +357,7 @@ describe('envelope e carta (SPEC-06)', () => {
     it('a faixa de chão só é pedida quando a etapa começa, não no init', () => {
       const { el } = montar();
 
-      expect(el('.convite__chao .convite__chao-imagem').hasAttribute('src')).toBe(false);
+      expect(el('.convite__chao .convite__chao-trecho').hasAttribute('src')).toBe(false);
     });
 
     it('o chão sobe junto com a cena: o mesmo deslocamento no fim da abertura e no estado final', async () => {

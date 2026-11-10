@@ -297,28 +297,47 @@ async function primeiroPlanoComputador(): Promise<void> {
 }
 
 /**
- * O chão do computador (09/11/2026): quando a cena sobe e a carta abre, o quinto de baixo da tela fica sem pintura. Em
- * vez do verde chapado, ou de um reflexo desfocado da pintura (que não agradou), a faixa é gramado de verdade: um retalho
- * do gramado da própria pintura mestre (do centro, sem rosas) ladrilhado, cada ladrilho virado em relação ao vizinho, o
- * que torna as emendas invisíveis num gramado. O retalho cai exatamente na posição dele na pintura, e a primeira linha de
- * ladrilhos vem de cabeça para baixo: a borda de cima da faixa é a última linha do gramado, a que está junto da borda de
- * baixo da pintura. A CSS esmaece a borda de cima sobre a pintura. As medidas são frações da pintura (1672 × 941).
+ * O chão sob o convite (09/11/2026 no computador; 10/11/2026 no celular): quando a cena sobe e a carta abre, a base da tela
+ * fica sem pintura. Em vez do verde chapado, ou de uma imagem minúscula ampliada (um borrão fosco, que o casal não quis), a
+ * faixa é gramado de verdade: um retalho do gramado da própria pintura mestre (do centro, sem rosas) ladrilhado, cada
+ * ladrilho virado em relação ao vizinho, o que torna as emendas invisíveis num gramado. O retalho cai exatamente na posição
+ * dele na pintura, e a primeira linha de ladrilhos vem de cabeça para baixo: a borda de cima da faixa é a última linha do
+ * gramado, a que está junto da borda de baixo da pintura. A CSS esmaece a borda de cima sobre a pintura. As medidas do
+ * retalho são frações da pintura.
  */
-const RETALHO_DO_GRAMADO = { esquerda: 0.38, largura: 0.29, topo: 0.84, altura: 0.15 } as const;
-const ALTURA_DO_CHAO_DO_COMPUTADOR = 420;
-const LIMITE_DO_CHAO_DO_COMPUTADOR = 160 * 1024;
+interface TiraDeGramado {
+  /** O arquivo da pintura mestre em `arte/originais`. */
+  readonly pintura: string;
+  readonly retalho: { esquerda: number; largura: number; topo: number; altura: number };
+  /** Largura da faixa em pixels; sem ela, a da pintura. */
+  readonly largura?: number;
+  readonly altura: number;
+  readonly destino: string;
+  readonly limite: number;
+}
 
-async function chaoDoComputador(): Promise<void> {
-  const pintura = sharp(join(originais, '01-cena-mestre-16x9.png')).removeAlpha();
+const RETALHO_DO_GRAMADO = { esquerda: 0.38, largura: 0.29, topo: 0.84, altura: 0.15 } as const;
+/** O gramado limpo da pintura vertical (941 × 1672): o centro, acima dos arbustos de rosas dos cantos. */
+const RETALHO_DO_GRAMADO_VERTICAL = {
+  esquerda: 0.2,
+  largura: 0.4,
+  topo: 0.74,
+  altura: 0.08,
+} as const;
+
+async function tiraDeGramado(opcoes: TiraDeGramado): Promise<void> {
+  const pintura = sharp(join(originais, opcoes.pintura)).removeAlpha();
   const { width: largura, height: altura } = await pintura.metadata();
-  if (!largura || !altura) throw new Error('A pintura mestre 16:9 não tem tamanho');
-  const ladrilhoLargura = Math.round(largura * RETALHO_DO_GRAMADO.largura);
-  const ladrilhoAltura = Math.round(altura * RETALHO_DO_GRAMADO.altura);
+  if (!largura || !altura) throw new Error(`A pintura ${opcoes.pintura} não tem tamanho`);
+  const larguraDaTira = opcoes.largura ?? largura;
+  const retalhoDaPintura = opcoes.retalho;
+  const ladrilhoLargura = Math.round(largura * retalhoDaPintura.largura);
+  const ladrilhoAltura = Math.round(altura * retalhoDaPintura.altura);
   const retalho = await pintura
     .clone()
     .extract({
-      left: Math.round(largura * RETALHO_DO_GRAMADO.esquerda),
-      top: Math.round(altura * RETALHO_DO_GRAMADO.topo),
+      left: Math.round(largura * retalhoDaPintura.esquerda),
+      top: Math.round(altura * retalhoDaPintura.topo),
       width: ladrilhoLargura,
       height: ladrilhoAltura,
     })
@@ -338,22 +357,22 @@ async function chaoDoComputador(): Promise<void> {
     variantes.set(`${String(vertical)}${String(horizontal)}`, await imagem.png().toBuffer());
   }
 
-  // Margem à esquerda para os ladrilhos que começam antes da borda da pintura (`composite` não aceita posição negativa).
+  // Margem à esquerda para os ladrilhos que começam antes da borda da faixa (`composite` não aceita posição negativa).
   const margem = ladrilhoLargura * 3;
-  const linhas = Math.ceil(ALTURA_DO_CHAO_DO_COMPUTADOR / ladrilhoAltura);
-  const origemX = Math.round(largura * RETALHO_DO_GRAMADO.esquerda);
+  const linhas = Math.ceil(opcoes.altura / ladrilhoAltura);
+  const origemX = Math.round(largura * retalhoDaPintura.esquerda);
   const ladrilhos: { input: Buffer; left: number; top: number }[] = [];
   for (let linha = 0; linha < linhas; linha++) {
-    for (let k = -4; k <= 4; k++) {
+    for (let k = -8; k <= 8; k++) {
       const x = origemX + k * ladrilhoLargura;
-      if (x + ladrilhoLargura <= 0 || x >= largura) continue;
+      if (x + ladrilhoLargura <= 0 || x >= larguraDaTira) continue;
       const input = variantes.get(`${String(linha % 2 === 0)}${String(Math.abs(k) % 2 === 1)}`);
       if (input) ladrilhos.push({ input, left: margem + x, top: linha * ladrilhoAltura });
     }
   }
   const montado = await sharp({
     create: {
-      width: largura + margem * 2,
+      width: larguraDaTira + margem * 2,
       height: linhas * ladrilhoAltura,
       channels: 3,
       background: { r: 120, g: 130, b: 70 },
@@ -365,13 +384,34 @@ async function chaoDoComputador(): Promise<void> {
   const base = sharp(montado).extract({
     left: margem,
     top: 0,
-    width: largura,
-    height: ALTURA_DO_CHAO_DO_COMPUTADOR,
+    width: larguraDaTira,
+    height: opcoes.altura,
   });
-  const codificada = await codificarNoLimite(base, largura, LIMITE_DO_CHAO_DO_COMPUTADOR);
-  const destino = 'assets/scene/06-chao-computador.webp';
-  escrever(join(publico, destino), codificada.buffer);
-  relatar(destino, codificada, LIMITE_DO_CHAO_DO_COMPUTADOR);
+  const codificada = await codificarNoLimite(base, larguraDaTira, opcoes.limite);
+  escrever(join(publico, opcoes.destino), codificada.buffer);
+  relatar(opcoes.destino, codificada, opcoes.limite);
+}
+
+function chaoDoComputador(): Promise<void> {
+  return tiraDeGramado({
+    pintura: '01-cena-mestre-16x9.png',
+    retalho: RETALHO_DO_GRAMADO,
+    altura: 420,
+    destino: 'assets/scene/06-chao-computador.webp',
+    limite: 160 * 1024,
+  });
+}
+
+/** O chão de qualquer tela de toque: a faixa mede 1000 px e a CSS a mostra na escala da pintura vertical (cerca de 0,49). */
+function chaoDoCelular(): Promise<void> {
+  return tiraDeGramado({
+    pintura: '01-cena-mestre-9x16.png',
+    retalho: RETALHO_DO_GRAMADO_VERTICAL,
+    largura: 1000,
+    altura: 900,
+    destino: 'assets/scene/06-chao-celular.webp',
+    limite: 200 * 1024,
+  });
 }
 
 /** Uma imagem de 1 × 1 transparente: as camadas que na vertical não têm arte (as árvores e o primeiro plano). */
@@ -383,64 +423,6 @@ async function vazio(): Promise<void> {
     .toBuffer();
   escrever(join(publico, 'assets/scene/vazio.webp'), buffer);
   console.log(`  assets/scene/vazio.webp ${String(buffer.length)} bytes`);
-}
-
-/**
- * O chão sob o convite: quando a cena sobe (a carta abre), a base da tela fica sem arte. Em vez de um espelho do
- * primeiro plano (que aparecia como uma imagem duplicada), a faixa continua as cores da borda de baixo dele, em
- * degradê para um tom médio mais escuro: uma imagem minúscula, ampliada pelo navegador, que vira um borrão
- * suave de grama fora de foco. As primeiras linhas são transparentes e ganham corpo aos poucos: a faixa começa
- * um pouco acima da borda do primeiro plano e se mistura com ele, sem deixar uma linha de emenda.
- */
-const COLUNAS_DO_CHAO = 12;
-/** Linhas da faixa e quantas delas, no alto, entram em degradê de transparência (a emenda com o primeiro plano). */
-const LINHAS_DO_CHAO = 48;
-const LINHAS_DA_EMENDA = 6;
-
-async function chao(quadro: Quadro, destino: string): Promise<void> {
-  const limite = LIMITE_DAS_IMAGENS.chao;
-  const faixa = Math.max(1, Math.round(quadro.altura * 0.04));
-  const medias: number[][] = [];
-  for (let c = 0; c < COLUNAS_DO_CHAO; c++) {
-    const x0 = Math.floor((c * quadro.largura) / COLUNAS_DO_CHAO);
-    const x1 = Math.floor(((c + 1) * quadro.largura) / COLUNAS_DO_CHAO);
-    const soma = [0, 0, 0];
-    let peso = 0;
-    for (let y = quadro.altura - faixa; y < quadro.altura; y++) {
-      for (let x = x0; x < x1; x++) {
-        const i = (y * quadro.largura + x) * 4;
-        const a = (quadro.dados[i + 3] ?? 0) / 255;
-        soma[0] = (soma[0] ?? 0) + (quadro.dados[i] ?? 0) * a;
-        soma[1] = (soma[1] ?? 0) + (quadro.dados[i + 1] ?? 0) * a;
-        soma[2] = (soma[2] ?? 0) + (quadro.dados[i + 2] ?? 0) * a;
-        peso += a;
-      }
-    }
-    medias.push(peso > 0 ? soma.map((s) => s / peso) : [90, 100, 60]);
-  }
-  const geral = [0, 1, 2].map(
-    (canal) => medias.reduce((s, m) => s + (m[canal] ?? 0), 0) / medias.length,
-  );
-  const dados = Buffer.alloc(COLUNAS_DO_CHAO * LINHAS_DO_CHAO * 4);
-  for (let l = 0; l < LINHAS_DO_CHAO; l++) {
-    const t = Math.max(0, l - LINHAS_DA_EMENDA) / (LINHAS_DO_CHAO - 1 - LINHAS_DA_EMENDA);
-    const emenda = Math.min(1, l / LINHAS_DA_EMENDA);
-    for (let c = 0; c < COLUNAS_DO_CHAO; c++) {
-      const origem = (l * COLUNAS_DO_CHAO + c) * 4;
-      for (let canal = 0; canal < 3; canal++) {
-        const cor = (medias[c]?.[canal] ?? 0) * (1 - 0.8 * t) + (geral[canal] ?? 0) * 0.8 * t;
-        dados[origem + canal] = Math.round(cor * (1 - 0.12 * t));
-      }
-      dados[origem + 3] = Math.round(255 * emenda * emenda * (3 - 2 * emenda));
-    }
-  }
-  const buffer = await sharp(dados, {
-    raw: { width: COLUNAS_DO_CHAO, height: LINHAS_DO_CHAO, channels: 4 },
-  })
-    .webp({ quality: 80, alphaQuality: 100 })
-    .toBuffer();
-  escrever(join(publico, destino), buffer);
-  relatar(destino, { buffer, qualidade: 80, largura: COLUNAS_DO_CHAO }, limite);
 }
 
 /** O casal veio sem recorte, sobre um fundo cinza liso: o fundo sai a partir das bordas. */
@@ -757,6 +739,13 @@ async function previa(): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  // `pnpm arte -- --so-chao`: só as faixas de gramado do rodapé (computador e celular).
+  if (process.argv.includes('--so-chao')) {
+    console.log('Chão');
+    await chaoDoComputador();
+    await chaoDoCelular();
+    return;
+  }
   // `pnpm arte -- --so-previa`: só a imagem da prévia do WhatsApp.
   if (process.argv.includes('--so-previa')) {
     console.log('Prévia');
@@ -820,17 +809,13 @@ async function main(): Promise<void> {
     ],
     { limpar: false },
   );
-  const retrato = await cenaVertical();
+  await cenaVertical();
   await vazio();
   await primeiroPlanoVertical();
   await cenaComputador();
   await primeiroPlanoComputador();
   await chaoDoComputador();
-  await chao(retrato, 'assets/scene/06-chao-9x16.webp');
-  // O chão do computador vem da borda de baixo do primeiro plano em 16:9.
-  const paisagem = await lerQuadro(join(originais, '06-primeiro-plano.png'));
-  normalizarAlfa(paisagem);
-  await chao(paisagem, 'assets/scene/06-chao-16x9.webp');
+  await chaoDoCelular();
 
   console.log('Objetos');
   await objetos(

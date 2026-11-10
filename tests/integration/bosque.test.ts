@@ -449,6 +449,20 @@ describe('cena do bosque (SPEC-03)', () => {
       expect(deriva().some((animacao) => !animacao.paused())).toBe(true);
     });
 
+    it('com o convite aberto a deriva do celular para de vez: a carta cobre a cena e o tween infinito esquentava o aparelho (10/11/2026)', async () => {
+      const { cena, camada, estado } = montar({ instantaneo: true, toque: true });
+      cena.init();
+      await cena.run();
+      const deriva = () => gsap.getTweensOf(camada('frente'));
+      expect(deriva().some((animacao) => !animacao.paused())).toBe(true);
+
+      estado.definirFase('convite');
+
+      expect(deriva().every((animacao) => animacao.paused())).toBe(true);
+      estado.definirMovimento(true); // ligar o movimento não a religa com o convite aberto
+      expect(deriva().every((animacao) => animacao.paused())).toBe(true);
+    });
+
     it('com a pausa gravada numa visita anterior, a deriva já nasce congelada', async () => {
       const { cena, camada } = montar({ instantaneo: true, toque: true, movimentoLigado: false });
       cena.init();
