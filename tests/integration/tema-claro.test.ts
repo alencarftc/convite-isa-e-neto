@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -6,47 +6,43 @@ import { describe, expect, it } from 'vitest';
 const raiz = join(import.meta.dirname, '..', '..');
 const html = readFileSync(join(raiz, 'index.html'), 'utf8');
 const base = readFileSync(join(raiz, 'src', 'styles', 'base.css'), 'utf8');
+const pastaDeEstilos = join(raiz, 'src', 'styles');
 
 /**
- * No celular com o modo escuro ligado, o Chrome, o Samsung Internet e o navegador do WhatsApp escurecem
- * sozinhos as páginas que não dizem que já cuidaram do tema: os fundos marfim viravam preto (ADR-0012) e, em
- * 01/11/2026, o texto da carta virou claro sobre o papel creme, que é imagem e não muda (ADR-0015). `only light`
- * não foi respeitado em todos eles; `dark` é o aviso que respeitam: "esta página já é do tema escuro, não mexa".
- * O convite não usa nenhuma cor padrão do navegador, então a aparência não muda.
+ * Só existe o tema claro (ADR-0042, 10/11/2026). O convite é pintado em tons claros e não tem versão escura: o modo
+ * escuro do aparelho não o muda. `only light` é a declaração que proíbe o navegador de escurecê-lo por conta própria
+ * (entre 01 e 10/11/2026 ele declarou `dark`, um desvio da ADR-0015 que a ADR-0042 desfaz). O texto da carta segue
+ * protegido contra os navegadores que escurecem mesmo assim (ADR-0016).
  */
-describe('o convite avisa que cuida do próprio tema (ADR-0015)', () => {
-  it('o index.html declara color-scheme dark, e não só o claro, que os navegadores ignoravam', () => {
-    expect(html).toMatch(/<meta\s+name="color-scheme"\s+content="dark"/);
-    expect(html).not.toMatch(/only light/);
-    expect(html).not.toMatch(/supported-color-schemes/);
+describe('o convite só tem o tema claro (ADR-0042)', () => {
+  it('o index.html declara color-scheme only light e nunca dark', () => {
+    expect(html).toMatch(/<meta\s+name="color-scheme"\s+content="only light"/);
+    expect(html).not.toMatch(/content="[^"]*dark/);
   });
 
-  it('a CSS repete o aviso na raiz, para valer mesmo que o <meta> seja ignorado', () => {
-    expect(base).toMatch(/html\s*\{[^}]*color-scheme:\s*dark/);
-    expect(base).not.toMatch(/color-scheme:\s*only light/);
+  it('a CSS repete a declaração na raiz, para valer mesmo que o <meta> seja ignorado', () => {
+    expect(base).toMatch(/html\s*\{[^}]*color-scheme:\s*only light\s*;/);
+    expect(base).not.toMatch(/color-scheme:\s*[a-z ]*\bdark\b/);
   });
 
-  it('a barra de rolagem, a única coisa que o aviso escurece, ganha as cores do convite', () => {
+  it('a barra de rolagem usa as cores do convite', () => {
     expect(base).toMatch(
       /html\s*\{[^}]*scrollbar-color:\s*var\(--cor-dourado\)\s+var\(--cor-marfim\)/,
     );
   });
 
-  it('nenhuma folha de estilo do convite troca de cores por prefers-color-scheme', () => {
-    const pasta = join(raiz, 'src', 'styles');
-    const folhas = [
-      'base',
-      'tokens',
-      'carta',
-      'entrada',
-      'bau',
-      'bosque',
-      'historia',
-      'informacoes',
-    ];
+  it('nenhuma folha de estilo troca de cores por prefers-color-scheme nem declara color-scheme dark', () => {
+    const folhas = readdirSync(pastaDeEstilos).filter((nome) => nome.endsWith('.css'));
+    expect(folhas.length).toBeGreaterThan(0);
     for (const nome of folhas) {
-      const css = readFileSync(join(pasta, `${nome}.css`), 'utf8');
+      const css = readFileSync(join(pastaDeEstilos, nome), 'utf8');
       expect(css, nome).not.toContain('prefers-color-scheme');
+      expect(css, nome).not.toMatch(/color-scheme:\s*[a-z ]*\bdark\b/);
     }
+  });
+
+  it('a cor da barra do navegador é uma só, sem variante para o tema escuro', () => {
+    expect(html.match(/<meta\s+name="theme-color"/g)).toHaveLength(1);
+    expect(html).not.toMatch(/name="theme-color"[^>]*media=/);
   });
 });

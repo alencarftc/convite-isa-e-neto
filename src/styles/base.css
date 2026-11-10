@@ -7,12 +7,12 @@
 
 html {
   /*
-   * O convite é pintado em tons claros e define cada cor dele. Os navegadores que escurecem as páginas por conta
-   * própria (o do WhatsApp, o Samsung Internet, o modo escuro forçado do Chrome) só poupam as que se dizem escuras:
-   * `only light` não bastava, e o texto da carta virava claro sobre o papel creme (ADR-0015). Como nada usa as cores
-   * padrão do navegador, dizer `dark` só escurece a barra de rolagem, que ganha a cor do convite logo abaixo.
+   * Só existe o tema claro (ADR-0042): o convite é pintado em tons claros, não tem versão escura e não segue o modo
+   * escuro do aparelho. `only light` proíbe o navegador de escurecê-lo por conta própria e deixa a barra de rolagem e os
+   * controles no tema claro. Se algum navegador (o do WhatsApp, o Samsung Internet) escurecer mesmo assim, o texto da
+   * carta segue legível pela mistura por diferença (ADR-0016).
    */
-  color-scheme: dark;
+  color-scheme: only light;
   scrollbar-color: var(--cor-dourado) var(--cor-marfim);
   background: var(--cor-marfim);
   color: var(--cor-texto);
