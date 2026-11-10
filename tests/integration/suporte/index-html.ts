@@ -6,7 +6,11 @@ import { join } from 'node:path';
  * entrada), sem os scripts. Assim os testes usam a mesma marcação que o convidado recebe.
  */
 export function montarIndexHtml(): void {
-  const html = readFileSync(join(import.meta.dirname, '..', '..', '..', 'index.html'), 'utf8');
+  // O `<link rel="stylesheet">` do head (ADR-0037) faria o happy-dom tentar baixar o CSS e registrar um erro; o corpo basta.
+  const html = readFileSync(
+    join(import.meta.dirname, '..', '..', '..', 'index.html'),
+    'utf8',
+  ).replace(/<link[^>]*rel="stylesheet"[^>]*>/g, '');
   const documento = new DOMParser().parseFromString(html, 'text/html');
   for (const script of documento.querySelectorAll('script')) script.remove();
   document.body.innerHTML = documento.body.innerHTML;
