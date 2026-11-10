@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+    # `edited` refaz o job do título do PR quando o título é corrigido; os outros jobs ignoram essa edição.
+    types: [opened, synchronize, reopened, edited]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -15,6 +17,7 @@ permissions:
 jobs:
   qualidade:
     name: Qualidade (lint, tipos, arquitetura, testes, build)
+    if: github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,7 +78,7 @@ jobs:
 
   changeset:
     name: Changeset
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.event.action != 'edited'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
