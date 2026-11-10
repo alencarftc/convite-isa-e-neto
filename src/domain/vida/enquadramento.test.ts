@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ajusteDeCobertura } from './enquadramento';
+import { ajusteDeCobertura, elipseDaImagemParaACaixa } from './enquadramento';
 
 describe('ajusteDeCobertura (SPEC-19, RF-19.3)', () => {
   it('imagem 16:9 numa caixa 9:16 com cover: só parte da largura aparece, centrada (CT-19.1)', () => {
@@ -78,5 +78,63 @@ describe('ajusteDeCobertura (SPEC-19, RF-19.3)', () => {
         caixa: { largura: 10, altura: 0 },
       }),
     ).toThrow(RangeError);
+  });
+});
+
+describe('âncora pela base e elipse da imagem para a caixa (09/11/2026)', () => {
+  const pintura = { largura: 1672, altura: 941 };
+
+  it('numa janela larga e baixa a pintura é ancorada pela base: corta o alto, nunca o gramado', () => {
+    // 1600 × 500: a pintura cobre pela largura (altura de 900 px) e a caixa mostra só 500 px dela.
+    const ajuste = ajusteDeCobertura({
+      imagem: pintura,
+      caixa: { largura: 1600, altura: 500 },
+      posicao: [0.5, 1],
+    });
+
+    expect(ajuste.escala[0]).toBe(1);
+    expect(ajuste.escala[1]).toBeCloseTo(500 / ((1600 / 1672) * 941), 4); // uns 55% da altura da pintura
+    // Ancorada na base: o deslocamento leva o que sobra todo para cima, e a última linha da caixa é a última da pintura.
+    expect(ajuste.deslocamento[1]).toBeCloseTo(1 - ajuste.escala[1], 6);
+    expect(ajuste.deslocamento[1] + ajuste.escala[1]).toBeCloseTo(1, 6);
+    // Centrada (o padrão), a mesma caixa cortaria o gramado embaixo.
+    const centrada = ajusteDeCobertura({ imagem: pintura, caixa: { largura: 1600, altura: 500 } });
+    expect(centrada.deslocamento[1] + centrada.escala[1]).toBeLessThan(1);
+  });
+
+  it('numa janela de pé corta as laterais, centrada, e a base continua alinhada', () => {
+    const ajuste = ajusteDeCobertura({
+      imagem: pintura,
+      caixa: { largura: 600, altura: 900 },
+      posicao: [0.5, 1],
+    });
+
+    expect(ajuste.escala[1]).toBe(1);
+    expect(ajuste.deslocamento[0]).toBeCloseTo((1 - ajuste.escala[0]) / 2, 6);
+    expect(ajuste.deslocamento[1]).toBe(0);
+  });
+
+  it('a elipse da imagem vira a da caixa: com a caixa igual à imagem não muda, e numa caixa cortada acompanha o recorte', () => {
+    const elipse = { centro: [0.6, 0.565] as const, raio: [0.33, 0.07] as const };
+    const igual = ajusteDeCobertura({ imagem: pintura, caixa: pintura, posicao: [0.5, 1] });
+
+    expect(elipseDaImagemParaACaixa(elipse, igual)).toEqual({
+      centro: [0.6, 0.565],
+      raio: [0.33, 0.07],
+    });
+
+    // Janela baixa, ancorada na base: a caixa mostra só os 55% de baixo da pintura. O lago (a 56,5% da altura da imagem)
+    // cai perto do alto da caixa e o raio vertical cresce na razão do recorte.
+    const baixa = ajusteDeCobertura({
+      imagem: pintura,
+      caixa: { largura: 1600, altura: 500 },
+      posicao: [0.5, 1],
+    });
+    const naCaixa = elipseDaImagemParaACaixa(elipse, baixa);
+    expect(naCaixa.centro[0]).toBeCloseTo(0.6, 6);
+    expect(naCaixa.centro[1]).toBeCloseTo((0.565 - baixa.deslocamento[1]) / baixa.escala[1], 6);
+    expect(naCaixa.centro[1]).toBeGreaterThan(0);
+    expect(naCaixa.centro[1]).toBeLessThan(0.3); // no terço de cima da caixa, não sobre o gramado de baixo
+    expect(naCaixa.raio[1]).toBeCloseTo(0.07 / baixa.escala[1], 6);
   });
 });

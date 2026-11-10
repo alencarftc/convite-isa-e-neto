@@ -78,12 +78,12 @@ describe('bloco de informações (SPEC-07)', () => {
   });
 
   it('depois do prazo: troca o botão pelo aviso de encerramento', () => {
-    const { raiz } = montarEm('2027-01-01T00:00');
+    const { raiz } = montarEm('2026-12-13T00:00');
 
     expect(visivel(raiz, '.botao--principal')).toBe(false);
     expect(visivel(raiz, '.acoes__prazo')).toBe(false);
     expect(raiz.querySelector('.acoes__encerrado')?.textContent).toBe(
-      'As confirmações foram encerradas em 31 de dezembro de 2026.',
+      'As confirmações foram encerradas em 12 de dezembro de 2026.',
     );
     expect(visivel(raiz, '.acoes__encerrado')).toBe(true);
   });
@@ -151,10 +151,10 @@ describe('atualização do bloco (SPEC-07, RF-07.3)', () => {
 
   it('troca o botão pelo aviso quando o prazo vira com o convite aberto', () => {
     vi.useFakeTimers();
-    const { raiz, avancarPara } = montarComRelogioMutavel('2026-12-31T23:59:30-03:00');
+    const { raiz, avancarPara } = montarComRelogioMutavel('2026-12-12T23:59:30-03:00');
     expect(visivel(raiz, '.botao--principal')).toBe(true);
 
-    avancarPara('2027-01-01T00:00:00-03:00');
+    avancarPara('2026-12-13T00:00:00-03:00');
     vi.advanceTimersByTime(30_000);
 
     expect(visivel(raiz, '.botao--principal')).toBe(false);
@@ -162,7 +162,7 @@ describe('atualização do bloco (SPEC-07, RF-07.3)', () => {
   });
 
   it('recalcula quando o convidado volta ao aplicativo', () => {
-    const { raiz, avancarPara } = montarComRelogioMutavel('2026-12-31T23:59:00-03:00');
+    const { raiz, avancarPara } = montarComRelogioMutavel('2026-12-12T23:59:00-03:00');
     expect(visivel(raiz, '.botao--principal')).toBe(true);
 
     avancarPara('2027-01-05T09:00:00-03:00');

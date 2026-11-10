@@ -21,6 +21,11 @@ export interface ParametrosDeFolha {
   readonly giro: number;
   /** Largura da folha como fração da largura da tela. */
   readonly largura: { readonly fundo: Intervalo; readonly frente: Intervalo };
+  /**
+   * No computador a folha é medida pela ALTURA da tela, não pela largura (09/11/2026): a largura de um monitor as deixava
+   * imensas (5% de 1920 px são 96 px). Fração da altura, por plano.
+   */
+  readonly larguraNoComputador: { readonly fundo: Intervalo; readonly frente: Intervalo };
   /** Parte das folhas que passa pela frente do baú, maiores e mais rápidas. */
   readonly fracaoNaFrente: number;
   /** A folha da frente cai tantas vezes mais depressa. */
@@ -57,8 +62,10 @@ export interface PlanoDaFolha {
   /** Vai pela frente do baú (maior e mais rápida) em vez de por trás. */
   readonly frente: boolean;
   readonly espelhada: boolean;
-  /** Largura como fração da largura da tela. */
+  /** Largura como fração da medida de `larguraRelativaA`. */
   readonly largura: number;
+  /** A fração acima vale para a largura da tela (celular, tablet) ou para a altura dela (computador). */
+  readonly larguraRelativaA: 'largura' | 'altura';
   readonly variacao: VariacaoDeFolha;
 }
 
@@ -72,8 +79,10 @@ export function planejarFolha(
   aleatorio: Aleatorio,
   parametros: ParametrosDeFolha,
   orientacao: Orientacao,
+  computador = false,
 ): PlanoDaFolha {
   const frente = aleatorio() < parametros.fracaoNaFrente;
+  const larguras = computador ? parametros.larguraNoComputador : parametros.largura;
   const copa = parametros.copa[orientacao];
   const duracao = sortearEntre(parametros.duracao, aleatorio);
   return {
@@ -88,7 +97,8 @@ export function planejarFolha(
       sortearEntre([parametros.giro * 0.4, parametros.giro], aleatorio),
     frente,
     espelhada: aleatorio() < 0.5,
-    largura: sortearEntre(frente ? parametros.largura.frente : parametros.largura.fundo, aleatorio),
+    largura: sortearEntre(frente ? larguras.frente : larguras.fundo, aleatorio),
+    larguraRelativaA: computador ? 'altura' : 'largura',
     variacao: escolherItem(VARIACOES, aleatorio) ?? 'a',
   };
 }

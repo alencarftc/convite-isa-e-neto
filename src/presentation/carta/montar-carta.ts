@@ -46,6 +46,20 @@ export interface PapelDaCarta {
 }
 
 /**
+ * A URL que vai para uma variável CSS (`--papel`) é resolvida em relação ao ARQUIVO DE ESTILOS que usa a variável, e não
+ * ao documento (09/11/2026). Com o CSS ligado de `/src/styles/index.css` (servidor de desenvolvimento), `assets/objects/…`
+ * virava `/src/styles/assets/objects/…`, que não existe, e o papel da carta sumia no celular e no computador. Completa
+ * contra a base do documento, a URL vale onde quer que o CSS esteja (embutido, em outra pasta ou em outro arquivo).
+ */
+function urlCompleta(url: string): string {
+  try {
+    return new URL(url, document.baseURI).href;
+  } catch {
+    return url; // sem base válida (um ambiente sem navegador): fica como veio
+  }
+}
+
+/**
  * A carta (SPEC-06, "Layout da carta"): catorze blocos em HTML real, na ordem aprovada. Cada bloco
  * tem a classe `carta__bloco`, para a abertura os revelar um a um. O título é o `h2` com
  * `tabindex="-1"`, para onde o foco vai quando a carta termina de abrir (RF-06.10). O papel (14) é o
@@ -56,8 +70,8 @@ export interface PapelDaCarta {
 export function montarCarta(carta: CartaDoConvite, papel: PapelDaCarta): HTMLElement {
   const artigo = criar('article', 'carta');
   artigo.setAttribute('aria-labelledby', 'carta-titulo');
-  artigo.style.setProperty('--papel', `url('${papel.url}')`);
-  artigo.style.setProperty('--papel-miolo', `url('${papel.urlDoMiolo}')`);
+  artigo.style.setProperty('--papel', `url('${urlCompleta(papel.url)}')`);
+  artigo.style.setProperty('--papel-miolo', `url('${urlCompleta(papel.urlDoMiolo)}')`);
   artigo.style.setProperty('--papel-proporcao', String(papel.proporcao));
   artigo.style.setProperty('--papel-corte-de', String(papel.corte.de));
   artigo.style.setProperty('--papel-corte-ate', String(papel.corte.ate));

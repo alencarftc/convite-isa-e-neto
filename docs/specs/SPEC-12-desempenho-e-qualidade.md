@@ -119,7 +119,7 @@ O convite só é enviado quando:
 | --- | --- |
 | No dia do envio | Prévia do link e as primeiras respostas chegando na planilha |
 | Uma vez por semana | O site no ar e o resumo da planilha com o casal |
-| 01/01/2027 | Formulário fechado e botão substituído pelo aviso no convite |
+| 13/12/2026 | Formulário fechado e botão substituído pelo aviso no convite |
 | 22/01/2027 | "É hoje! Nos vemos às 17h." |
 | 23/01/2027 | Mensagem de agradecimento no lugar da contagem |
 

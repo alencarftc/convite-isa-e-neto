@@ -58,8 +58,14 @@ export function criarPetalasDoConvite(
   let destruida = false;
   let noAr = 0;
 
-  const limite = () =>
+  const limiteDoNivel = () =>
     capacidades.aparelhoModesto() ? parametros.maximo.leve : parametros.maximo.completo;
+  /** No computador cabem mais pétalas no ar (a tela é bem maior; 09/11/2026). */
+  const limite = () =>
+    Math.round(limiteDoNivel() * (estado.computador ? parametros.noComputador.fatorDoMaximo : 1));
+  const intervaloAteAProxima = () =>
+    sortearEntre(parametros.intervalo, aleatorio) *
+    (estado.computador ? parametros.noComputador.fatorDoIntervalo : 1);
 
   function lancar(): void {
     const plano = planejarPetala(aleatorio, parametros, modelos.length);
@@ -141,7 +147,7 @@ export function criarPetalasDoConvite(
   function nascer(): void {
     if (destruida) return;
     if (noAr < limite()) lancar();
-    relogio.depois(sortearEntre(parametros.intervalo, aleatorio), nascer);
+    relogio.depois(intervaloAteAProxima(), nascer);
   }
 
   /** O botão "Pausar animação" congela as pétalas no lugar. */

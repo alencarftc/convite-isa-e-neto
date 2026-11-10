@@ -11,8 +11,8 @@ import type { Aleatorio } from './sorteio';
 const PARAMETROS: ParametrosDoEsquilo = {
   primeiroEm: 6,
   intervalo: [12, 28],
-  largura: { vertical: 0.17, horizontal: 0.04 },
-  chao: { vertical: 0.22, horizontal: 0.16 },
+  largura: { vertical: 0.17, horizontal: 0.04, computador: 0.06 },
+  chao: { vertical: 0.22, horizontal: 0.16, computador: 0.175 },
   paradas: [1, 3],
   centro: [0.3, 0.7],
   pulo: {
@@ -24,6 +24,7 @@ const PARAMETROS: ParametrosDoEsquilo = {
     respiro: [0.05, 0.25],
   },
   corrida: { distancia: [0.1, 0.15], altura: [6, 10], voo: 0.18, respiro: [0, 0.04] },
+  noComputador: { distancia: 0.7, voo: 1.7 },
   chanceDeCorrida: 0.35,
   chanceDeEspiar: 0.15,
   chanceDeSairPeloOutroLado: 0.4,
@@ -231,5 +232,92 @@ describe('planejarVisita (SPEC-21)', () => {
     const b = planejarVisita(congruente(77), PARAMETROS, CELULAR);
 
     expect(a).toEqual(b);
+  });
+
+  describe('no computador (09/11/2026)', () => {
+    /** Um monitor de 1920 px e o esquilo a 4,3% da largura, como na horizontal. */
+    const MONITOR = { larguraDaTela: 1920, larguraDoEsquilo: 0.043 * 1920 };
+
+    /** A velocidade de um pulo no ar, em pixels por segundo. */
+    const velocidade = (passo: PuloDoEsquilo) => passo.distancia / passo.voo;
+    const media = (valores: readonly number[]) =>
+      valores.reduce((soma, valor) => soma + valor, 0) / Math.max(1, valores.length);
+
+    /** Os pulos de 300 visitas num monitor de 1920 px, separados em pulinhos e corridas. */
+    function pulos(computador: boolean): { pulinhos: PuloDoEsquilo[]; corridas: PuloDoEsquilo[] } {
+      const aleatorio = congruente(4);
+      const todos = Array.from({ length: 300 }, () =>
+        planejarVisita(aleatorio, PARAMETROS, { ...MONITOR, computador }).passos.filter(ehPulo),
+      ).flat();
+      return {
+        pulinhos: todos.filter((passo) => !passo.corrida),
+        corridas: todos.filter((passo) => passo.corrida),
+      };
+    }
+
+    it('cada pulo dura mais e o esquilo anda a menos da metade da velocidade de antes', () => {
+      const antes = pulos(false);
+      const depois = pulos(true);
+      const antesDoPulinho = media(antes.pulinhos.map(velocidade));
+      const antesDaCorrida = media(antes.corridas.map(velocidade));
+      const depoisDoPulinho = media(depois.pulinhos.map(velocidade));
+      const depoisDaCorrida = media(depois.corridas.map(velocidade));
+
+      // Sem o ajuste, num monitor de 1920 px a corrida andava a uns 1300 px/s e o pulinho a uns 500 px/s.
+      expect(antesDaCorrida).toBeGreaterThan(1200);
+      expect(antesDoPulinho).toBeGreaterThan(450);
+      expect(depoisDaCorrida).toBeLessThan(antesDaCorrida / 2);
+      expect(depoisDoPulinho).toBeLessThan(antesDoPulinho / 2);
+      expect(depoisDaCorrida).toBeLessThan(650);
+      expect(depoisDoPulinho).toBeLessThan(260);
+      // Mas não anda devagar demais: um pouco mais rápido que no primeiro ajuste (uns 150 e 400 px/s).
+      expect(depoisDoPulinho).toBeGreaterThan(180);
+      expect(depoisDaCorrida).toBeGreaterThan(450);
+    });
+
+    it('os pulinhos são longos o bastante para ele não "pular muito": uns 100 px, mais de um corpo dele, num monitor de 1920 px', () => {
+      const { pulinhos } = pulos(true);
+      const distancias = pulinhos.map((passo) => passo.distancia);
+
+      expect(media(distancias)).toBeGreaterThan(95);
+      expect(media(distancias)).toBeLessThan(130);
+      expect(media(distancias)).toBeGreaterThan(MONITOR.larguraDoEsquilo); // mais que o corpo dele
+      // Para ir da borda ao centro (uns 960 px) bastam uns dez pulos, e não os quinze de antes.
+      expect(960 / media(distancias)).toBeLessThan(11);
+    });
+
+    it('o voo é o do estilo vezes 1,7, e nenhum pulo passa do estilo vezes 0,7 (mais a sobra que o último absorve)', () => {
+      const aleatorio = congruente(6);
+      for (let i = 0; i < 200; i += 1) {
+        const visita = planejarVisita(aleatorio, PARAMETROS, { ...MONITOR, computador: true });
+        for (const passo of visita.passos.filter(ehPulo)) {
+          const estilo = passo.corrida ? PARAMETROS.corrida : PARAMETROS.pulo;
+          expect(passo.voo).toBeCloseTo(estilo.voo * 1.7, 9);
+          expect(passo.distancia).toBeLessThanOrEqual(
+            estilo.distancia[1] * 1920 * 0.7 * 1.5 + 1e-9,
+          );
+        }
+      }
+    });
+
+    it('entra e sai inteiro fora da tela, como no celular, e as paradas continuam ao centro', () => {
+      const aleatorio = congruente(15);
+      for (let i = 0; i < 200; i += 1) {
+        const visita = planejarVisita(aleatorio, PARAMETROS, { ...MONITOR, computador: true });
+        const fim = posicoes(visita.lado, visita.passos, MONITOR).at(-1) ?? Number.NaN;
+
+        const esperado =
+          visita.ladoDaSaida === 'esquerda' ? -MONITOR.larguraDoEsquilo : MONITOR.larguraDaTela;
+        expect(fim).toBeCloseTo(esperado, 6);
+      }
+    });
+
+    it('sem `computador` (ou falso) o plano é exatamente o de antes: o celular não muda', () => {
+      const antes = planejarVisita(congruente(77), PARAMETROS, CELULAR);
+
+      expect(planejarVisita(congruente(77), PARAMETROS, { ...CELULAR, computador: false })).toEqual(
+        antes,
+      );
+    });
   });
 });

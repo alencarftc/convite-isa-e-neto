@@ -23,6 +23,13 @@ export interface EstadoConvite {
   readonly algumToque: boolean;
   readonly orientacao: Orientacao;
   /**
+   * Computador: o ponteiro principal é o mouse, em qualquer formato de janela (09/11/2026). Vale a cena do desktop (a
+   * pintura mestre 16:9, folhas menores, esquilo mais lento, mais pétalas) mesmo quando a janela fica mais alta que larga:
+   * estreitar o navegador não troca a composição pela do celular, a cena apenas se adapta. O celular, de pé ou deitado, e o
+   * tablet (toque) seguem como antes.
+   */
+  readonly computador: boolean;
+  /**
    * Avança a fase. Devolve `false`, sem mudar nada, se a transição não for válida (o convite só
    * anda para a frente e as fases finais não têm saída).
    */
@@ -85,6 +92,7 @@ export function criarEstado({ preferencias, ambiente }: DependenciasDoEstado): E
     get orientacao() {
       return orientacao;
     },
+    computador: !toque,
     definirFase(nova) {
       if (!transicaoValida(fase, nova)) return false;
       fase = nova;

@@ -103,7 +103,14 @@ export interface ConteudoConvite {
   /** O que aparece na prévia do link no WhatsApp e na aba do navegador (SPEC-10, RF-10.1). */
   readonly previa: {
     readonly titulo: string;
+    /** O texto curto da prévia do WhatsApp e das redes (`og:description`): o que o casal aprovou. */
     readonly descricao: string;
+    /** O trecho que o Google mostra sob o título (`<meta name="description">`): diz o que é, quando e onde (SEO, 09/11/2026). */
+    readonly descricaoParaBusca: string;
+    /** Descrição da imagem da prévia, para quem não a vê (`og:image:alt`). */
+    readonly descricaoDaImagem: string;
+    /** O nome do evento nos dados estruturados do Google (`schema.org/Event`). */
+    readonly nomeDoEvento: string;
   };
   /** Mensagem do casal, abaixo da contagem (SPEC-07, RF-07.7). */
   readonly mensagem: {

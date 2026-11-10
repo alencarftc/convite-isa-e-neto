@@ -32,15 +32,35 @@ type ChaveSecundaria = (typeof FILA_SECUNDARIA)[number][number];
 
 export type ChaveDeImagem = ChaveCritica | ChaveSecundaria;
 
-/** Uma arte única, ou uma por orientação (9:16 na vertical, 16:9 na horizontal; SPEC-03, RF-03.1). */
-export type ArteDaImagem = string | { readonly vertical: string; readonly horizontal: string };
+/**
+ * Uma arte única, ou uma por orientação (9:16 na vertical, 16:9 na horizontal; SPEC-03, RF-03.1). `computador` é uma
+ * terceira, de quem usa mouse (09/11/2026): no desktop a cena é a pintura mestre 16:9 inteira, como a vertical é a 9:16, e
+ * vale em qualquer formato de janela (a janela estreita do navegador não troca a pintura pela do celular, a cena se
+ * adapta). Sem a variante, o computador usa a arte horizontal; os celulares e os tablets seguem a orientação.
+ */
+export type ArteDaImagem =
+  | string
+  | {
+      readonly vertical: string;
+      readonly horizontal: string;
+      readonly computador?: string;
+    };
 
-/** Caminho da imagem na orientação pedida. */
-export function urlDaImagem(arte: ArteDaImagem, orientacao: Orientacao): string {
-  return typeof arte === 'string' ? arte : arte[orientacao];
+/** Caminho da imagem na orientação pedida; no computador, a variante dele, ou a horizontal se a arte não a tem. */
+export function urlDaImagem(
+  arte: ArteDaImagem,
+  orientacao: Orientacao,
+  computador = false,
+): string {
+  if (typeof arte === 'string') return arte;
+  if (computador) return arte.computador ?? arte.horizontal;
+  return arte[orientacao];
 }
 
-/** Todos os arquivos da imagem (um ou dois). */
+/** Todos os arquivos da imagem (um, dois ou três). */
 export function urlsDaImagem(arte: ArteDaImagem): readonly string[] {
-  return typeof arte === 'string' ? [arte] : [arte.vertical, arte.horizontal];
+  if (typeof arte === 'string') return [arte];
+  return arte.computador === undefined
+    ? [arte.vertical, arte.horizontal]
+    : [arte.vertical, arte.horizontal, arte.computador];
 }

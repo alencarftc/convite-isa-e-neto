@@ -24,8 +24,8 @@ Os cartões aparecem na rolagem, nesta ordem, logo abaixo da carta: contagem, me
 
 | Estado | Período | Contagem | Confirmação | Outros cartões |
 | --- | --- | --- | --- | --- |
-| Antes do prazo | Até 31/12/2026 às 23h59 | "Faltam [dd] dias, [hh] horas e [mm] minutos para o nosso sim" | Botão ativo e "Confirme até 31 de dezembro de 2026." | Mensagem, dress code, Como chegar |
-| Depois do prazo | 01/01/2027 a 21/01/2027 | Contagem | "As confirmações foram encerradas em 31 de dezembro de 2026." no lugar do botão | Iguais |
+| Antes do prazo | Até 12/12/2026 às 23h59 | "Faltam [dd] dias, [hh] horas e [mm] minutos para o nosso sim" | Botão ativo e "Confirme até 12 de dezembro de 2026." | Mensagem, dress code, Como chegar |
+| Depois do prazo | 13/12/2026 a 21/01/2027 | Contagem | "As confirmações foram encerradas em 12 de dezembro de 2026." no lugar do botão | Iguais |
 | No dia | 22/01/2027, o dia todo | "É hoje! Nos vemos às 17h." | Aviso de encerramento | Iguais |
 | Depois do casamento | A partir de 23/01/2027 às 00h | Some | Some | Primeiro cartão: "Obrigado por fazer parte da nossa história. Com amor, Isabella & David"; seguem mensagem e dress code; "Como chegar" some |
 
@@ -98,8 +98,8 @@ Como o texto aprovado começa com "Faltam", com 1 dia restante fica "Faltam 1 di
   <div class="cartao cartao--traje"><h3>Traje</h3><p>Esporte fino</p></div>
   <div class="cartao cartao--acoes">
     <a class="botao botao--principal" href="https://forms.gle/yviZrELgrH2zrRGc7" target="_blank" rel="noopener">Confirmar presença</a>
-    <p class="acoes__prazo">Confirme até 31 de dezembro de 2026.</p>
-    <p class="acoes__encerrado" hidden>As confirmações foram encerradas em 31 de dezembro de 2026.</p>
+    <p class="acoes__prazo">Confirme até 12 de dezembro de 2026.</p>
+    <p class="acoes__encerrado" hidden>As confirmações foram encerradas em 12 de dezembro de 2026.</p>
     <a class="botao botao--secundario" href="…" target="_blank" rel="noopener">Como chegar</a>
   </div>
 </section>
@@ -142,7 +142,7 @@ Os cartões surgem conforme entram na tela (`opacity` 0→1, `y` 16→0, 0,5 s, 
 - **CT-07.4** Ler a mensagem e o traje e comparar com os textos aprovados. *(CA-07.2.1, CA-07.2.2)*
 - **CT-07.5** Tocar em "Confirmar presença" no iPhone e no Android, pelo WhatsApp: o formulário abre e, ao voltar, o convite continua lá. *(CA-07.3.1, CA-07.3.2)*
 - **CT-07.6** Tocar em "Como chegar": o endereço certo abre no mapa. *(CA-07.4.1)*
-- **CT-07.7** Com `?data=` em 2026-12-31T23:59, 2027-01-01T00:00, 2027-01-22T10:00, 2027-01-22T20:00 e 2027-01-23T00:00, conferir os quatro estados. *(CA-07.5.1 a CA-07.5.5)*
+- **CT-07.7** Com `?data=` em 2026-12-12T23:59, 2026-12-13T00:00, 2027-01-22T10:00, 2027-01-22T20:00 e 2027-01-23T00:00, conferir os quatro estados. *(CA-07.5.1 a CA-07.5.5)*
 
 ## Questões em aberto
 

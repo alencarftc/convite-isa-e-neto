@@ -16,6 +16,7 @@ const parametros: ParametrosDasPetalas = {
   esmaecer: 0.1,
   virar: [1.6, 2.8],
   maximo: { completo: 9, leve: 5 },
+  noComputador: { fatorDoIntervalo: 0.5, fatorDoMaximo: 1.8 },
 };
 
 /** Gerador determinístico (congruencial), para repetir sempre os mesmos sorteios. */

@@ -457,6 +457,73 @@ export function removerCeu(quadro: Quadro, opcoes: OpcoesDoCeu): number {
   return removidos + (opcoes.furo ? removerFurosDoCeu(quadro, ate, opcoes.furo) : 0);
 }
 
+export interface OpcoesDoCeuPalido {
+  /** Abaixo desta linha não há céu (o horizonte): nada dali para baixo é tocado. */
+  readonly limiteDeY: number;
+  /** Luminância mínima (0 a 255) de um pixel de céu pálido; as folhas, mesmo as iluminadas, ficam abaixo. */
+  readonly luminanciaMinima: number;
+}
+
+/**
+ * O céu do alto de uma cena pintada às vezes é pálido e cinzento, com pouco vermelho sobre o azul, e `removerCeu`, que
+ * procura o céu quente do pôr do sol, o deixa de fora: sobraria um remendo claro por trás das folhas, que a história
+ * faria destoar do céu de verdade quando ele fica alaranjado (09/11/2026). Do que restou, sai o que toca o céu já removido
+ * e ainda parece céu: claro, com o vermelho não menor que o verde (as folhas têm verde acima do vermelho) e com um pouco
+ * mais de vermelho que de azul, sem passar de um tom pastel (a água e as colinas, azuladas, têm menos vermelho que azul).
+ * Espalha-se de vizinho em vizinho, só acima de `limiteDeY`. Devolve quantos pixels saíram.
+ */
+export function expandirCeuPalido(quadro: Quadro, opcoes: OpcoesDoCeuPalido): number {
+  const { largura, altura, dados } = quadro;
+  const ate = Math.min(altura, Math.max(0, opcoes.limiteDeY));
+  const pareceCeuPalido = (indice: number): boolean => {
+    if ((dados[indice * 4 + 3] ?? 0) === 0) return false;
+    const r = dados[indice * 4] ?? 0;
+    const g = dados[indice * 4 + 1] ?? 0;
+    const b = dados[indice * 4 + 2] ?? 0;
+    const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+    return luma >= opcoes.luminanciaMinima && r >= g - 2 && r - b >= 4 && r - b <= 60;
+  };
+  const visitado = new Uint8Array(largura * altura);
+  const pilha: number[] = [];
+  let removidos = 0;
+  for (let indice = 0; indice < ate * largura; indice++) {
+    if ((dados[indice * 4 + 3] ?? 0) === 0) {
+      visitado[indice] = 1;
+      pilha.push(indice);
+    } else if (indice < largura && pareceCeuPalido(indice)) {
+      // Céu pálido na borda de cima, solto entre as folhas, também é céu: a borda do quadro é a prova.
+      visitado[indice] = 1;
+      dados[indice * 4 + 3] = 0;
+      removidos += 1;
+      pilha.push(indice);
+    }
+  }
+  while (pilha.length > 0) {
+    const atual = pilha.pop();
+    if (atual === undefined) break;
+    const x = atual % largura;
+    const y = Math.floor(atual / largura);
+    for (const [dx, dy] of [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ] as const) {
+      const vx = x + dx;
+      const vy = y + dy;
+      if (vx < 0 || vy < 0 || vx >= largura || vy >= ate) continue;
+      const vizinho = vy * largura + vx;
+      if (visitado[vizinho] === 1) continue;
+      visitado[vizinho] = 1;
+      if (!pareceCeuPalido(vizinho)) continue;
+      dados[vizinho * 4 + 3] = 0;
+      removidos += 1;
+      pilha.push(vizinho);
+    }
+  }
+  return removidos;
+}
+
 /** Tira os pedaços claros e soltos que sobraram dentro do céu já removido (ver `OpcoesDoCeu.furo`). */
 function removerFurosDoCeu(
   quadro: Quadro,

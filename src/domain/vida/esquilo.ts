@@ -26,10 +26,25 @@ export interface ParametrosDoEsquilo {
   readonly primeiroEm: number;
   /** Tempo entre o fim de uma visita e o começo da seguinte, em segundos. */
   readonly intervalo: Intervalo;
-  /** Largura do esquilo como fração da largura da tela, por orientação. */
-  readonly largura: { readonly vertical: number; readonly horizontal: number };
-  /** Distância da base da tela até as patas, como fração da altura da tela, por orientação. */
-  readonly chao: { readonly vertical: number; readonly horizontal: number };
+  /**
+   * Largura do esquilo como fração da largura da tela, por orientação; `computador` vale para o mouse com a tela deitada
+   * (09/11/2026): ali a cena é a pintura mestre, o casal e os arbustos ficaram maiores, e o esquilo cresceu com eles.
+   */
+  readonly largura: {
+    readonly vertical: number;
+    readonly horizontal: number;
+    readonly computador: number;
+  };
+  /**
+   * Distância da base da tela até as patas, como fração da altura da tela, por orientação. `computador` é a fração da
+   * altura da PINTURA (contada da borda de baixo dela): no desktop a pintura cobre a janela ancorada pela base, e numa
+   * janela larga e baixa a fração da janela cairia sobre a água (09/11/2026).
+   */
+  readonly chao: {
+    readonly vertical: number;
+    readonly horizontal: number;
+    readonly computador: number;
+  };
   /** Quantas paradas ele faz dentro da tela, entre a entrada e a saída (inteiros). */
   readonly paradas: Intervalo;
   /** Onde ele para, como fração da largura da tela: o centro do corpo cai nesta faixa ("ao centro"). */
@@ -41,6 +56,13 @@ export interface ParametrosDoEsquilo {
     readonly achatamento: number;
   };
   readonly corrida: EstiloDePulo;
+  /**
+   * No computador a tela é larga e o esquilo, pequeno: as distâncias em fração da largura faziam cada pulo cobrir
+   * vários corpos dele no mesmo tempo do celular, e ele disparava (09/11/2026). `distancia` encurta cada pulo
+   * (multiplica a fração de largura) e `voo` alonga o tempo no ar (multiplica a duração). Num primeiro ajuste os pulos
+   * ficaram curtos demais e ele "pulava muito": o ponto de equilíbrio são pulos mais longos e um pouco mais rápidos.
+   */
+  readonly noComputador: { readonly distancia: number; readonly voo: number };
   /** A chance de cada trecho do caminho ser aos disparos, de 0 a 1. */
   readonly chanceDeCorrida: number;
   /** A chance de a visita ser só uma espiada: entra pouco, olha e volta por onde veio, de 0 a 1. */
@@ -95,7 +117,14 @@ export interface PlanoDaVisita {
 
 export interface CenarioDaVisita {
   readonly larguraDaTela: number;
+  /**
+   * A largura da pintura que cobre a tela, base das distâncias dos pulos (em fração dela). É a da tela no celular; no
+   * computador, numa janela mais alta que larga, a pintura é mais larga que a tela e os pulos acompanham o tamanho dele.
+   */
+  readonly larguraDaCena?: number;
   readonly larguraDoEsquilo: number;
+  /** A visita é no computador: pulos mais curtos e mais lentos (`ParametrosDoEsquilo.noComputador`). */
+  readonly computador?: boolean;
 }
 
 /** Uma espiada mostra o esquilo inteiro a esta faixa da largura da tela, a partir da borda por onde entra. */
@@ -116,6 +145,9 @@ export function planejarVisita(
   cenario: CenarioDaVisita,
 ): PlanoDaVisita {
   const { larguraDaTela, larguraDoEsquilo } = cenario;
+  const larguraDosPulos = cenario.larguraDaCena ?? larguraDaTela;
+  const escalaDaDistancia = cenario.computador ? parametros.noComputador.distancia : 1;
+  const escalaDoVoo = cenario.computador ? parametros.noComputador.voo : 1;
   const lado = escolherLado(aleatorio);
   const espiar = aleatorio() < parametros.chanceDeEspiar;
   const sairPeloOutro = aleatorio() < parametros.chanceDeSairPeloOutroLado;
@@ -145,10 +177,11 @@ export function planejarVisita(
     const corrida = aleatorio() < parametros.chanceDeCorrida;
     const estilo = corrida ? parametros.corrida : parametros.pulo;
     const sentido = alvo >= x ? 1 : -1;
-    const menor = estilo.distancia[0] * larguraDaTela;
+    const menor = estilo.distancia[0] * larguraDosPulos * escalaDaDistancia;
     let restante = Math.abs(alvo - x);
     while (restante > 1e-6) {
-      let distancia = sortearEntre(estilo.distancia, aleatorio) * larguraDaTela;
+      let distancia =
+        sortearEntre(estilo.distancia, aleatorio) * larguraDosPulos * escalaDaDistancia;
       if (distancia > restante || restante - distancia < menor * SOBRA_ABSORVIDA) {
         distancia = restante;
       }
@@ -157,7 +190,7 @@ export function planejarVisita(
         sentido,
         distancia,
         altura: sortearEntre(estilo.altura, aleatorio),
-        voo: estilo.voo,
+        voo: estilo.voo * escalaDoVoo,
         respiro: sortearEntre(estilo.respiro, aleatorio),
         corrida,
       });

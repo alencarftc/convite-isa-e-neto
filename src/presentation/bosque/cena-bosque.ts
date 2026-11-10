@@ -26,6 +26,7 @@ function criarCamada(
   chave: ChaveDeImagem,
   profundidade: number,
   prioridade: PrioridadeDaCamada,
+  computador: boolean,
 ): HTMLElement {
   const arte = config.imagens[chave];
   const quadro = document.createElement('picture');
@@ -35,11 +36,13 @@ function criarCamada(
 
   const imagem = document.createElement('img');
   imagem.alt = '';
-  imagem.src = urlDaImagem(arte, 'horizontal');
+  // No computador a horizontal é a pintura mestre 16:9 (a variante `computador`); no celular deitado e no tablet, as camadas.
+  imagem.src = urlDaImagem(arte, 'horizontal', computador);
   imagem.setAttribute('fetchpriority', prioridade);
   imagem.draggable = false;
-  // O navegador troca a arte sozinho ao girar o aparelho (SPEC-03, RF-03.1); arte única não precisa de troca.
-  if (typeof arte !== 'string') {
+  // O navegador troca a arte sozinho ao girar o aparelho (SPEC-03, RF-03.1); arte única não precisa de troca. No
+  // computador não há troca: a pintura 16:9 cobre a janela em qualquer formato, e a janela estreita não vira celular.
+  if (typeof arte !== 'string' && !computador) {
     const vertical = document.createElement('source');
     vertical.media = '(orientation: portrait)';
     vertical.srcset = urlDaImagem(arte, 'vertical');
@@ -69,8 +72,13 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
   const { raiz, config, estado, eventos, carregamento } = dependencias;
   const { duracoes, curvas, movimento } = config;
   const camadas = movimento.profundidadeDasCamadas;
+  /**
+   * O ponteiro é o mouse (09/11/2026): a cena é a pintura mestre, de pé (9:16) ou deitada (16:9), uma peça só, como a do
+   * celular. Só o celular deitado e o tablet seguem nas camadas separadas.
+   */
+  const computador = !estado.toque;
   /** O baú e o casal acompanham o chão em que pisam (01/11/2026: antes flutuavam com o mouse). */
-  const solo = camadas.solo[estado.orientacao];
+  const solo = camadas.solo[computador ? 'vertical' : estado.orientacao];
 
   let cena: HTMLElement | undefined;
   let linhaDoTempo: gsap.core.Timeline | undefined;
@@ -80,24 +88,25 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
   function montar(): HTMLElement {
     if (cena) return cena;
     const nova = document.createElement('div');
-    nova.className = 'cena';
+    nova.className = estado.toque ? 'cena' : 'cena cena--computador';
     // Sem `aria-hidden` aqui: o botão do baú vive dentro de `.bau` e precisa ser alcançado pelo leitor de
     // tela (SPEC-09, RF-09.6). Cada camada decorativa se esconde sozinha (SPEC-03, RNF-03.3).
     nova.append(
-      criarCamada(config, 'ceu', 'ceu', camadas.ceu, 'high'),
-      criarCamada(config, 'ceu-sol', 'ceuPorDoSol', camadas.ceu, 'low'),
+      criarCamada(config, 'ceu', 'ceu', camadas.ceu, 'high', computador),
+      criarCamada(config, 'ceu-sol', 'ceuPorDoSol', camadas.ceu, 'low', computador),
       criarEspaco('vida vida--ceu', camadas.ceu),
-      criarCamada(config, 'lago', 'lago', camadas.lago, 'high'),
-      criarCamada(config, 'arvores', 'arvores', camadas.arvores, 'high'),
+      criarCamada(config, 'lago', 'lago', camadas.lago, 'high', computador),
+      criarCamada(config, 'arvores', 'arvores', camadas.arvores, 'high', computador),
       criarEspaco('vida vida--fundo', camadas.arvores),
       criarEspaco('bau', solo, false),
-      // Na vertical os arbustos são cópia da pintura (a camada do lago) e andam com ela, ou apareceriam em dobro.
+      // Na vertical e no computador os arbustos são cópia da pintura (a camada do lago) e andam com ela, ou apareceriam em dobro.
       criarCamada(
         config,
         'frente',
         'primeiroPlano',
-        estado.orientacao === 'vertical' ? camadas.lago : camadas.frente,
+        computador || estado.orientacao === 'vertical' ? camadas.lago : camadas.frente,
         'high',
+        computador,
       ),
       criarEspaco('vida vida--chao', camadas.frente),
       criarEspaco('camada camada--luz'),

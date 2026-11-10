@@ -155,6 +155,17 @@ describe('arquivos citados em CSS e HTML (SPEC-12, "Assets ausentes")', () => {
     ]);
   });
 
+  it('o código-fonte ligado no head (/src/…) não é arquivo de public/ e não é cobrado', () => {
+    const html = [
+      {
+        caminho: 'index.html',
+        texto: '<link rel="stylesheet" href="/src/styles/index.css" /><link href="/fonts/a.woff2">',
+      },
+    ];
+
+    expect(encontrarArquivosCitados(html).map((c) => c.caminho)).toEqual(['fonts/a.woff2']);
+  });
+
   it('acusa o que não existe em public/', () => {
     const problemas = validarArquivosCitados(arquivos, (caminho) => caminho === 'fonts/a.woff2');
 

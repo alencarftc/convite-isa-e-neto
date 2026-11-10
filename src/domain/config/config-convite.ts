@@ -21,6 +21,12 @@ export interface ConfigConvite {
     /** Ícones de 32 e 180 px com o selo e as iniciais (RF-10.3). */
     readonly icone32: string;
     readonly iconeApple: string;
+    /**
+     * Os buscadores podem listar o convite (09/11/2026): `index, follow` no `<head>`, `robots.txt` liberado e
+     * `sitemap.xml`. Falso devolve o comportamento anterior (`noindex, nofollow` e `Disallow: /`): o convite tem nomes
+     * de família e endereço, e o casal pediu para ser encontrado, mas desligar é uma linha.
+     */
+    readonly indexavel: boolean;
   };
   readonly links: {
     readonly formulario: string;
@@ -428,10 +434,14 @@ export interface ConfigConvite {
       readonly primeiroEm: number;
       /** O canvas aparece por esmaecimento nesse tempo, para qualquer diferença com a imagem não saltar aos olhos. */
       readonly aparece: number;
-      /** Onde a água começa na camada do lago (a mata ao fundo não se mexe), uma região por orientação. */
+      /**
+       * Onde a água começa na camada do lago (a mata ao fundo não se mexe), uma região por orientação e outra para o
+       * computador (mouse, tela horizontal; 09/11/2026), onde o lago é o da pintura mestre 16:9.
+       */
       readonly regiao: {
         readonly vertical: RegiaoDeOndulacao;
         readonly horizontal: RegiaoDeOndulacao;
+        readonly computador: RegiaoDeOndulacao;
       };
       readonly onda: OndaDeOndulacao;
       /** Os reflexos crescem do brilho mínimo ao máximo com a opacidade do céu do pôr do sol. */

@@ -39,6 +39,11 @@ export interface DependenciasDoCarregamento {
    * secundária junto com os balões, para estarem no cache quando a história começar.
    */
   readonly fotos?: readonly string[];
+  /**
+   * O ponteiro é o mouse (computador): na horizontal vale a arte da variante `computador`, a pintura mestre 16:9, e é ela
+   * que o crítico espera, não a arte em camadas do celular deitado (09/11/2026).
+   */
+  readonly computador?: boolean;
 }
 
 /**
@@ -51,6 +56,7 @@ export function criarCarregamento({
   temporizador,
   config,
   fotos = [],
+  computador = false,
 }: DependenciasDoCarregamento): Carregamento {
   const { duracoes } = config;
   const downloads = new Map<string, Promise<boolean>>();
@@ -73,7 +79,7 @@ export function criarCarregamento({
     orientacao: Orientacao,
     prioridade: PrioridadeDeImagem,
   ): Promise<boolean> {
-    return baixarUmaVez(urlDaImagem(config.imagens[chave], orientacao), prioridade);
+    return baixarUmaVez(urlDaImagem(config.imagens[chave], orientacao, computador), prioridade);
   }
 
   function criticoPronto(orientacao: Orientacao): Promise<ResultadoCritico> {

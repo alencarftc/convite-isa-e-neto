@@ -49,6 +49,31 @@ describe('criarEstado', () => {
     expect(estado.orientacao).toBe('vertical');
   });
 
+  it('"computador" é o mouse, em qualquer formato de janela, e nunca vale no toque (09/11/2026)', () => {
+    const mouse = ambienteFalso({ toque: false });
+    const estadoDoMouse = criarEstado({
+      preferencias: preferenciasFalsas(),
+      ambiente: mouse.ambiente,
+    });
+    const toque = ambienteFalso({ toque: true });
+    const estadoDoToque = criarEstado({
+      preferencias: preferenciasFalsas(),
+      ambiente: toque.ambiente,
+    });
+
+    // De pé (a janela do navegador mais alta que larga) o computador segue sendo computador: a cena só se adapta.
+    expect(estadoDoMouse.orientacao).toBe('vertical');
+    expect(estadoDoMouse.computador).toBe(true);
+    mouse.girar('horizontal');
+    expect(estadoDoMouse.computador).toBe(true);
+    mouse.girar('vertical');
+    expect(estadoDoMouse.computador).toBe(true);
+
+    expect(estadoDoToque.computador).toBe(false);
+    toque.girar('horizontal');
+    expect(estadoDoToque.computador).toBe(false); // celular deitado e tablet
+  });
+
   it('lê som e visita das preferências e o resto do ambiente', () => {
     const { ambiente } = ambienteFalso({ reduzido: true, toque: true });
     const preferencias = preferenciasFalsas({ 'convite:som': false, 'convite:visitado': true });

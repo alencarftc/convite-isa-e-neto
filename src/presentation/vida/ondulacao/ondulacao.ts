@@ -1,5 +1,5 @@
 import { analisarCor, type CorRgb } from '@/domain/vida/cor';
-import { ajusteDeCobertura } from '@/domain/vida/enquadramento';
+import { ajusteDeCobertura, elipseDaImagemParaACaixa } from '@/domain/vida/enquadramento';
 import type { OndaDeOndulacao, ReflexosDaOndulacao } from '@/domain/vida/ondulacao';
 import { type RegiaoDeOndulacao, validarRegiao } from '@/domain/vida/regioes';
 
@@ -12,6 +12,10 @@ export interface OpcoesDaOndulacao {
   readonly imagem: HTMLImageElement;
   /** O `object-fit` da imagem na caixa. */
   readonly ajuste: 'cover' | 'contain';
+  /** O `object-position` da imagem, de 0 a 1 em cada eixo (padrão: centro). A pintura do computador é ancorada pela base: [0,5, 1]. */
+  readonly posicao?: readonly [number, number];
+  /** As elipses das regiões estão em frações da IMAGEM, e não da caixa (a pintura do computador). Padrão: da caixa. */
+  readonly regioesNaImagem?: boolean;
   readonly regioes: readonly RegiaoDeOndulacao[];
   readonly onda: OndaDeOndulacao;
   readonly reflexos?: ReflexosDaOndulacao;
@@ -57,7 +61,16 @@ const COR_PADRAO: CorRgb = [1, 1, 1];
  * imagem de baixo nunca é escondida por ele (RF-19.6).
  */
 export function criarOndulacao(opcoes: OpcoesDaOndulacao): Ondulacao | null {
-  const { conteiner, imagem, ajuste, onda, reflexos, cobrirTudo = false } = opcoes;
+  const {
+    conteiner,
+    imagem,
+    ajuste,
+    posicao: posicaoDaImagem,
+    regioesNaImagem = false,
+    onda,
+    reflexos,
+    cobrirTudo = false,
+  } = opcoes;
   let resolucao = opcoes.resolucao;
   let regioes = opcoes.regioes.map(validarRegiao);
 
@@ -162,6 +175,7 @@ export function criarOndulacao(opcoes: OpcoesDaOndulacao): Ondulacao | null {
       imagem: { largura: imagem.naturalWidth, altura: imagem.naturalHeight },
       caixa,
       ajuste,
+      ...(posicaoDaImagem ? { posicao: posicaoDaImagem } : {}),
     });
     gl.uniform2f(uniforme('u_escala'), ajusteDaTextura.escala[0], ajusteDaTextura.escala[1]);
     gl.uniform2f(
@@ -178,7 +192,10 @@ export function criarOndulacao(opcoes: OpcoesDaOndulacao): Ondulacao | null {
       .slice(0, MAXIMO_DE_ELIPSES);
     const dados = new Float32Array(MAXIMO_DE_ELIPSES * 4);
     const extras = new Float32Array(MAXIMO_DE_ELIPSES * 2);
-    elipses.forEach((elipse, indice) => {
+    elipses.forEach((original, indice) => {
+      const elipse = regioesNaImagem
+        ? { ...original, ...elipseDaImagemParaACaixa(original, ajusteDaTextura) }
+        : original;
       dados.set([elipse.centro[0], elipse.centro[1], elipse.raio[0], elipse.raio[1]], indice * 4);
       extras.set([elipse.borda, elipse.intensidade], indice * 2);
     });

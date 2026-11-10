@@ -21,6 +21,7 @@ function montar(
     carregada?: boolean;
     config?: ConfigConvite;
     modo?: 'vertical' | 'horizontal';
+    toque?: boolean;
   } = {},
 ) {
   document.body.innerHTML = '';
@@ -39,7 +40,10 @@ function montar(
   raiz.append(lago, sol);
   document.body.append(raiz);
 
-  const { estado, girar } = criarEstadoFalso({ orientacao: opcoes.modo ?? 'vertical' });
+  const { estado, girar } = criarEstadoFalso({
+    orientacao: opcoes.modo ?? 'vertical',
+    ...(opcoes.toque === undefined ? {} : { toque: opcoes.toque }),
+  });
   const ticker = criarTickerFalso();
   const configuracao = opcoes.config ?? configReal;
   const agua = criarAgua({
@@ -283,6 +287,49 @@ describe('água viva (SPEC-19)', () => {
     ticker.quadro(16);
 
     expect(webgl?.valorDoUniforme('u_faixa')).toEqual([0.4, 0.07]);
+    expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([0]);
+  });
+
+  it('no computador (mouse, tela horizontal) a região é a elipse do lago da pintura mestre 16:9, não a faixa das camadas (09/11/2026)', () => {
+    const computador = montar({ modo: 'horizontal', toque: false });
+    computador.agua.iniciar('completo');
+    computador.ticker.quadro(16);
+
+    expect(config().vida.agua.regiao.computador.tipo).toBe('elipse');
+    expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([1]);
+  });
+
+  it('o celular deitado e o tablet (toque, horizontal) seguem na faixa das camadas', () => {
+    const deitado = montar({ modo: 'horizontal', toque: true });
+    deitado.agua.iniciar('completo');
+    deitado.ticker.quadro(16);
+
+    expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([0]);
+    expect(webgl?.valorDoUniforme('u_faixa')).toEqual([0.53, 0.05]);
+  });
+
+  it('a janela do computador que fica mais alta que larga continua na região do lago da pintura 16:9 (não vira a do celular)', () => {
+    const { agua, ticker, girar } = montar({ modo: 'horizontal', toque: false });
+    agua.iniciar('completo');
+    ticker.quadro(16);
+    const doComputador = webgl?.valorDoUniforme('u_elipses');
+
+    girar('vertical');
+    ticker.quadro(16);
+
+    expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([1]);
+    expect(webgl?.valorDoUniforme('u_elipses')).toEqual(doComputador);
+  });
+
+  it('o celular que gira continua trocando a região da água pela da outra orientação', () => {
+    const { agua, ticker, girar } = montar({ modo: 'vertical', toque: true });
+    agua.iniciar('completo');
+    ticker.quadro(16);
+    expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([1]);
+
+    girar('horizontal');
+    ticker.quadro(16);
+
     expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([0]);
   });
 

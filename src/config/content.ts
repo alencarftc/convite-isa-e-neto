@@ -41,6 +41,12 @@ export const content: ConteudoConvite = {
   previa: {
     titulo: 'Isabella & David — Convite de casamento',
     descricao: 'Uma carta foi escrita para você. Toque para abrir.',
+    // Textos novos de SEO (09/11/2026), sem aprovação do casal ainda: o `og:description` acima, o aprovado, segue na prévia.
+    descricaoParaBusca:
+      'Convite de casamento de Isabella Vaz e David Neto: 22 de janeiro de 2027, às 17h, no Sítio Olinda, em Benevides (PA). Abra a carta, confirme a presença e veja como chegar.',
+    descricaoDaImagem:
+      'Um baú dourado e o selo I&D num jardim de rosas azuis, à beira de um lago ao pôr do sol.',
+    nomeDoEvento: 'Casamento de Isabella Vaz e David Neto',
   },
   carta: {
     versiculo:
@@ -154,10 +160,10 @@ export const content: ConteudoConvite = {
   dressCode: 'Esporte fino',
   botoes: {
     confirmar: 'Confirmar presença',
-    prazo: 'Confirme até 31 de dezembro de 2026.',
+    prazo: 'Confirme até 12 de dezembro de 2026.',
     comoChegar: 'Como chegar',
     // Texto novo (SPEC-17), ainda sem aprovação do casal: ver docs/specs-adicionais/SPEC-17-salvar-na-agenda.md.
     agenda: 'Salvar na agenda',
-    encerrado: 'As confirmações foram encerradas em 31 de dezembro de 2026.',
+    encerrado: 'As confirmações foram encerradas em 12 de dezembro de 2026.',
   },
 };

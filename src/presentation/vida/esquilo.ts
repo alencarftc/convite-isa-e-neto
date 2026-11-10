@@ -47,8 +47,10 @@ export function criarEsquilo(dependencias: DependenciasDoEsquilo): ElementoDeVid
 
   /** Monta a visita na linha do tempo; devolve `false` se não deu (sem imagens ou sem espaço para ele). */
   function visitar(): boolean {
+    // Na vertical e no computador a cena é a pintura mestre: o esquilo vive no espaço de trás do baú, que o esconde (e ao
+    // casal) quando ele passa por trás, e os arbustos de primeiro plano o tapam nas pontas.
     const conteiner = raiz.querySelector(
-      estado.orientacao === 'vertical' ? '.vida--fundo' : '.vida--chao',
+      estado.orientacao === 'vertical' || !estado.toque ? '.vida--fundo' : '.vida--chao',
     );
     const encolhido = criarPose('encolhido');
     const esticado = criarPose('esticado');
@@ -57,10 +59,16 @@ export function criarEsquilo(dependencias: DependenciasDoEsquilo): ElementoDeVid
     const poses = { encolhido, esticado };
 
     const { innerWidth: largura, innerHeight: altura } = window;
-    const larguraDoEsquilo = parametros.largura[estado.orientacao] * largura;
+    // No computador o esquilo tem o tamanho da pintura, que cobre a janela (a largura dela, ou a altura vezes 16/9, o que
+    // for maior): numa janela estreita ele não vira um ponto, e os pulos acompanham.
+    const larguraDaCena = estado.computador ? Math.max(largura, (altura * 16) / 9) : largura;
+    const larguraDoEsquilo =
+      parametros.largura[estado.computador ? 'computador' : estado.orientacao] * larguraDaCena;
     const plano = planejarVisita(aleatorio, parametros, {
       larguraDaTela: largura,
+      larguraDaCena,
       larguraDoEsquilo,
+      computador: estado.computador,
     });
 
     // A passagem cobre a faixa do chão e esmaece as laterais, onde ficam os arbustos da pintura: o esquilo surge de trás
@@ -72,7 +80,11 @@ export function criarEsquilo(dependencias: DependenciasDoEsquilo): ElementoDeVid
     esquilo.className = 'esquilo';
     esquilo.setAttribute('aria-hidden', 'true');
     esquilo.style.width = `${String(larguraDoEsquilo)}px`;
-    esquilo.style.bottom = `${String(parametros.chao[estado.orientacao] * altura)}px`;
+    // No computador as patas ficam a uma fração da altura da pintura (e não da janela), contada da borda de baixo dela:
+    // numa janela larga e baixa o gramado é uma faixa mais fina da janela, e o esquilo segue nele (09/11/2026).
+    esquilo.style.bottom = estado.computador
+      ? `calc(var(--altura-da-cena) * ${String(parametros.chao.computador)} - var(--sobra-da-cena))`
+      : `${String(parametros.chao[estado.orientacao] * altura)}px`;
     esquilo.append(encolhido, esticado);
     passagem.append(esquilo);
     conteiner.append(passagem);

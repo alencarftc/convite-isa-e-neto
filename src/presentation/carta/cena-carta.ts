@@ -84,6 +84,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     // Envelope: sombra, as duas imagens, selo (inteiro, com as siglas na
     // arte), botão e dica. Não há texto escrito no envelope.
     const envelope = criar('div', 'envelope');
+    // No computador o envelope é maior (09/11/2026): os 300 px do celular pareciam pequenos numa tela de monitor.
+    if (!estado.toque) envelope.classList.add('envelope--computador');
     const sombra = criar('div', 'envelope__sombra');
     const fechado = criarImagem(
       'envelope__fechado',
@@ -121,6 +123,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
       ...papel,
     });
     const caixa = criar('main', 'conteudo');
+    // No computador a carta, os cartões e o casal são maiores (09/11/2026); a CSS só vale na horizontal.
+    if (!estado.toque) caixa.classList.add('conteudo--computador');
     caixa.setAttribute('inert', '');
     caixa.append(cartaEl);
     const titulo = cartaEl.querySelector<HTMLElement>('#carta-titulo');
@@ -144,6 +148,20 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
         true,
       ),
     );
+    // No computador (09/11/2026) a base não é mais um verde chapado: é uma faixa de gramado da própria pintura mestre
+    // (`config.imagens.chao`, variante do computador), que continua a borda de baixo dela. Só a CSS a mostra na horizontal.
+    if (!estado.toque) {
+      const faixa = criar('div', 'convite__chao-faixa');
+      faixa.append(
+        criarImagem(
+          'convite__chao-trecho',
+          urlDaImagem(config.imagens.chao, 'horizontal', true),
+          true,
+        ),
+      );
+      chao.append(faixa);
+      chao.classList.add('convite__chao--computador');
+    }
     // Só aparece quando a cena sobe: antes disso a faixa ficaria à mostra na base da tela.
     gsap.set(chao, { opacity: 0 });
     // "Role para ler" vive dentro do conteúdo, ancorada ao topo da carta (na margem do papel, onde não há
@@ -159,7 +177,10 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     // O casal vive no espaço `.casal` da cena do bosque: sobe junto com ela.
     const espacoDoCasal = raiz.querySelector<HTMLElement>('.casal');
     const casal = espacoDoCasal
-      ? criarImagem('casal__imagem', urlDaImagem(config.imagens.casal, 'vertical'))
+      ? criarImagem(
+          estado.toque ? 'casal__imagem' : 'casal__imagem casal__imagem--computador',
+          urlDaImagem(config.imagens.casal, 'vertical'),
+        )
       : null;
     if (espacoDoCasal && casal) {
       espacoDoCasal.append(casal);

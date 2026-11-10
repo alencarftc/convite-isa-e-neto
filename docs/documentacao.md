@@ -18,7 +18,7 @@ O projeto é um convite digital interativo para o casamento de Isabella Vaz e Da
 | URL publicada | [a preencher] |
 | Convite pronto e testado | 2026-11-10 |
 | Envio aos convidados | 2026-11-15 |
-| Fim das confirmações | 2026-12-31 |
+| Fim das confirmações | 2026-12-12 |
 | Casamento | Sexta-feira, 22/01/2027, às 17h, no Sítio Olinda (Benevides, PA) |
 
 O produto está quebrado em épicos e histórias em [Épicos e histórias](./epicos-e-historias.md), e cada épico tem sua especificação em [Specs](./specs/README.md).
@@ -192,7 +192,7 @@ export const content = {
 // src/config.js — estrutura
 export const config = {
   casamento: '2027-01-22T17:00:00-03:00',
-  prazoConfirmacao: '2026-12-31T23:59:59-03:00',
+  prazoConfirmacao: '2026-12-12T23:59:59-03:00',
   links: { formulario: 'https://forms.gle/yviZrELgrH2zrRGc7', mapa: '<link do Google Maps, ver SPEC-01>' },
   duracoes: { nevoa: 3, bau: 2, balao: 3, carta: 3, convite: 7, esperaSelo: 4, dicaChave: 1.5, reforcoDica: 8, limiteCritico: 8, limiteSeguranca: 20 },
   curvas, volumes, musicas,   // valores completos na SPEC-01
@@ -230,7 +230,7 @@ O convite só se conecta a dois serviços externos, ambos por link: o formulári
 
 | Integração | Como funciona | Valor |
 | --- | --- | --- |
-| Confirmação de presença | Botão "Confirmar presença" abre o Google Forms em nova aba; some depois de 31/12/2026 | [forms.gle/yviZrELgrH2zrRGc7](https://forms.gle/yviZrELgrH2zrRGc7), criado em 26/10/2026 pelo script anexado ao documento de requisitos |
+| Confirmação de presença | Botão "Confirmar presença" abre o Google Forms em nova aba; some depois de 12/12/2026 | [forms.gle/yviZrELgrH2zrRGc7](https://forms.gle/yviZrELgrH2zrRGc7), criado em 26/10/2026 pelo script anexado ao documento de requisitos |
 | Planilha de respostas | Criada pelo mesmo script, recebe uma linha por família | [a preencher] |
 | Mapa | Botão "Como chegar" abre o endereço no aplicativo de mapas | [Google Maps](https://www.google.com/maps/search/?api=1&query=R.+Na%C3%A7%C3%B5es+Unidas%2C+407+-+Benevides%2C+PA%2C+68795-000) |
 
@@ -274,7 +274,7 @@ Teste sempre abrindo o link pelo próprio WhatsApp, porque ele abre o convite no
 - Animação reduzida ativada no aparelho: a carta aparece direto
 - Rede 4G lenta: a névoa cobre o carregamento e nada aparece pela metade
 - Contagem regressiva certa no horário de Brasília, inclusive para quem está em outro fuso
-- Estados de data: antes do casamento, no dia, depois; e o botão de confirmação some depois de 31/12/2026
+- Estados de data: antes do casamento, no dia, depois; e o botão de confirmação some depois de 12/12/2026
 - "Confirmar presença" abre o formulário, e uma resposta de teste chega na planilha (apague-a depois)
 - "Como chegar" abre o endereço certo no aplicativo de mapas
 - Prévia do link no WhatsApp com imagem, título e descrição corretos

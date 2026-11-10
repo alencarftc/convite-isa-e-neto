@@ -48,7 +48,7 @@ const fracao = (indice: number, semente: number) => (indice * 0.618034 + semente
  * quer vê-la inteira usa "Pular para o convite" (ADR-0012). A região `aria-live` anuncia cada frase uma vez (RF-05.8).
  */
 export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
-  const { raiz, conteudo, config, eventos } = dependencias;
+  const { raiz, conteudo, config, estado, eventos } = dependencias;
   const { duracoes, curvas, historia: parametros } = config;
   const quantidade = conteudo.baloes.length;
   const total = duracoes.balao * quantidade + parametros.convergencia;
@@ -59,6 +59,8 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
   function montar(): Partes {
     if (partes) return partes;
     const secao = criar('section', 'historia');
+    // No computador os cartões de fala e o texto são maiores (09/11/2026); a CSS só vale na horizontal.
+    if (!estado.toque) secao.classList.add('historia--computador');
     secao.setAttribute('aria-label', conteudo.rotulos.historia);
     secao.hidden = true;
 

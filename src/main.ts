@@ -2,21 +2,7 @@
  * Raiz de composição: o único lugar que conhece todas as camadas. Instancia os
  * adaptadores de infraestrutura e os entrega aos casos de uso e à apresentação.
  */
-import './styles/tokens.css';
-import './styles/fontes.css';
-import './styles/base.css';
-import './styles/bau.css';
-import './styles/bosque.css';
-import './styles/carta.css';
-import './styles/entrada.css';
-import './styles/historia.css';
-import './styles/historia-estatica.css';
-import './styles/selo.css';
-import './styles/vida.css';
-import './styles/informacoes.css';
-import './styles/botao-som.css';
-import './styles/botao-pular.css';
-import './styles/botao-movimento.css';
+// Os estilos vêm de `src/styles/index.css`, ligado no <head> do `index.html` (sem FOUC; ver o próprio arquivo).
 
 import gsap from 'gsap';
 import { Howl, Howler } from 'howler';
@@ -130,6 +116,7 @@ const carregamento = criarCarregamento({
   temporizador: criarTemporizador(),
   config,
   fotos: content.baloes.map((balao) => balao.foto).filter((foto) => foto !== ''),
+  computador: !estado.toque,
 });
 
 const cartaEConvite = criarCartaEConvite({ raiz, conteudo: content, config, estado, eventos });

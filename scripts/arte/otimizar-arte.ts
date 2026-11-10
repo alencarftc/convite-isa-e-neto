@@ -23,6 +23,7 @@ import {
   descontaminarBorda,
   erodirAlfa,
   escurecerBase,
+  expandirCeuPalido,
   isolarPrimeiroPlano,
   limparRecorte,
   medirPoseGirada,
@@ -241,6 +242,136 @@ async function primeiroPlanoVertical(): Promise<void> {
   const destino = 'assets/scene/01-cena-9x16-frente.webp';
   escrever(join(publico, destino), codificada.buffer);
   relatar(`${destino} (${String(mantidos)} px de arbustos)`, codificada, limite);
+}
+
+/**
+ * A cena do computador (16:9) também é a pintura mestre (`01-cena-mestre-16x9`): o bosque, o lago, o muro de pedra à beira
+ * dele e o gramado onde o baú se assenta, com os arbustos de rosas nos cantos (09/11/2026; antes o computador usava
+ * camadas separadas, sem o muro, e o baú ficava sobre a água). Como na vertical, só o céu sai, e ela ocupa a chave `lago`
+ * (variante `computador`); as árvores e o primeiro plano seguem a mesma ideia da vertical. O céu da pintura tem partes
+ * quentes, que `removerCeu` pega, e partes pálidas e cinzentas no alto, que `expandirCeuPalido` completa. As medidas da
+ * semente e do horizonte são da pintura, em pixels dela (1672 × 941).
+ */
+const SEMENTE_DO_CEU_16X9 = [931, 215] as const;
+const HORIZONTE_DA_PINTURA_16X9 = 335;
+const LUMINANCIA_DO_CEU_PALIDO = 185;
+
+async function cenaComputador(): Promise<void> {
+  const limite = LIMITE_DAS_IMAGENS.lago;
+  const quadro = await lerQuadro(join(originais, '01-cena-mestre-16x9.png'));
+  const quentes = removerCeu(quadro, {
+    semente: SEMENTE_DO_CEU_16X9,
+    limiteDeY: HORIZONTE_DA_PINTURA_16X9,
+    areaDoBolsao: AREA_DO_BOLSAO_DE_CEU,
+    furo: FURO_NO_CEU,
+  });
+  const palidos = expandirCeuPalido(quadro, {
+    limiteDeY: HORIZONTE_DA_PINTURA_16X9,
+    luminanciaMinima: LUMINANCIA_DO_CEU_PALIDO,
+  });
+  descontaminarBorda(quadro, PROFUNDIDADE_DA_BORDA_DO_CEU);
+  suavizarAlfa(quadro, 1);
+  const codificada = await codificarNoLimite(paraSharp(quadro), quadro.largura, limite);
+  const destino = 'assets/scene/01-cena-16x9.webp';
+  escrever(join(publico, destino), codificada.buffer);
+  relatar(`${destino} (${String(quentes + palidos)} px de céu)`, codificada, limite);
+}
+
+/**
+ * O primeiro plano da pintura mestre 16:9, a mesma ideia do vertical: os arbustos de rosas dos cantos de baixo (das linhas
+ * a 80% da altura para baixo), cópia exata dos pixels da cena com o resto transparente, para taparem o baú e o esquilo que
+ * passa atrás sem mudar a imagem.
+ */
+async function primeiroPlanoComputador(): Promise<void> {
+  const limite = LIMITE_DAS_IMAGENS.primeiroPlano;
+  const quadro = await lerQuadro(join(originais, '01-cena-mestre-16x9.png'));
+  const mantidos = isolarPrimeiroPlano(quadro, {
+    topo: Math.round(quadro.altura * TOPO_DO_PRIMEIRO_PLANO),
+    areaMinima: AREA_MINIMA_DO_PRIMEIRO_PLANO,
+  });
+  suavizarAlfa(quadro, 2);
+  const codificada = await codificarNoLimite(paraSharp(quadro), quadro.largura, limite);
+  const destino = 'assets/scene/01-cena-16x9-frente.webp';
+  escrever(join(publico, destino), codificada.buffer);
+  relatar(`${destino} (${String(mantidos)} px de arbustos)`, codificada, limite);
+}
+
+/**
+ * O chão do computador (09/11/2026): quando a cena sobe e a carta abre, o quinto de baixo da tela fica sem pintura. Em
+ * vez do verde chapado, ou de um reflexo desfocado da pintura (que não agradou), a faixa é gramado de verdade: um retalho
+ * do gramado da própria pintura mestre (do centro, sem rosas) ladrilhado, cada ladrilho virado em relação ao vizinho, o
+ * que torna as emendas invisíveis num gramado. O retalho cai exatamente na posição dele na pintura, e a primeira linha de
+ * ladrilhos vem de cabeça para baixo: a borda de cima da faixa é a última linha do gramado, a que está junto da borda de
+ * baixo da pintura. A CSS esmaece a borda de cima sobre a pintura. As medidas são frações da pintura (1672 × 941).
+ */
+const RETALHO_DO_GRAMADO = { esquerda: 0.38, largura: 0.29, topo: 0.84, altura: 0.15 } as const;
+const ALTURA_DO_CHAO_DO_COMPUTADOR = 420;
+const LIMITE_DO_CHAO_DO_COMPUTADOR = 160 * 1024;
+
+async function chaoDoComputador(): Promise<void> {
+  const pintura = sharp(join(originais, '01-cena-mestre-16x9.png')).removeAlpha();
+  const { width: largura, height: altura } = await pintura.metadata();
+  if (!largura || !altura) throw new Error('A pintura mestre 16:9 não tem tamanho');
+  const ladrilhoLargura = Math.round(largura * RETALHO_DO_GRAMADO.largura);
+  const ladrilhoAltura = Math.round(altura * RETALHO_DO_GRAMADO.altura);
+  const retalho = await pintura
+    .clone()
+    .extract({
+      left: Math.round(largura * RETALHO_DO_GRAMADO.esquerda),
+      top: Math.round(altura * RETALHO_DO_GRAMADO.topo),
+      width: ladrilhoLargura,
+      height: ladrilhoAltura,
+    })
+    .png()
+    .toBuffer();
+  // As quatro posições do ladrilho: [virado na vertical?, virado na horizontal?].
+  const variantes = new Map<string, Buffer>();
+  for (const [vertical, horizontal] of [
+    [false, false],
+    [false, true],
+    [true, false],
+    [true, true],
+  ] as const) {
+    let imagem = sharp(retalho);
+    if (vertical) imagem = imagem.flip();
+    if (horizontal) imagem = imagem.flop();
+    variantes.set(`${String(vertical)}${String(horizontal)}`, await imagem.png().toBuffer());
+  }
+
+  // Margem à esquerda para os ladrilhos que começam antes da borda da pintura (`composite` não aceita posição negativa).
+  const margem = ladrilhoLargura * 3;
+  const linhas = Math.ceil(ALTURA_DO_CHAO_DO_COMPUTADOR / ladrilhoAltura);
+  const origemX = Math.round(largura * RETALHO_DO_GRAMADO.esquerda);
+  const ladrilhos: { input: Buffer; left: number; top: number }[] = [];
+  for (let linha = 0; linha < linhas; linha++) {
+    for (let k = -4; k <= 4; k++) {
+      const x = origemX + k * ladrilhoLargura;
+      if (x + ladrilhoLargura <= 0 || x >= largura) continue;
+      const input = variantes.get(`${String(linha % 2 === 0)}${String(Math.abs(k) % 2 === 1)}`);
+      if (input) ladrilhos.push({ input, left: margem + x, top: linha * ladrilhoAltura });
+    }
+  }
+  const montado = await sharp({
+    create: {
+      width: largura + margem * 2,
+      height: linhas * ladrilhoAltura,
+      channels: 3,
+      background: { r: 120, g: 130, b: 70 },
+    },
+  })
+    .composite(ladrilhos)
+    .png()
+    .toBuffer();
+  const base = sharp(montado).extract({
+    left: margem,
+    top: 0,
+    width: largura,
+    height: ALTURA_DO_CHAO_DO_COMPUTADOR,
+  });
+  const codificada = await codificarNoLimite(base, largura, LIMITE_DO_CHAO_DO_COMPUTADOR);
+  const destino = 'assets/scene/06-chao-computador.webp';
+  escrever(join(publico, destino), codificada.buffer);
+  relatar(destino, codificada, LIMITE_DO_CHAO_DO_COMPUTADOR);
 }
 
 /** Uma imagem de 1 × 1 transparente: as camadas que na vertical não têm arte (as árvores e o primeiro plano). */
@@ -641,6 +772,14 @@ async function previa(): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  // `pnpm arte -- --so-computador`: só a cena e o primeiro plano do computador, sem refazer o resto.
+  if (process.argv.includes('--so-computador')) {
+    console.log('Cena do computador');
+    await cenaComputador();
+    await primeiroPlanoComputador();
+    await chaoDoComputador();
+    return;
+  }
   console.log('Cenas');
   await cena('02-ceu-baunilha-16x9.png', 'assets/scene/02-ceu-baunilha-16x9.webp', 'ceu');
   await cena('02-ceu-baunilha-9x16.png', 'assets/scene/02-ceu-baunilha-9x16.webp', 'ceu');
@@ -693,6 +832,9 @@ async function main(): Promise<void> {
   const retrato = await cenaVertical();
   await vazio();
   await primeiroPlanoVertical();
+  await cenaComputador();
+  await primeiroPlanoComputador();
+  await chaoDoComputador();
   await chao(retrato, 'assets/scene/06-chao-9x16.webp');
   // O chão do computador vem da borda de baixo do primeiro plano em 16:9.
   const paisagem = await lerQuadro(join(originais, '06-primeiro-plano.png'));
