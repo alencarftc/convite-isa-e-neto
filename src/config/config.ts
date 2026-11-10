@@ -133,7 +133,7 @@ export const config: ConfigConvite = {
     blocosEm: 2.7,
     blocosAparecem: 0.9,
     blocosDeslocamento: 12,
-    leitura: { base: 0.5, porCaractere: 0.024, maximo: 3 },
+    intervaloDosBlocos: 1.3,
     folgaDaDobra: 0.05,
     rolar: { aparece: 0.5, periodo: 1.2, deslocamento: 9 },
   },
