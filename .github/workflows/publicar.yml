@@ -38,15 +38,14 @@ jobs:
       # Enquanto houver pendência de conteúdo (fotos, MP3, textos entre colchetes) o gate só avisa e o site é publicado mesmo
       # assim. Para que ele volte a barrar a publicação, crie a variável do repositório BLOQUEAR_COM_PENDENCIAS = true
       # (Settings › Secrets and variables › Actions › Variables). Ligue-a antes de mandar o link às famílias (ADR-0039).
+      # O passo termina verde quando só avisa: um `continue-on-error` deixaria uma anotação vermelha de "erro" no run.
       - name: Gate de publicação (texto, datas, links, arte, arquivos, serviços externos)
-        id: gate
-        continue-on-error: ${{ vars.BLOQUEAR_COM_PENDENCIAS != 'true' }}
-        run: pnpm verificar
-      - name: Avisar que o gate acusou pendências
-        if: steps.gate.outcome == 'failure'
-        run: >-
-          echo "::warning title=Pendências de conteúdo::O gate de publicação (pnpm verificar) acusou pendências e o
-          site foi publicado mesmo assim. Defina a variável BLOQUEAR_COM_PENDENCIAS=true para barrar."
+        env:
+          BLOQUEAR_COM_PENDENCIAS: ${{ vars.BLOQUEAR_COM_PENDENCIAS }}
+        run: |
+          if pnpm verificar; then exit 0; fi
+          if [ "$BLOQUEAR_COM_PENDENCIAS" = "true" ]; then exit 1; fi
+          echo "::warning title=Pendências de conteúdo::O gate de publicação (pnpm verificar) acusou pendências e o site vai ser publicado mesmo assim. Defina a variável BLOQUEAR_COM_PENDENCIAS=true para barrar."
       - name: Gates de código e build
         run: pnpm check
       - uses: actions/upload-artifact@v7
