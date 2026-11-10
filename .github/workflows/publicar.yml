@@ -1,21 +1,26 @@
 name: Publicar convite
 
-# Publica no GitHub Pages a cada envio para a main (SPEC-10). O gate de publicação roda primeiro: enquanto
-# houver texto pendente, arte provisória, arquivo ausente ou data fora do padrão, nada é publicado e a
-# versão anterior continua no ar.
+# A Hostinger copia para o site os arquivos de uma branch, sem rodar build (ADR-0039). Por isso este workflow gera o
+# site e o grava, já pronto, na branch `main-dist`; é essa branch que o hPanel (Avançado › Git) acompanha, e cada
+# merge na `main` a atualiza. Os gates de código (`pnpm check`) sempre barram; o gate de publicação (`pnpm verificar`)
+# só barra quando a variável BLOQUEAR_COM_PENDENCIAS for `true` (veja o passo abaixo). Se um gate barrar, a `main-dist`
+# não muda e a versão anterior continua no ar.
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      simulacao:
+        description: 'Só simular: monta a branch e testa o envio, sem alterar a `main-dist`'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: publicar
   cancel-in-progress: false
 
 jobs:
@@ -30,21 +35,71 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Enquanto houver pendência de conteúdo (fotos, MP3, textos entre colchetes) o gate só avisa e o site é publicado mesmo
+      # assim. Para que ele volte a barrar a publicação, crie a variável do repositório BLOQUEAR_COM_PENDENCIAS = true
+      # (Settings › Secrets and variables › Actions › Variables). Ligue-a antes de mandar o link às famílias (ADR-0039).
       - name: Gate de publicação (texto, datas, links, arte, arquivos, serviços externos)
+        id: gate
+        continue-on-error: ${{ vars.BLOQUEAR_COM_PENDENCIAS != 'true' }}
         run: pnpm verificar
+      - name: Avisar que o gate acusou pendências
+        if: steps.gate.outcome == 'failure'
+        run: >-
+          echo "::warning title=Pendências de conteúdo::O gate de publicação (pnpm verificar) acusou pendências e o
+          site foi publicado mesmo assim. Defina a variável BLOQUEAR_COM_PENDENCIAS=true para barrar."
       - name: Gates de código e build
         run: pnpm check
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: site
           path: dist
+          # O `.htaccess` (HTTPS, cache, compressão) é um arquivo oculto e se perderia sem isto.
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
 
-  deploy:
-    name: Publicar no GitHub Pages
+  publicar:
+    name: Atualizar a branch main-dist
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: write
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: ${{ runner.temp }}/site
+      - name: Conferir que o site está completo
+        run: test -f "$RUNNER_TEMP/site/index.html" && test -f "$RUNNER_TEMP/site/.htaccess"
+      - uses: actions/checkout@v4
+      - name: Gravar o site na branch main-dist (sem force push)
+        env:
+          SIMULACAO: ${{ inputs.simulacao }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin main-dist > /dev/null; then
+            git fetch --depth 1 origin main-dist
+            git checkout -B main-dist FETCH_HEAD
+          else
+            git checkout --orphan main-dist
+          fi
+
+          # A branch main-dist só tem o site: tira o que veio da main (ou da publicação anterior) e põe o novo.
+          git rm -rf --quiet --ignore-unmatch .
+          cp -a "$RUNNER_TEMP/site/." .
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "Nada mudou desde a última publicação."
+            exit 0
+          fi
+
+          git commit --quiet -m "chore(release): publica ${GITHUB_SHA::7}"
+          if [ "${SIMULACAO:-false}" = "true" ]; then
+            git push --dry-run origin main-dist
+          else
+            git push origin main-dist
+          fi
