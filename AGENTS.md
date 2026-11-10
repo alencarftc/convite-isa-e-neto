@@ -110,6 +110,7 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
   celular no computador, emule toque (`pointer: coarse`).
 - O CSS entra por `src/styles/index.css` (ligado no `<head>`; o build o embute no HTML), **não** pelo `main.ts` (ADR-0037). URLs que
   vão para variáveis CSS (`--papel`) precisam ser completas, porque o navegador as resolve pelo arquivo de estilos.
+- **Só existe o tema claro** (ADR-0042): `color-scheme: only light` no `<meta>` e na raiz da CSS; não crie tema escuro, `prefers-color-scheme` nem `color-scheme: dark` (o `tests/integration/tema-claro.test.ts` barra).
 - A publicação é pela Hostinger: o workflow grava o `dist/` na branch **`main-dist`** (a Hostinger não faz build; ADR-0039). Não ligue a Hostinger à `main` (ela serviria o código-fonte) e não mexa na `main-dist` à mão.
 - `pnpm arte -- --so-computador` regenera só a pintura mestre 16:9, o primeiro plano e o chão do desktop.
 
@@ -123,7 +124,7 @@ vivo (SPEC-22) foi **revertido** depois do teste no celular: a cena voltou à im
 [ADR-0014](docs/decisions/0014-ajustes-da-cena-viva-no-celular.md) e [ADR-0015](docs/decisions/0015-cena-vertical-da-pintura-mestre-e-aviso-de-tema.md)
 (os ajustes do teste no celular: selo inteiro, envelope que espera o toque, papel da carta com textura do início ao fim, "&"
 da carta em linha própria; e, na ADR-0015, a **cena vertical é a pintura mestre 9:16 sem o céu**, os balões vêm um de cada vez
-por 5 s com a frase numa placa legível, e o convite declara `color-scheme: dark`; como o navegador do casal ignora isso e escurece por conta própria, o texto da carta é um cinza claro misturado por diferença ao papel, que dá a tinta marrom sem ser invertido: [ADR-0016](docs/decisions/0016-tinta-da-carta-contra-o-escurecimento-forcado.md)). As branches de cada spec saíram desta e voltaram para
+por 5 s com a frase numa placa legível, e o convite declarava `color-scheme: dark` (hoje é só tema claro, `only light`: [ADR-0042](docs/decisions/0042-somente-tema-claro.md)); como o navegador do casal ignora isso e escurece por conta própria, o texto da carta é um cinza claro misturado por diferença ao papel, que dá a tinta marrom sem ser invertido: [ADR-0016](docs/decisions/0016-tinta-da-carta-contra-o-escurecimento-forcado.md)). As branches de cada spec saíram desta e voltaram para
 ela, nunca para a `main`. A cena viva é um componente que ouve o barramento (`criarCenaViva`, em `presentation/vida/`), não
 uma etapa; os elementos seguem o contrato `ElementoDeVida`; tudo se move no relógio do GSAP (nos testes,
 `tests/integration/suporte/relogio-gsap.ts` o avança à mão). As imagens 20a–c e 21a–b ainda são arte provisória, e as fotos
