@@ -23,7 +23,7 @@ Simular a data (só em desenvolvimento): `http://localhost:5173/?data=2027-01-22
 | Comando                                                                        | Faz                                                                 |
 | ------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
 | `pnpm dev` · `pnpm dev:rede` · `pnpm preview`                                  | servidor de desenvolvimento (5173) · na rede · serve o build (4173) |
-| `pnpm build`                                                                   | gera `dist/` (base relativa, pronto para o GitHub Pages)            |
+| `pnpm build`                                                                   | gera `dist/` (base relativa, pronto para a Hostinger)               |
 | `pnpm check`                                                                   | **todos os gates** (o mesmo que o CI roda)                          |
 | `pnpm test` · `test:unit` · `test:integration` · `test:arch` · `test:coverage` | testes (Vitest)                                                     |
 | `pnpm lint` · `lint:css` · `typecheck` · `format:check` · `arch` · `size`      | gates individuais                                                   |

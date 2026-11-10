@@ -28,6 +28,8 @@ depois de publicar.
 
 ## Para o domínio funcionar (fora do código)
 
+> Substituída pela [ADR-0039](./0039-publicacao-na-hostinger-pela-branch-main-dist.md): o convite é publicado na Hostinger, não no GitHub Pages; os registros `A` abaixo valem só para o GitHub Pages.
+
 1. No repositório: Settings › Pages › Custom domain = `isabellaeneto.com.br`, e marcar "Enforce HTTPS" quando o certificado sair.
 2. No DNS do domínio (registro.br ou onde estiver): quatro registros `A` para o apex apontando para os IPs do GitHub Pages
    (`185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`) e um `CNAME` de `www` para

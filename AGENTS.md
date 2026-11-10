@@ -110,6 +110,7 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
   celular no computador, emule toque (`pointer: coarse`).
 - O CSS entra por `src/styles/index.css` (ligado no `<head>`; o build o embute no HTML), **não** pelo `main.ts` (ADR-0037). URLs que
   vão para variáveis CSS (`--papel`) precisam ser completas, porque o navegador as resolve pelo arquivo de estilos.
+- A publicação é pela Hostinger: o workflow grava o `dist/` na branch **`main-dist`** (a Hostinger não faz build; ADR-0039). Não ligue a Hostinger à `main` (ela serviria o código-fonte) e não mexa na `main-dist` à mão.
 - `pnpm arte -- --so-computador` regenera só a pintura mestre 16:9, o primeiro plano e o chão do desktop.
 
 ## Estado atual
