@@ -12,7 +12,7 @@
 
 - `.github/workflows/publicar.yml`, a cada push na `main` (ou à mão, em `workflow_dispatch`), roda os gates, gera o `dist/` e o
   grava **na raiz** da branch `main-dist`, que contém só o site. O envio é um commit comum por cima da branch (sem
-  `force push`); a primeira execução cria a branch. Se nada mudou desde a última publicação, não há commit.
+  `force push`); a primeira execução cria a branch (ou, se ela já existir, como a cópia da `main` com código-fonte que o primeiro teste deixou, a atualiza por cima e a raiz passa a ter só o site). Se nada mudou desde a última publicação, não há commit.
 - O hPanel acompanha a `main-dist` (Root directory `public_html`) e o auto-deploy da Hostinger faz o resto.
 - **Gates:** `pnpm check` sempre barra a publicação. `pnpm verificar` (pendências de conteúdo: fotos, MP3, textos entre
   colchetes) **só avisa** enquanto a variável do repositório `BLOQUEAR_COM_PENDENCIAS` não for `true`; com ela, volta a barrar,
@@ -26,7 +26,7 @@
 
 ## Para funcionar (fora do código)
 
-1. Esperar o primeiro merge na `main` com este workflow: ele cria a `main-dist`. Em Settings › Actions › General, o fluxo de
+1. Esperar o primeiro merge na `main` com este workflow: ele cria a `main-dist` ou, se ela já existir, a atualiza. Em Settings › Actions › General, o fluxo de
    trabalho precisa poder gravar (a permissão `contents: write` está no próprio job).
 2. No hPanel › Avançado › Git: trocar a branch do repositório para `main-dist` (se a trocar não for possível, desconectar e
    conectar de novo; a Hostinger avisa que os arquivos novos sobrescrevem os existentes na pasta).
