@@ -137,31 +137,21 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     });
     gsap.set(blocos, { opacity: 0 });
 
-    // O chão é a faixa que continua as cores da borda de baixo do primeiro plano (uma imagem minúscula,
-    // ampliada pelo navegador): a base que a cena deixa à mostra ao subir. A timeline a sobe junto com a cena.
+    // O chão (10/11/2026): uma faixa de gramado nítido da própria pintura, que continua a borda de baixo dela e fica à mostra
+    // quando a cena sobe (antes era uma imagem minúscula ampliada, um borrão fosco). A timeline a sobe junto com a cena.
+    // A imagem é do computador (pintura 16:9) ou das telas de toque (pintura vertical); só a CSS as mede.
     const chao = criar('div', 'convite__chao');
     chao.setAttribute('aria-hidden', 'true');
-    chao.append(
+    const faixa = criar('div', 'convite__chao-faixa');
+    faixa.append(
       criarImagem(
-        'convite__chao-imagem',
-        urlDaImagem(config.imagens.chao, estado.orientacao),
+        'convite__chao-trecho',
+        urlDaImagem(config.imagens.chao, estado.orientacao, estado.computador),
         true,
       ),
     );
-    // No computador (09/11/2026) a base não é mais um verde chapado: é uma faixa de gramado da própria pintura mestre
-    // (`config.imagens.chao`, variante do computador), que continua a borda de baixo dela. Só a CSS a mostra na horizontal.
-    if (!estado.toque) {
-      const faixa = criar('div', 'convite__chao-faixa');
-      faixa.append(
-        criarImagem(
-          'convite__chao-trecho',
-          urlDaImagem(config.imagens.chao, 'horizontal', true),
-          true,
-        ),
-      );
-      chao.append(faixa);
-      chao.classList.add('convite__chao--computador');
-    }
+    chao.append(faixa);
+    if (estado.computador) chao.classList.add('convite__chao--computador');
     // Só aparece quando a cena sobe: antes disso a faixa ficaria à mostra na base da tela.
     gsap.set(chao, { opacity: 0 });
     // "Role para ler" vive dentro do conteúdo, ancorada ao topo da carta (na margem do papel, onde não há

@@ -99,16 +99,27 @@ export function montarCarta(carta: CartaDoConvite, papel: PapelDaCarta): HTMLEle
     criar('span', 'carta__bloco carta__nome', carta.nomes.noivo),
   );
 
-  // A data é o que os convidados mais procuram, os idosos sobretudo (10/11/2026): o dia e a hora são linhas próprias e a
-  // hora vem em destaque. O texto segue o de `content` ("DIA · DATA · HORA": o último " · " fica oculto na CSS).
+  // A data é o que os convidados mais procuram, os idosos sobretudo (10/11/2026): vira um quadro de calendário, com o dia da
+  // semana, o número do dia bem grande, o mês e o ano, e a hora numa etiqueta. O texto segue o de `content`
+  // ("SEMANA · DIA DE MÊS DE ANO · HORA"): os " · " ficam ocultos na CSS, e um formato diferente cai no texto simples.
   const data = criar('p', 'carta__bloco carta__data');
-  const corte = carta.data.lastIndexOf(' · ');
-  if (corte === -1) {
-    data.textContent = carta.data;
+  const [semana, dia, hora, ...resto] = carta.data.split(' · ');
+  const partesDoDia = /^(\d{1,2})( .+)$/.exec(dia ?? '');
+  if (semana && dia && hora && resto.length === 0 && partesDoDia) {
+    const diaDoMes = criar('span', 'carta__dia');
+    diaDoMes.append(
+      criar('span', 'carta__numero', partesDoDia[1]),
+      criar('span', 'carta__mes', partesDoDia[2]),
+    );
+    data.append(
+      criar('span', 'carta__semana', semana),
+      criar('span', 'carta__ponto', ' · '),
+      diaDoMes,
+      criar('span', 'carta__ponto', ' · '),
+      criar('span', 'carta__hora', hora),
+    );
   } else {
-    const hora = criar('span', 'carta__hora');
-    hora.append(criar('span', 'carta__ponto', ' · '), carta.data.slice(corte + 3));
-    data.append(criar('span', 'carta__dia', carta.data.slice(0, corte)), hora);
+    data.textContent = carta.data;
   }
 
   const local = criar('div', 'carta__bloco carta__local');

@@ -29,7 +29,7 @@ export const LIMITE_DAS_IMAGENS: Readonly<Record<ChaveDeImagem, number>> = {
   envelopeAberto: 120 * KB, // 13
   papelCarta: 150 * KB, // 14
   papelMiolo: 60 * KB, // 14 · ladrilho do meio do papel, repetido na vertical sob o texto
-  chao: 5 * KB, // continuação da borda do primeiro plano sob a carta (imagem minúscula, ampliada pelo navegador)
+  chao: 200 * KB, // faixa de gramado nítido sob a carta, em qualquer tela de toque (10/11/2026)
   selo: 60 * KB, // 15 · aparece grande na entrada e no envelope
   petalaA: 15 * KB, // 16a
   petalaB: 15 * KB,
@@ -42,10 +42,7 @@ export const LIMITE_DAS_IMAGENS: Readonly<Record<ChaveDeImagem, number>> = {
   esquiloEsticado: 25 * KB, // 21b
 };
 
-/**
- * Limite da variante `computador` de uma imagem, quando difere do da chave: o chão do computador é uma faixa de gramado
- * da pintura (uns 100 kB), enquanto o das outras orientações é uma imagem minúscula ampliada pelo navegador.
- */
+/** Limite da variante `computador` de uma imagem, quando difere do da chave: o chão do computador é uma faixa de gramado larga. */
 export const LIMITE_DA_VARIANTE_DO_COMPUTADOR: Readonly<Partial<Record<ChaveDeImagem, number>>> = {
   chao: 160 * KB,
 };

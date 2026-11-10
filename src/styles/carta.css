@@ -109,13 +109,21 @@
 }
 
 /*
- * A base que a cena deixa à mostra quando sobe: a faixa de chão (`06-chao`, uma imagem minúscula com as cores da
- * borda de baixo do primeiro plano, ampliada pelo navegador num borrão de grama fora de foco). Começa `6vh` acima
- * da borda do primeiro plano (as primeiras linhas da imagem são transparentes e se misturam com ele, sem emenda),
- * sobe junto com a cena e some atrás da carta. O espelho do primeiro plano, que vinha antes, aparecia como uma
- * imagem duplicada.
+ * A base que a cena deixa à mostra quando sobe (10/11/2026): uma faixa de gramado nítido da própria pintura, sem filtro
+ * (a imagem minúscula ampliada que havia antes virava um borrão fosco). Começa `6vh` acima da borda do primeiro plano, com
+ * um esmaecimento por cima dele (a passagem é gradual, sem emenda), sobe junto com a cena e some atrás da carta. No computador
+ * a imagem tem a largura da pintura na camada do lago (`--mestre-largura`: cobre a tela, centrada); nas telas de toque, a
+ * faixa de 1000 px é mostrada na escala da pintura vertical (cerca de 0,49), com no mínimo a largura da tela.
  */
+:root {
+  --chao-altura: 34vh;
+  --chao-esmaecer: calc(var(--sobra-da-cena) * 3);
+  --chao-emenda: calc(6vh - var(--chao-esmaecer));
+}
+
 .convite__chao {
+  --chao-largura: max(100vw, 486px);
+
   position: fixed;
   top: calc(100% + var(--sobra-da-cena) - 6vh);
   right: 0;
@@ -125,41 +133,15 @@
   pointer-events: none;
 }
 
-.convite__chao-imagem {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/*
- * Chão do computador (09/11/2026): em vez do verde chapado, uma faixa de gramado da própria pintura mestre (um retalho do
- * gramado ladrilhado, `pnpm arte`), nítida, sem filtro: continua a borda de baixo da pintura. A imagem tem a largura da
- * pintura na camada do lago (`--mestre-largura`: cobre a tela, centrada), então o gramado dela cai na mesma escala. Começa
- * 72 px acima da emenda, com um esmaecimento por cima do primeiro plano (a passagem é gradual e o primeiro plano, que se
- * mexe com o mouse, não abre fresta). Vale em qualquer formato de janela; a faixa existe só com o ponteiro de mouse.
- */
-.convite__chao-faixa {
-  display: none;
-}
-
-:root {
-  --chao-altura: 34vh;
-  --chao-esmaecer: calc(var(--sobra-da-cena) * 3);
-  --chao-emenda: calc(6vh - var(--chao-esmaecer));
-}
-
 .convite__chao--computador {
+  --chao-largura: var(--mestre-largura);
+
   height: var(--chao-altura);
 }
 
-.convite__chao--computador .convite__chao-imagem {
-  display: none;
-}
-
-.convite__chao--computador .convite__chao-faixa {
+.convite__chao-faixa {
   position: absolute;
   inset: 0;
-  display: block;
   overflow: hidden;
 
   /* stylelint-disable-next-line property-no-vendor-prefix -- o Chrome 90 e o Safari 15 só entendem a versão com prefixo */
@@ -179,9 +161,9 @@
   position: absolute;
   top: var(--chao-emenda);
   left: 50%;
-  width: var(--mestre-largura);
+  width: var(--chao-largura);
   height: auto;
-  margin-left: calc(var(--mestre-largura) / -2);
+  margin-left: calc(var(--chao-largura) / -2);
 }
 
 /*
@@ -416,33 +398,63 @@
 }
 
 /*
- * A data e a hora em destaque (10/11/2026), porque muitos convidados, os idosos sobretudo, querem saber logo quando será:
- * maiores, em negrito, num dourado mais escuro (4,1:1) e entre dois filetes dourados; o dia numa linha e a hora, ainda maior,
- * na seguinte. O " · " antes da hora só existe para o texto copiado e lido seguir o de `content`.
+ * A data e a hora em destaque (10/11/2026), porque muitos convidados, os idosos sobretudo, querem saber logo quando será.
+ * Um quadro de calendário de fundo dourado claro e borda dourada: o dia da semana, o número do dia bem grande, o mês e o ano
+ * e, numa etiqueta dourada, a hora. Tudo em negrito, num dourado mais escuro (4,1:1) e com algarismos alinhados (a fonte usa
+ * números "antigos", em que o 1 parece um "I"). Os " · " só existem para o texto copiado e lido seguir o de `content`.
  */
 .carta__data {
   display: flex;
   flex-direction: column;
+  gap: 0.35em;
   align-items: center;
-  padding-block: 0.7em;
-  font-size: 17px;
+  padding: 0.9em 1.2em 1em;
+  font-size: 15px;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.2;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border-block: 1px solid var(--cor-dourado-70);
+  letter-spacing: 0.14em;
+  background: var(--cor-dourado-15);
+  border: 1px solid var(--cor-dourado-55);
+  border-radius: 16px;
+  font-variant-numeric: lining-nums;
+}
+
+.carta__semana {
+  display: block;
+  font-size: 1.05em;
+  letter-spacing: 0.24em;
 }
 
 .carta__dia {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.carta__numero {
+  font-size: 4.4em;
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.carta__mes {
+  font-size: 1.1em;
+  letter-spacing: 0.1em;
   text-wrap: balance;
 }
 
 .carta__hora {
   display: block;
-  font-size: 1.75em;
-  line-height: 1.15;
-  letter-spacing: 0.1em;
+  padding: 0.25em 1.1em;
+  margin-top: 0.2em;
+  font-size: 1.9em;
+  line-height: 1.1;
+  color: var(--cor-marfim);
+  letter-spacing: 0.12em;
+  background: var(--cor-dourado-forte);
+  border-radius: 999px;
 }
 
 .carta__ponto {
@@ -544,7 +556,7 @@ body[data-fase='seguranca'] .conteudo {
 }
 
 .conteudo--computador .carta__data {
-  font-size: clamp(17px, 2.6vw, 21px);
+  font-size: clamp(15px, 2.2vw, 19px);
 }
 
 .conteudo--computador .carta__assinatura {
