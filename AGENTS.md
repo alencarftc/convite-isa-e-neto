@@ -103,7 +103,7 @@ As regras são executáveis (`pnpm arch`, `tests/architecture/`). Detalhes e rec
 - O WhatsApp abre o link no navegador interno do app (iOS/Android); `localStorage` pode ser isolado ou
   falhar. Sempre `try/catch` e padrão seguro (`criarPreferencias` já faz).
 - `?data=AAAA-MM-DDTHH:MM` simula a data **só em desenvolvimento** (testa os 4 estados da SPEC-07).
-- `typescript` está em 6.0.x (typescript-eslint ainda não suporta 7); `lint-staged` em 16.x (Node).
+- `typescript` está em 6.0.x (typescript-eslint ainda não suporta 7); `lint-staged` em 16.x e `@types/node` em 22.x: a 17 do lint-staged exige Node ≥ 22.22.1 (o `engine-strict` barra a instalação antes disso) e os tipos acompanham o Node mínimo (o dependabot ignora esses dois majors).
 - O convite é **um só link por família**, sem personalização por convidado.
 - `estado.computador` é o **mouse**, em qualquer formato de janela (ADR-0036): o desktop nunca vira a composição do celular ao
   estreitar o navegador. A CSS do desktop vive nas classes `--computador`, sem condição de orientação; para ver a cena do

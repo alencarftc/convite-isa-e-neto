@@ -28,9 +28,9 @@ jobs:
     name: Verificar e gerar o site
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4 # versão vem do campo packageManager
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6 # versão vem do campo packageManager
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -38,18 +38,17 @@ jobs:
       # Enquanto houver pendência de conteúdo (fotos, MP3, textos entre colchetes) o gate só avisa e o site é publicado mesmo
       # assim. Para que ele volte a barrar a publicação, crie a variável do repositório BLOQUEAR_COM_PENDENCIAS = true
       # (Settings › Secrets and variables › Actions › Variables). Ligue-a antes de mandar o link às famílias (ADR-0039).
+      # O passo termina verde quando só avisa: um `continue-on-error` deixaria uma anotação vermelha de "erro" no run.
       - name: Gate de publicação (texto, datas, links, arte, arquivos, serviços externos)
-        id: gate
-        continue-on-error: ${{ vars.BLOQUEAR_COM_PENDENCIAS != 'true' }}
-        run: pnpm verificar
-      - name: Avisar que o gate acusou pendências
-        if: steps.gate.outcome == 'failure'
-        run: >-
-          echo "::warning title=Pendências de conteúdo::O gate de publicação (pnpm verificar) acusou pendências e o
-          site foi publicado mesmo assim. Defina a variável BLOQUEAR_COM_PENDENCIAS=true para barrar."
+        env:
+          BLOQUEAR_COM_PENDENCIAS: ${{ vars.BLOQUEAR_COM_PENDENCIAS }}
+        run: |
+          if pnpm verificar; then exit 0; fi
+          if [ "$BLOQUEAR_COM_PENDENCIAS" = "true" ]; then exit 1; fi
+          echo "::warning title=Pendências de conteúdo::O gate de publicação (pnpm verificar) acusou pendências e o site vai ser publicado mesmo assim. Defina a variável BLOQUEAR_COM_PENDENCIAS=true para barrar."
       - name: Gates de código e build
         run: pnpm check
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: site
           path: dist
@@ -65,13 +64,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: site
           path: ${{ runner.temp }}/site
       - name: Conferir que o site está completo
         run: test -f "$RUNNER_TEMP/site/index.html" && test -f "$RUNNER_TEMP/site/.htaccess"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Gravar o site na branch main-dist (sem force push)
         env:
           SIMULACAO: ${{ inputs.simulacao }}
