@@ -51,7 +51,11 @@ describe('plugins do index.html', () => {
   it('um "$&" ou "$\'" no conteúdo não é lido como padrão de substituição (texto vai literal)', () => {
     const traiçoeiro = {
       ...content,
-      previa: { titulo: 'Preço $& tudo', descricao: "Veja $' e $` e $$ aqui" },
+      previa: {
+        ...content.previa,
+        titulo: 'Preço $& tudo',
+        descricao: "Veja $' e $` e $$ aqui",
+      },
     };
     const html = transformar(pluginMetadados(traiçoeiro, config), index);
 
