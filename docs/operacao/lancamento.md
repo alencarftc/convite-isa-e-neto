@@ -1,15 +1,15 @@
 # Operação · Lançamento (SPEC-10)
 
-O convite é publicado no GitHub Pages por `.github/workflows/publicar.yml` a cada envio para a `main`. O
+O convite é publicado na Hostinger: `.github/workflows/publicar.yml` grava o site pronto na branch `main-dist` a cada merge na `main`, e o Git do hPanel acompanha essa branch (ADR-0039). O
 WhatsApp guarda a prévia do link, então **tudo o que aparece nela, inclusive o endereço, precisa estar
 decidido antes do primeiro envio**. A spec completa está em
 [SPEC-10](../specs/SPEC-10-compartilhamento-e-publicacao.md).
 
 ## Como funciona a publicação
 
-1. Um envio para `main` dispara o workflow.
+1. Um merge na `main` dispara o workflow, que no fim atualiza a branch `main-dist`; a Hostinger refaz a cópia sozinha.
 2. `pnpm verificar` roda primeiro (texto pendente, datas, links, endereço publicado, serviços externos, arte
-   provisória, arquivos ausentes). **Hoje ele falha de propósito**: faltam as fotos, os MP3 e as pendências de texto. Enquanto falhar, nada vai ao ar.
+   provisória, arquivos ausentes). **Hoje ele falha de propósito**: faltam as fotos, os MP3 e as pendências de texto. Ele só avisa, e o site vai ao ar mesmo assim, enquanto a variável do repositório `BLOQUEAR_COM_PENDENCIAS` não for `true`: **crie-a antes de mandar o link**.
 3. `pnpm check` roda os gates de código e gera `dist/`.
 4. `dist/` é publicado; o endereço do passo `deploy` aparece no GitHub.
 
