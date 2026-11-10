@@ -4,8 +4,8 @@ export interface OpcoesDaRevelacao {
   /** Os blocos da carta, na ordem em que aparecem (todos já no DOM, invisíveis, ocupando o seu lugar). */
   readonly blocos: readonly HTMLElement[];
   readonly janela: Window;
-  /** Segundos que o bloco fica sozinho antes do próximo, contados do começo da aparição. */
-  readonly tempoDeLeitura: (bloco: HTMLElement) => number;
+  /** Segundos entre o começo da aparição de um bloco e a do próximo: o mesmo para todos os blocos. */
+  readonly intervalo: number;
   /** Faz o bloco aparecer, com animação. */
   readonly aparecer: (bloco: HTMLElement) => void;
   /** Deixa o bloco visível sem animação: o convidado já rolou além dele. */
@@ -22,8 +22,8 @@ export interface Revelacao {
 }
 
 /**
- * A carta se lê com calma (ADR-0012): os blocos aparecem um de cada vez, na ordem, cada um depois do
- * tempo de leitura do anterior. A revelação não corre à frente de quem lê:
+ * A carta se lê com calma (ADR-0012): os blocos aparecem um de cada vez, na ordem, sempre no mesmo intervalo,
+ * seja o bloco um ornamento ou um parágrafo (ADR-0034). A revelação não corre à frente de quem lê:
  *
  * - um bloco abaixo da dobra (`folgaDaDobra`) espera o convidado rolar até ele, e a carta avisa
  *   (`aoEsperarRolagem`) para a tela pedir a rolagem;
@@ -33,8 +33,7 @@ export interface Revelacao {
  * rolando faz a leitura andar.
  */
 export function revelarEmSequencia(opcoes: OpcoesDaRevelacao): Revelacao {
-  const { blocos, janela, tempoDeLeitura, aparecer, mostrar, folgaDaDobra, aoEsperarRolagem } =
-    opcoes;
+  const { blocos, janela, intervalo, aparecer, mostrar, folgaDaDobra, aoEsperarRolagem } = opcoes;
   const encerrar = new AbortController();
   let espera: gsap.core.Tween | undefined;
 
@@ -83,7 +82,7 @@ export function revelarEmSequencia(opcoes: OpcoesDaRevelacao): Revelacao {
         continue;
       }
       aparecer(bloco);
-      await esperarSegundos(tempoDeLeitura(bloco));
+      await esperarSegundos(intervalo);
     }
   }
 

@@ -631,6 +631,48 @@ describe('envelope e carta (SPEC-06)', () => {
         }
       });
 
+      it('todos os blocos começam a aparecer no mesmo intervalo, seja um ornamento ou um parágrafo (09/11/2026)', async () => {
+        const relogio = criarRelogioManual();
+        try {
+          const { convite, carta, botao } = montar();
+          combinarCaixas(5000); // tudo cabe na tela: nenhum bloco espera rolagem
+          void carta.run();
+          relogio.avancar(config.carta.pousouEm + 0.05, 0.002);
+          botao().click();
+          void convite.run();
+
+          const total = blocos().length;
+          const tamanhos = new Set(blocos().map((bloco) => bloco.textContent.trim().length));
+          expect(tamanhos.size).toBeGreaterThan(5); // o teste só vale com textos de tamanhos bem diferentes
+
+          // O GSAP anda aos poucos; a cada passo, anota os blocos que acabaram de ficar visíveis.
+          const passo = 0.0005;
+          const comecou = new Map<number, number>();
+          const limite = config.convite.blocosEm + (total + 2) * config.convite.intervaloDosBlocos;
+          let tempo = 0;
+          while (comecou.size < total && tempo < limite) {
+            relogio.avancar(passo, passo);
+            tempo += passo;
+            await Promise.resolve(); // a revelação continua em promessas: deixa a próxima rodar
+            await Promise.resolve();
+            blocos().forEach((bloco, indice) => {
+              if (!comecou.has(indice) && visivel(bloco)) comecou.set(indice, tempo);
+            });
+          }
+
+          expect(comecou.size).toBe(total);
+          for (let indice = 1; indice < total; indice += 1) {
+            const intervalo = comecou.get(indice)! - comecou.get(indice - 1)!;
+            expect(Math.abs(intervalo - config.convite.intervaloDosBlocos)).toBeLessThanOrEqual(
+              2 * passo,
+            );
+          }
+          convite.skip();
+        } finally {
+          relogio.restaurar();
+        }
+      });
+
       it('"Role para ler" aparece mesmo quando a carta toda cabe na tela, e fica', async () => {
         const { abrirTudo, opacidade } = montar();
         combinarCaixas(5000);

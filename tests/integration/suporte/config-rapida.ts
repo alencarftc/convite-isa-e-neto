@@ -92,12 +92,7 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
       },
       blocosEm: esc(original.convite.blocosEm),
       blocosAparecem: esc(original.convite.blocosAparecem),
-      leitura: {
-        ...original.convite.leitura,
-        base: esc(original.convite.leitura.base),
-        porCaractere: esc(original.convite.leitura.porCaractere),
-        maximo: esc(original.convite.leitura.maximo),
-      },
+      intervaloDosBlocos: esc(original.convite.intervaloDosBlocos),
       rolar: {
         ...original.convite.rolar,
         aparece: esc(original.convite.rolar.aparece),

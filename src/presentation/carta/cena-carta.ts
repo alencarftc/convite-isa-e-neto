@@ -3,7 +3,6 @@ import gsap from 'gsap';
 import type { BarramentoEventos } from '@/application/barramento-eventos';
 import type { Cena } from '@/application/cena';
 import type { EstadoConvite } from '@/application/estado-convite';
-import { tempoDeLeitura } from '@/domain/carta/tempo-de-leitura';
 import type { ConfigConvite } from '@/domain/config/config-convite';
 import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
@@ -273,7 +272,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     balancarASeta();
   }
 
-  /** Os blocos da carta aparecem um de cada vez, no ritmo da leitura (ADR-0012). */
+  /** Os blocos da carta aparecem um de cada vez, sempre no mesmo intervalo (ADR-0012, ADR-0034). */
   function iniciarLeitura(): void {
     const e = montar();
     const t = tempoDoConvite;
@@ -281,7 +280,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     leitura = revelarEmSequencia({
       blocos: e.blocos,
       janela: window,
-      tempoDeLeitura: (bloco) => tempoDeLeitura(bloco.textContent.trim().length, t.leitura),
+      intervalo: t.intervaloDosBlocos,
       aparecer: (bloco) => {
         gsap.fromTo(
           bloco,

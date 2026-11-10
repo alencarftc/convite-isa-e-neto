@@ -1,4 +1,3 @@
-import type { ParametrosDeLeitura } from '../carta/tempo-de-leitura';
 import type { ArteDaImagem, ChaveDeImagem } from '../imagens/catalogo-de-imagens';
 import type { ParametrosDoEsquilo } from '../vida/esquilo';
 import type { ParametrosDeFolha } from '../vida/folhas';
@@ -234,8 +233,11 @@ export interface ConfigConvite {
     /** Cada bloco aparece nesse tempo, subindo `blocosDeslocamento` pixels. */
     readonly blocosAparecem: number;
     readonly blocosDeslocamento: number;
-    /** O próximo bloco só aparece depois do tempo de leitura do anterior (cresce com o texto). */
-    readonly leitura: ParametrosDeLeitura;
+    /**
+     * Segundos entre o começo de um bloco e o começo do próximo: o mesmo para todos, não importa o tamanho do texto
+     * (09/11/2026; antes cresciam com o texto e os parágrafos seguravam os blocos seguintes).
+     */
+    readonly intervaloDosBlocos: number;
     /** Parte da altura da tela, na base, que um bloco precisa respeitar para aparecer: abaixo dela ele espera a rolagem. */
     readonly folgaDaDobra: number;
     /**
