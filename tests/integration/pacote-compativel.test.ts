@@ -61,7 +61,11 @@ beforeAll(async () => {
       .map((arquivo) => (arquivo.type === 'chunk' ? arquivo.code : String(arquivo.source)))
       .join('\n');
   javascript = texto('.js');
-  css = texto('.css');
+  // O CSS vai dentro do index.html (scripts/vite/css-em-linha.ts); um arquivo .css solto, se houver, também conta.
+  const embutidos = [...texto('.html').matchAll(/<style>([\s\S]*?)<\/style>/g)].map(
+    (m) => m[1] ?? '',
+  );
+  css = [texto('.css'), ...embutidos].join('\n');
 }, TEMPO_DO_BUILD);
 
 describe('pacote gerado dentro do alvo (SPEC-15, RF-15.5)', () => {

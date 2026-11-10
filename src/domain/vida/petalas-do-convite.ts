@@ -25,6 +25,11 @@ export interface ParametrosDasPetalas {
   readonly virar: Intervalo;
   /** Quantas pétalas no ar, no máximo, por nível. */
   readonly maximo: { readonly completo: number; readonly leve: number };
+  /**
+   * No computador a tela é bem maior e a mesma chuva parecia rala (09/11/2026): o tempo entre pétalas fica
+   * `fatorDoIntervalo` vezes o sorteado (menor que 1 acelera) e o limite no ar, `fatorDoMaximo` vezes o do nível.
+   */
+  readonly noComputador: { readonly fatorDoIntervalo: number; readonly fatorDoMaximo: number };
 }
 
 export interface PlanoDaPetala {

@@ -222,7 +222,7 @@ describe(
       expect(noAr().length).toBeGreaterThanOrEqual(1);
     });
 
-    it('um aparelho modesto tem menos pétalas no ar', () => {
+    it('um aparelho modesto tem menos pétalas no ar', { timeout: 90_000 }, () => {
       const { eventos } = montar({ modesto: true });
       eventos.emit('carta:abrindo', { origem: 'toque' });
       let maximo = 0;

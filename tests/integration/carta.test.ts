@@ -96,6 +96,25 @@ describe('montarCarta (SPEC-06, "Layout da carta")', () => {
   };
   const artigo = () => montarCarta(content.carta, papel);
 
+  it('o papel vai para a CSS com a URL completa (contra a base do documento): a variável é resolvida pelo arquivo de estilos, e não pelo documento (09/11/2026)', () => {
+    vi.spyOn(document, 'baseURI', 'get').mockReturnValue('https://isabellaeneto.com.br/');
+
+    const carta = artigo();
+
+    expect(carta.style.getPropertyValue('--papel')).toBe(
+      "url('https://isabellaeneto.com.br/papel.svg')",
+    );
+    expect(carta.style.getPropertyValue('--papel-miolo')).toBe(
+      "url('https://isabellaeneto.com.br/miolo.svg')",
+    );
+  });
+
+  it('sem uma base válida a URL do papel fica como veio, sem quebrar a montagem', () => {
+    vi.spyOn(document, 'baseURI', 'get').mockReturnValue('isto não é uma URL');
+
+    expect(artigo().style.getPropertyValue('--papel')).toContain('papel.svg');
+  });
+
   it('tem dezesseis blocos, na ordem aprovada, com o texto de content.carta; o título é um contêiner de três (CT-06.5)', () => {
     const blocos = [...artigo().querySelectorAll('.carta__bloco')];
     const c = content.carta;
@@ -296,6 +315,28 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(imagem.getAttribute('data-src')).toBe(urlDaImagem(config.imagens.chao, 'vertical'));
       expect(el('.convite__chao').getAttribute('aria-hidden')).toBe('true');
       expect(Number(gsap.getProperty(el('.convite__chao'), 'opacity'))).toBe(0);
+    });
+
+    it('no computador o chão é uma faixa de gramado da pintura (sem desfoque) e o envelope, o casal e o convite são maiores (09/11/2026)', () => {
+      const { el } = montar({ toque: false, orientacao: 'horizontal' });
+
+      expect(el('.convite__chao').classList.contains('convite__chao--computador')).toBe(true);
+      const trecho = el('.convite__chao .convite__chao-faixa .convite__chao-trecho');
+      expect(trecho.getAttribute('data-src')).toBe(
+        urlDaImagem(config.imagens.chao, 'horizontal', true),
+      );
+      expect(trecho.getAttribute('data-src')).toMatch(/06-chao-computador\.webp$/);
+      expect(el('.envelope').classList.contains('envelope--computador')).toBe(true);
+      expect(el('.conteudo').classList.contains('conteudo--computador')).toBe(true);
+    });
+
+    it('com toque (celular e tablet) o chão e o envelope são os de antes, sem faixa de pintura', () => {
+      const { el } = montar({ toque: true, orientacao: 'horizontal' });
+
+      expect(el('.convite__chao').classList.contains('convite__chao--computador')).toBe(false);
+      expect(document.querySelector('.convite__chao-faixa')).toBeNull();
+      expect(el('.envelope').classList.contains('envelope--computador')).toBe(false);
+      expect(el('.conteudo').classList.contains('conteudo--computador')).toBe(false);
     });
 
     it('a faixa de chão só é pedida quando a etapa começa, não no init', () => {

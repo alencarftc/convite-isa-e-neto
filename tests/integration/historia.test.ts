@@ -95,6 +95,19 @@ const quantidade = content.baloes.length;
 const totalDaHistoria = duracaoDaMemoria * quantidade + parametros.convergencia;
 
 describe('história em memórias de luz (SPEC-05, ADR-0026)', () => {
+  it('no computador (mouse) os cartões de fala ganham a classe dos maiores; no celular e no tablet, não (09/11/2026)', () => {
+    montar({ toque: false });
+    const doComputador = document
+      .querySelector('.historia')
+      ?.classList.contains('historia--computador');
+    document.body.innerHTML = '';
+    montar({ toque: true });
+    const doToque = document.querySelector('.historia')?.classList.contains('historia--computador');
+
+    expect(doComputador).toBe(true);
+    expect(doToque).toBe(false);
+  });
+
   describe('estrutura', () => {
     it('monta uma região nomeada, oculta, com uma memória por item de content.baloes (RF-05.1)', () => {
       const { el } = montar();

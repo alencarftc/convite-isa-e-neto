@@ -16,6 +16,16 @@
   will-change: transform, opacity;
 }
 
+/*
+ * Computador (09/11/2026): o envelope cresce com a tela, do alto de 300 px do celular a uns 540 px num monitor de 1920 px
+ * (28% da largura, até 54% da altura). O selo, o botão e a sombra são porcentagens dele e acompanham. Só na horizontal e só
+ * com mouse: o celular não muda.
+ */
+.envelope--computador {
+  /* 28% da largura (até 54% da altura), nunca menos que os 300 px do celular nem mais que 92% da janela estreita. */
+  --envelope-largura: min(max(300px, 28vw), 54vh, 92vw);
+}
+
 .envelope__fechado,
 .envelope__aberto {
   position: absolute;
@@ -119,6 +129,59 @@
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/*
+ * Chão do computador (09/11/2026): em vez do verde chapado, uma faixa de gramado da própria pintura mestre (um retalho do
+ * gramado ladrilhado, `pnpm arte`), nítida, sem filtro: continua a borda de baixo da pintura. A imagem tem a largura da
+ * pintura na camada do lago (`--mestre-largura`: cobre a tela, centrada), então o gramado dela cai na mesma escala. Começa
+ * 72 px acima da emenda, com um esmaecimento por cima do primeiro plano (a passagem é gradual e o primeiro plano, que se
+ * mexe com o mouse, não abre fresta). Vale em qualquer formato de janela; a faixa existe só com o ponteiro de mouse.
+ */
+.convite__chao-faixa {
+  display: none;
+}
+
+:root {
+  --chao-altura: 34vh;
+  --chao-esmaecer: calc(var(--sobra-da-cena) * 3);
+  --chao-emenda: calc(6vh - var(--chao-esmaecer));
+}
+
+.convite__chao--computador {
+  height: var(--chao-altura);
+}
+
+.convite__chao--computador .convite__chao-imagem {
+  display: none;
+}
+
+.convite__chao--computador .convite__chao-faixa {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+
+  /* stylelint-disable-next-line property-no-vendor-prefix -- o Chrome 90 e o Safari 15 só entendem a versão com prefixo */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent var(--chao-emenda),
+    black calc(var(--chao-emenda) + var(--chao-esmaecer))
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent var(--chao-emenda),
+    black calc(var(--chao-emenda) + var(--chao-esmaecer))
+  );
+}
+
+.convite__chao-trecho {
+  position: absolute;
+  top: var(--chao-emenda);
+  left: 50%;
+  width: var(--mestre-largura);
+  height: auto;
+  margin-left: calc(var(--mestre-largura) / -2);
 }
 
 /*
@@ -414,4 +477,49 @@ body[data-fase='seguranca'] .convite__chao {
 
 body[data-fase='seguranca'] .conteudo {
   padding-top: var(--espaco-7);
+}
+
+/*
+ * Computador (09/11/2026): o casal estava pequeno diante da pintura (as árvores, os arbustos e o baú cresceram com a tela e
+ * ele ficou em 325 px). Sobe a 470 px (no máximo 46% da altura), com os pés um pouco mais baixo (16%, uns 20 px): ainda
+ * ficam acima da carta quando a cena sobe. Vale em qualquer formato de janela.
+ */
+.casal__imagem--computador {
+  /* Proporcional à pintura (23,45% da largura dela, 470 px num monitor de 1920 × 1080), até 46% da altura da janela. */
+  --casal-altura: min(calc(var(--mestre-largura) * 0.2345), 46vh);
+
+  /* Os pés a 17,5% da altura da pintura, contados da borda de baixo dela: no gramado em qualquer formato de janela. */
+  --casal-base: calc(var(--altura-da-cena) * 0.175 - var(--sobra-da-cena));
+}
+
+/*
+ * O convite maior, no computador: a carta vai de 560 a 640 px e cobre até 92% de uma janela estreita (antes, a 42% da
+ * largura, numa janela de 800 px ela ficava espremida em 340 px), e o texto, os cartões e os enfeites crescem com ela, de
+ * o mesmo tamanho do celular nas janelas estreitas até 14% maior nas largas. Os tokens de texto trocam só aqui dentro; no
+ * celular e no tablet nada muda.
+ */
+.conteudo--computador {
+  --texto-corpo: clamp(18px, 3.4vw, 23px);
+  --texto-nomes: clamp(40px, 9.5vw, 64px);
+  --texto-rotulo: clamp(13px, 1.7vw, 15px);
+}
+
+.conteudo--computador .carta {
+  --carta-largura: min(92vw, 640px);
+}
+
+.conteudo--computador .carta__pais {
+  font-size: clamp(16px, 2.6vw, 18px);
+}
+
+.conteudo--computador .carta__data {
+  font-size: clamp(15px, 2.4vw, 17px);
+}
+
+.conteudo--computador .carta__assinatura {
+  font-size: clamp(32px, 5vw, 36px);
+}
+
+.conteudo--computador .carta__filete {
+  width: min(60%, 274px);
 }

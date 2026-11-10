@@ -66,8 +66,8 @@ afterEach(() => {
 
 describe('cena do bosque (SPEC-03)', () => {
   describe('estrutura das camadas', () => {
-    it('empilha céu, céu do pôr do sol, lago, árvores, baú, primeiro plano, luz e casal, com os espaços da vida entre eles (RF-03.1, RF-18.6)', () => {
-      const { cena, cenaEl } = montar();
+    it('empilha céu, céu do pôr do sol, lago, árvores, baú, primeiro plano, luz e casal, com os espaços da vida entre eles; no celular e no tablet nada mais (RF-03.1, RF-18.6)', () => {
+      const { cena, cenaEl } = montar({ toque: true });
 
       cena.init();
 
@@ -132,7 +132,7 @@ describe('cena do bosque (SPEC-03)', () => {
     });
 
     it('cada camada de arte é um <picture> com a arte vertical em portrait e a horizontal no img (CA-03.4.1)', () => {
-      const { cena, camada } = montar();
+      const { cena, camada } = montar({ toque: true });
 
       cena.init();
 
@@ -147,7 +147,7 @@ describe('cena do bosque (SPEC-03)', () => {
     });
 
     it('na vertical a camada do lago leva a cena mestre inteira, o primeiro plano os arbustos dela e as árvores ficam vazias (ADR-0015, ADR-0019)', () => {
-      const { cena, camada } = montar();
+      const { cena, camada } = montar({ toque: true });
 
       cena.init();
 
@@ -175,7 +175,7 @@ describe('cena do bosque (SPEC-03)', () => {
     ] as const)(
       'as profundidades seguem a tabela (céu 0,15 · lago 0,3 · árvores 0,6 · frente 1), e o baú e o casal acompanham o chão; na vertical os arbustos andam com a pintura: %s (chão %s, frente %s)',
       (orientacao, solo, frente) => {
-        const { cena, cenaEl } = montar({ orientacao });
+        const { cena, cenaEl } = montar({ orientacao, toque: true });
         cena.init();
 
         const profundidades = [...cenaEl().querySelectorAll('[data-prof]')].map((e) =>
@@ -198,6 +198,84 @@ describe('cena do bosque (SPEC-03)', () => {
         ]);
       },
     );
+
+    describe('no computador (09/11/2026)', () => {
+      const CAMADAS = [
+        'camada camada--ceu',
+        'camada camada--ceu-sol',
+        'vida vida--ceu',
+        'camada camada--lago',
+        'camada camada--arvores',
+        'vida vida--fundo',
+        'bau',
+        'camada camada--frente',
+        'vida vida--chao',
+        'camada camada--luz',
+        'casal',
+      ];
+
+      it('com mouse a cena é a pintura mestre 16:9: lago, primeiro plano e árvores usam a variante do computador', () => {
+        const { cena, cenaEl, camada } = montar({ toque: false, orientacao: 'horizontal' });
+
+        cena.init();
+
+        expect(cenaEl().classList.contains('cena--computador')).toBe(true);
+        // As mesmas camadas do celular: o que muda é a arte de cada uma, não a pilha.
+        expect([...cenaEl().children].map((filho) => filho.className)).toEqual(CAMADAS);
+        expect(camada('lago').querySelector('img')?.getAttribute('src')).toMatch(
+          /01-cena-16x9.webp$/,
+        );
+        expect(camada('frente').querySelector('img')?.getAttribute('src')).toMatch(
+          /01-cena-16x9-frente.webp$/,
+        );
+        expect(camada('arvores').querySelector('img')?.getAttribute('src')).toMatch(/vazio.webp$/);
+        // Sem troca por orientação: numa janela de pé (mais alta que larga) a pintura 16:9 segue cobrindo a janela, e o
+        // desktop não vira a composição do celular.
+        for (const nome of ['ceu', 'ceu-sol', 'lago', 'arvores', 'frente']) {
+          expect(camada(nome).querySelector('source'), nome).toBeNull();
+        }
+      });
+
+      it('a pintura é uma peça só: o primeiro plano, o baú e o casal andam com ela (profundidade 0,3)', () => {
+        const { cena, cenaEl } = montar({ toque: false, orientacao: 'horizontal' });
+
+        cena.init();
+
+        const profundidades = [...cenaEl().querySelectorAll('[data-prof]')].map((e) =>
+          e.getAttribute('data-prof'),
+        );
+        expect(profundidades).toEqual([
+          '0.15',
+          '0.15',
+          '0.15',
+          '0.3',
+          '0.6',
+          '0.6',
+          '0.3', // baú
+          '0.3', // primeiro plano, a cópia dos arbustos da pintura
+          '1',
+          '0.3', // casal
+        ]);
+      });
+
+      it('com toque (celular e tablet) nada disso vale: sem a classe, e a horizontal segue nas camadas de antes', () => {
+        for (const orientacao of ['vertical', 'horizontal'] as const) {
+          document.body.innerHTML = '';
+          const { cena, cenaEl, camada } = montar({ toque: true, orientacao });
+
+          cena.init();
+
+          expect(cenaEl().classList.contains('cena--computador')).toBe(false);
+          expect(camada('lago').querySelector('img')?.getAttribute('src')).toMatch(/04-lago.webp$/);
+          expect(camada('frente').querySelector('img')?.getAttribute('src')).toMatch(
+            /06-primeiro-plano.webp$/,
+          );
+          expect(camada('arvores').querySelector('img')?.getAttribute('src')).toMatch(
+            /05-arvores-16x9.webp$/,
+          );
+        }
+      });
+    });
 
     it('as imagens do pôr do sol têm prioridade baixa; as críticas, alta (RNF-02.3)', () => {
       const { cena, camada } = montar();
@@ -283,13 +361,21 @@ describe('cena do bosque (SPEC-03)', () => {
 
       moverMouse(0, 0); // canto superior esquerdo: as camadas vão para a direita e para baixo
 
+      // A pintura (lago e primeiro plano, 0,3) anda mais que o céu (0,15); as árvores (0,6), escondidas, mais que ela.
       await vi.waitFor(() => {
-        expect(Number(gsap.getProperty(camada('frente'), 'x'))).toBeCloseTo(24, 0);
+        expect(Number(gsap.getProperty(camada('lago'), 'x'))).toBeCloseTo(24 * 0.3, 0);
       });
-      expect(Number(gsap.getProperty(camada('frente'), 'y'))).toBeCloseTo(12, 0);
+      expect(Number(gsap.getProperty(camada('lago'), 'y'))).toBeCloseTo(12 * 0.3, 0);
       expect(Number(gsap.getProperty(camada('ceu'), 'x'))).toBeCloseTo(24 * 0.15, 0);
-      expect(Number(gsap.getProperty(camada('frente'), 'x'))).toBeGreaterThan(
-        Number(gsap.getProperty(camada('arvores'), 'x')),
+      expect(Number(gsap.getProperty(camada('lago'), 'x'))).toBeGreaterThan(
+        Number(gsap.getProperty(camada('ceu'), 'x')),
+      );
+      expect(Number(gsap.getProperty(camada('arvores'), 'x'))).toBeGreaterThan(
+        Number(gsap.getProperty(camada('lago'), 'x')),
+      );
+      expect(Number(gsap.getProperty(camada('frente'), 'x'))).toBeCloseTo(
+        Number(gsap.getProperty(camada('lago'), 'x')),
+        6,
       );
     });
 
@@ -304,13 +390,13 @@ describe('cena do bosque (SPEC-03)', () => {
       Object.assign(window, { innerWidth: 1000, innerHeight: 800 });
       moverMouse(0, 0);
       await vi.waitFor(() => {
-        expect(Number(gsap.getProperty(camada('frente'), 'x'))).toBeGreaterThan(20);
+        expect(Number(gsap.getProperty(camada('lago'), 'x'))).toBeGreaterThan(5);
       });
 
       window.dispatchEvent(Object.assign(new Event('pointerout'), { relatedTarget: null }));
 
       await vi.waitFor(() => {
-        expect(Number(gsap.getProperty(camada('frente'), 'x'))).toBeCloseTo(0, 0);
+        expect(Number(gsap.getProperty(camada('lago'), 'x'))).toBeCloseTo(0, 0);
       });
     });
 

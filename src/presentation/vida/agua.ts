@@ -44,7 +44,7 @@ export function criarAgua(dependencias: DependenciasDaAgua): ElementoDeVida {
   let tempo = 0;
   let desdeOUltimoDesenho = 0;
   let primeiroQuadro = true;
-  let orientacao = estado.orientacao;
+  let regiaoAtual = chaveDaRegiao();
   let imagemDoLago: HTMLImageElement | undefined;
   let observador: ResizeObserver | undefined;
   let pararDeOuvirEstado: (() => void) | undefined;
@@ -85,10 +85,15 @@ export function criarAgua(dependencias: DependenciasDaAgua): ElementoDeVida {
     }
   }
 
+  /** A região da arte que está na tela: a do computador (pintura mestre 16:9), a vertical ou a horizontal em camadas. */
+  function chaveDaRegiao(): 'computador' | 'vertical' | 'horizontal' {
+    return estado.computador ? 'computador' : estado.orientacao;
+  }
+
   function aoMudarEstado(): void {
-    if (estado.orientacao === orientacao) return;
-    orientacao = estado.orientacao;
-    ondulacao?.definirRegioes([agua.regiao[orientacao]]);
+    if (chaveDaRegiao() === regiaoAtual) return;
+    regiaoAtual = chaveDaRegiao();
+    ondulacao?.definirRegioes([agua.regiao[regiaoAtual]]);
   }
 
   /** O navegador trocou a arte do `<picture>` (girou o aparelho): a textura é a nova imagem (RF-19.2). */
@@ -113,7 +118,10 @@ export function criarAgua(dependencias: DependenciasDaAgua): ElementoDeVida {
       conteiner: lago,
       imagem,
       ajuste: 'cover',
-      regioes: [agua.regiao[orientacao]],
+      // No computador a pintura é ancorada pela base (a CSS usa `object-position: center bottom`) e a região do lago está
+      // em coordenadas da imagem: a água acompanha a pintura em qualquer formato de janela.
+      ...(estado.computador ? { posicao: [0.5, 1] as const, regioesNaImagem: true } : {}),
+      regioes: [agua.regiao[regiaoAtual]],
       onda: agua.onda,
       reflexos: {
         ...agua.reflexos,

@@ -37,7 +37,13 @@ const conteudo: ConteudoConvite = {
     pausarAnimacao: 'Pausar',
     retomarAnimacao: 'Retomar',
   },
-  previa: { titulo: 't', descricao: 'd' },
+  previa: {
+    titulo: 't',
+    descricao: 'd',
+    descricaoParaBusca: 'b',
+    descricaoDaImagem: 'i',
+    nomeDoEvento: 'e',
+  },
   carta: {
     versiculo: 'v',
     referencia: 'r',

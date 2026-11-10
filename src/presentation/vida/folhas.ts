@@ -39,7 +39,13 @@ export function criarFolhas(dependencias: DependenciasDasFolhas): ElementoDeVida
   let pararDeOuvirEstado: (() => void) | undefined;
 
   function lancar(): void {
-    const plano = planejarFolha(aleatorio, parametros, estado.orientacao);
+    // No computador a pintura é sempre a deitada, mesmo numa janela de pé: a copa é a dela.
+    const plano = planejarFolha(
+      aleatorio,
+      parametros,
+      estado.computador ? 'horizontal' : estado.orientacao,
+      estado.computador,
+    );
     const modelo = modelos.get(plano.variacao);
     const conteiner = raiz.querySelector(plano.frente ? '.vida--chao' : '.vida--fundo');
     if (!modelo || !estaPronta(modelo) || !conteiner) return;
@@ -49,7 +55,8 @@ export function criarFolhas(dependencias: DependenciasDasFolhas): ElementoDeVida
     folha.className = 'folha';
     folha.alt = '';
     folha.setAttribute('aria-hidden', 'true');
-    folha.style.width = `${String(Math.max(parametros.larguraMinima, plano.largura * largura))}px`;
+    const medida = plano.larguraRelativaA === 'altura' ? altura : largura;
+    folha.style.width = `${String(Math.max(parametros.larguraMinima, plano.largura * medida))}px`;
     conteiner.append(folha);
     noAr += 1;
 

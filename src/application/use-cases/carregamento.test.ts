@@ -11,9 +11,9 @@ const config = {
   duracoes: { limiteCritico: 8, limiteSeguranca: 20, novaTentativaDeImagem: 1 },
   imagens: {
     ceu: { vertical: 'ceu-v', horizontal: 'ceu-h' },
-    lago: { vertical: 'lago-v', horizontal: 'lago-h' },
-    arvores: { vertical: 'arvores-v', horizontal: 'arvores-h' },
-    primeiroPlano: { vertical: 'frente-v', horizontal: 'frente-h' },
+    lago: { vertical: 'lago-v', horizontal: 'lago-h', computador: 'lago-c' },
+    arvores: { vertical: 'arvores-v', horizontal: 'arvores-h', computador: 'arvores-c' },
+    primeiroPlano: { vertical: 'frente-v', horizontal: 'frente-h', computador: 'frente-c' },
     bauFechado: 'bau-fechado',
     chave: 'chave',
     bauAberto: 'bau-aberto',
@@ -37,7 +37,9 @@ const config = {
 } as unknown as Pick<ConfigConvite, 'duracoes' | 'imagens'>;
 
 /** Imagens falsas: cada download fica pendente até o teste liberar; `falhasPorUrl` diz quantas vezes cada um falha. */
-function cenario(opcoes: { falhasPorUrl?: Record<string, number>; fotos?: string[] } = {}) {
+function cenario(
+  opcoes: { falhasPorUrl?: Record<string, number>; fotos?: string[]; computador?: boolean } = {},
+) {
   const pendentes: { url: string; prioridade: PrioridadeDeImagem; liberar: () => void }[] = [];
   const chamadas: string[] = [];
   const falhasRestantes = new Map(Object.entries(opcoes.falhasPorUrl ?? {}));
@@ -83,7 +85,13 @@ function cenario(opcoes: { falhasPorUrl?: Record<string, number>; fotos?: string
   }
 
   return {
-    carregamento: criarCarregamento({ imagens, temporizador, config, fotos: opcoes.fotos ?? [] }),
+    carregamento: criarCarregamento({
+      imagens,
+      temporizador,
+      config,
+      fotos: opcoes.fotos ?? [],
+      computador: opcoes.computador ?? false,
+    }),
     pendentes,
     chamadas,
     liberarTodos,
@@ -104,6 +112,35 @@ describe('criarCarregamento', () => {
       );
       expect(pendentes.every((p) => p.prioridade === 'alta')).toBe(true);
       expect(pendentes).toHaveLength(CHAVES_CRITICAS.length);
+    });
+
+    it('no computador, na horizontal, baixa a pintura mestre (variante do computador) no lugar das camadas (09/11/2026)', async () => {
+      const { carregamento, pendentes } = cenario({ computador: true });
+
+      void carregamento.criticoPronto('horizontal');
+      await Promise.resolve();
+
+      expect(pendentes.map((p) => p.url).sort()).toEqual(
+        ['ceu-h', 'lago-c', 'arvores-c', 'frente-c', 'bau-fechado', 'chave'].sort(),
+      );
+    });
+
+    it('no computador, numa janela de pé, baixa a mesma pintura mestre 16:9 (a janela estreita não vira o celular); sem o computador, cada orientação tem a sua', async () => {
+      const dePe = cenario({ computador: true });
+      const celularDePe = cenario({ computador: false });
+      const celularDeitado = cenario({ computador: false });
+
+      void dePe.carregamento.criticoPronto('vertical');
+      void celularDePe.carregamento.criticoPronto('vertical');
+      void celularDeitado.carregamento.criticoPronto('horizontal');
+      await Promise.resolve();
+
+      expect(dePe.pendentes.map((p) => p.url)).toContain('lago-c');
+      expect(dePe.pendentes.map((p) => p.url)).not.toContain('lago-v');
+      expect(celularDePe.pendentes.map((p) => p.url)).toContain('lago-v');
+      expect(celularDePe.pendentes.map((p) => p.url)).not.toContain('lago-c');
+      expect(celularDeitado.pendentes.map((p) => p.url)).toContain('lago-h');
+      expect(celularDeitado.pendentes.map((p) => p.url)).not.toContain('lago-c');
     });
 
     it('criticoPronto só resolve quando todas terminam, sem ausentes se tudo deu certo', async () => {

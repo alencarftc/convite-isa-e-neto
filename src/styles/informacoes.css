@@ -18,6 +18,11 @@
   box-shadow: var(--sombra-cartao);
 }
 
+/* Computador (09/11/2026): os cartões acompanham a carta, mais larga (carta.css, `.conteudo--computador`). */
+.conteudo--computador .cartao {
+  width: min(92vw, 640px);
+}
+
 .cartao--contagem p,
 .cartao--agradecimento p {
   margin: 0;

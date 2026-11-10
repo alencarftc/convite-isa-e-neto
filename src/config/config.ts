@@ -3,14 +3,15 @@ import type { ConfigConvite } from '@/domain/config/config-convite';
 /** Datas, links e tempos do convite (SPEC-01). Tempos em segundos. */
 export const config: ConfigConvite = {
   casamento: '2027-01-22T17:00:00-03:00',
-  prazoConfirmacao: '2026-12-31T23:59:59-03:00',
+  prazoConfirmacao: '2026-12-12T23:59:59-03:00',
   publicacao: {
-    // Endereço provável do GitHub Pages (RF-10.7); confirmar antes do primeiro envio: o WhatsApp
-    // guarda a prévia, e renomear o repositório depois quebra o link.
-    url: 'https://alencarftc.github.io/convite-isa-e-neto/',
+    // O endereço do convite é o domínio próprio do casal (09/11/2026); o WhatsApp guarda a prévia, então ele não deve mudar
+    // depois do envio. No GitHub Pages: domínio personalizado nas configurações do repositório e o arquivo public/CNAME.
+    url: 'https://isabellaeneto.com.br/',
     imagemDaPrevia: 'og-image.jpg',
     icone32: 'favicon/favicon-32.png',
     iconeApple: 'favicon/apple-touch-icon.png',
+    indexavel: true,
   },
   links: {
     formulario: 'https://forms.gle/yviZrELgrH2zrRGc7',
@@ -42,7 +43,9 @@ export const config: ConfigConvite = {
   petalasDoConvite: {
     primeiroEm: 1.8,
     primeiroEmAoPular: 0.6,
-    intervalo: [1, 2.2],
+    // Mais pétalas (09/11/2026): o intervalo era [1, 2.2] e o limite, 12 e 6. No computador a tela é bem maior, então o
+    // tempo entre elas cai pela metade e o limite sobe (`noComputador`).
+    intervalo: [0.8, 1.7],
     duracao: [11, 18],
     balanco: [18, 46],
     trocasDeLado: [2, 4],
@@ -51,7 +54,8 @@ export const config: ConfigConvite = {
     opacidade: 0.85,
     esmaecer: 0.1,
     virar: [1.6, 2.8],
-    maximo: { completo: 12, leve: 6 },
+    maximo: { completo: 16, leve: 8 },
+    noComputador: { fatorDoIntervalo: 0.5, fatorDoMaximo: 1.8 },
   },
   // O carrossel de fotos do casal (08/11/2026): troca sozinho a cada `intervalo` s, com uma troca suave de `transicao` s
   // (a foto desliza `deslocamento`% de lado enquanto muda), um zoom lento sobre a foto à vista e um arrastar de pelo menos
@@ -230,6 +234,15 @@ export const config: ConfigConvite = {
           intensidade: 1,
         },
         horizontal: { tipo: 'faixa', inicio: 0.53, borda: 0.05 },
+        // No computador o lago é o da pintura mestre 16:9 (de 48% a 65% da altura, da ilha à direita): a mata, a ilha, o
+        // muro de pedra e o gramado ficam parados. Frações da caixa da camada, que é a tela inteira.
+        computador: {
+          tipo: 'elipse',
+          centro: [0.6, 0.565],
+          raio: [0.33, 0.07],
+          borda: 0.6,
+          intensidade: 1,
+        },
       },
       onda: {
         amplitude: 2.5,
@@ -255,6 +268,9 @@ export const config: ConfigConvite = {
       giro: 540,
       // Larguras da imagem da folha como fração da tela; as folhas têm de 100 a 256 px de lado e a menor tem piso.
       largura: { fundo: [0.03, 0.05], frente: [0.05, 0.07] },
+      // No computador a folha é medida pela altura da tela (09/11/2026): 5% de 1920 px eram 96 px e as folhas ficavam
+      // imensas. Por altura, 0,02 a 0,03 de 1080 px dão de 22 a 32 px (e de 32 a 49 px na frente).
+      larguraNoComputador: { fundo: [0.02, 0.03], frente: [0.03, 0.045] },
       fracaoNaFrente: 0.2,
       aceleracaoNaFrente: 1.3,
       // A folhagem da árvore da direita na arte 05 (a copa densa vai do topo a 40% da altura, de 72% da
@@ -286,10 +302,10 @@ export const config: ConfigConvite = {
       primeiroEm: 6,
       intervalo: [12, 28],
       // A largura é a do quadro das duas poses (a imagem inteira, de 384 × 198): o esquilo sentado ocupa metade dele.
-      largura: { vertical: 0.17, horizontal: 0.043 },
+      largura: { vertical: 0.17, horizontal: 0.043, computador: 0.06 },
       // Na vertical a linha das patas é o gramado, a 20% da base (a 80% do alto da pintura): o casal pisa a 23% e, com
       // a cena erguida, ela fica logo acima da carta. Na horizontal é a mesma altura do chão do baú.
-      chao: { vertical: 0.2, horizontal: 0.16 },
+      chao: { vertical: 0.2, horizontal: 0.16, computador: 0.175 },
       // Cada visita é diferente: de 1 a 3 paradas ao centro da tela (o centro do corpo entre 30% e 70% da largura),
       // pulinhos ou disparos, olhadas e sacudidas sorteadas, e saída por qualquer lado.
       paradas: [1, 3],
@@ -303,6 +319,10 @@ export const config: ConfigConvite = {
         respiro: [0.05, 0.25],
       },
       corrida: { distancia: [0.1, 0.15], altura: [6, 10], voo: 0.18, respiro: [0, 0.04] },
+      // No computador (09/11/2026) cada pulo cobre 70% da distância e dura 70% a mais: de 1920 px, um pulinho de 0,075 da
+      // tela (144 px em 0,28 s, mais de 500 px/s) passa a uns 100 px em 0,48 s, uns 210 px/s, e a corrida, de uns 1300 px/s
+      // para uns 550. Com 45% e 50% (antes) os pulos ficaram curtos demais e ele "pulava muito" para cruzar a tela.
+      noComputador: { distancia: 0.7, voo: 1.7 },
       chanceDeCorrida: 0.35,
       chanceDeEspiar: 0.15,
       chanceDeSairPeloOutroLado: 0.4,
@@ -325,21 +345,31 @@ export const config: ConfigConvite = {
       vertical: 'assets/scene/03-ceu-por-do-sol-9x16.webp',
       horizontal: 'assets/scene/03-ceu-por-do-sol-16x9.webp',
     },
+    // No computador (mouse, tela horizontal) a cena é a pintura mestre 16:9 inteira, sem o céu (09/11/2026), como a
+    // vertical é a 9:16: o muro de pedra, o gramado do baú e os arbustos de rosas nos cantos. O primeiro plano é a cópia
+    // dos arbustos de baixo, e as árvores já estão na pintura (imagem vazia). A `horizontal` continua para o celular
+    // deitado e o tablet.
     lago: {
       vertical: 'assets/scene/01-cena-9x16.webp',
       horizontal: 'assets/scene/04-lago.webp',
+      computador: 'assets/scene/01-cena-16x9.webp',
     },
     arvores: {
       vertical: 'assets/scene/vazio.webp',
       horizontal: 'assets/scene/05-arvores-16x9.webp',
+      computador: 'assets/scene/vazio.webp',
     },
     primeiroPlano: {
       vertical: 'assets/scene/01-cena-9x16-frente.webp',
       horizontal: 'assets/scene/06-primeiro-plano.webp',
+      computador: 'assets/scene/01-cena-16x9-frente.webp',
     },
+    // No computador a base que a carta deixa à mostra é uma faixa de gramado da própria pintura (09/11/2026), e não um verde
+    // chapado: um retalho do gramado ladrilhado, que continua a borda de baixo da pintura.
     chao: {
       vertical: 'assets/scene/06-chao-9x16.webp',
       horizontal: 'assets/scene/06-chao-16x9.webp',
+      computador: 'assets/scene/06-chao-computador.webp',
     },
     bauFechado: 'assets/objects/08-bau-fechado.webp',
     bauAberto: 'assets/objects/09-bau-aberto.webp',

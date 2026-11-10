@@ -10,6 +10,20 @@
 :root {
   /* Quanto cada camada passa da tela, em cada lado, para o deslocamento da profundidade nunca mostrar borda. */
   --sobra-da-cena: 24px;
+
+  /*
+   * A pintura mestre 16:9 (1672 × 941 px) cobrindo a janela, no computador (`object-fit: cover`): `--mestre-largura` é a
+   * largura dela em pixels (a da janela ou, numa janela larga e baixa, a altura vezes 16/9, o que for maior) e
+   * `--altura-da-cena`, a altura. Ela é ancorada pela BASE (o gramado nunca é cortado) e o que se prende ao chão dela (o baú,
+   * o casal, o esquilo e a faixa de gramado sob a carta) mede a partir da borda de baixo da pintura, que fica `--sobra-da-cena`
+   * abaixo da janela. Assim a cena inteira escala junto em qualquer formato de janela, e o baú e o esquilo ficam no gramado,
+   * não sobre a água.
+   */
+  --mestre-largura: max(
+    calc(100vw + var(--sobra-da-cena) * 2),
+    calc((100vh + var(--sobra-da-cena) * 2) * 1672 / 941)
+  );
+  --altura-da-cena: calc(var(--mestre-largura) * 941 / 1672);
 }
 
 .cena {
@@ -104,6 +118,31 @@
   }
 }
 
+/*
+ * Computador (09/11/2026): quem usa mouse vê, na horizontal, a pintura mestre 16:9 inteira, como o celular vê a 9:16
+ * (`.cena--computador`, em qualquer formato de janela: a janela estreita do navegador não vira o celular, a pintura apenas cobre a janela; ADR-0015): o lago, o muro de pedra à beira dele, o gramado onde o baú se assenta e os arbustos de
+ * rosas nos cantos. Só o céu dela foi tirado, para o céu de verdade aparecer por trás das folhas. Ela ocupa a camada do
+ * lago, do tamanho da tela e centrada (a água do lago é um canvas sobre ela, e as duas coincidem), as árvores já estão
+ * nela (imagem vazia, escondida) e o primeiro plano é a cópia dos arbustos de baixo, no mesmo lugar, para taparem o baú e o
+ * esquilo. O celular, de pé ou deitado, e o tablet não mudam: continuam nas camadas de antes.
+ */
+.cena--computador .camada--lago,
+.cena--computador .camada--frente {
+  inset: calc(var(--sobra) * -1);
+  height: auto;
+  aspect-ratio: auto;
+}
+
+.cena--computador .camada--arvores {
+  display: none;
+}
+
+.cena--computador .camada--lago img,
+.cena--computador .camada--frente img {
+  /* Centrada na horizontal e ancorada na base: numa janela baixa o que se corta é o alto (céu e copas), nunca o gramado. */
+  object-position: center bottom;
+}
+
 /* Espaço da SPEC-06 (casal); o do baú (`.bau`) é estilizado em bau.css (SPEC-04). */
 .casal {
   position: absolute;
@@ -116,6 +155,11 @@
   .casal {
     z-index: var(--z-casal-vertical);
   }
+}
+
+/* Como no retrato, o esquilo (espaço de trás do baú) passa à frente do casal, não atrás dele. */
+.cena--computador .casal {
+  z-index: var(--z-casal-vertical);
 }
 
 /* Luz quente do pôr do sol, vinda do fundo à direita (SPEC-03, "Luz"). */

@@ -90,6 +90,20 @@
   text-wrap: balance;
 }
 
+/*
+ * Computador (09/11/2026): o cartão de fala, de 320 px com letra de 24 px, ficava pequeno diante da pintura. Vai a até 480 px
+ * (32% da largura, nunca menos que os 320 px do celular) com a letra de 24 a 38 px (2,1% da largura), e o respiro de dentro
+ * cresce com ele. Vale em qualquer formato de janela. No celular e no tablet nada muda.
+ */
+.historia--computador .memoria__cartao {
+  width: min(max(32vw, 320px), 480px, 92vw);
+  padding: var(--espaco-6) var(--espaco-6) var(--espaco-5);
+}
+
+.historia--computador .memoria__frase {
+  font-size: clamp(24px, 2.1vw, 38px);
+}
+
 .memoria__foto {
   width: 96px;
   margin: 0 auto var(--espaco-3);

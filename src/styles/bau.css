@@ -21,6 +21,19 @@
   }
 }
 
+/*
+ * Computador (09/11/2026): na pintura mestre 16:9 o gramado começa a uns 77% da altura, e a 20% da base o baú ficava na beira
+ * dele, junto do muro; a 13% a base cai uns 7% mais abaixo, bem dentro do gramado. O baú cresce com o casal, de 195 a uns
+ * 280 px (27% da altura, e no máximo metade da largura, para não encher uma janela estreita), a mesma proporção de antes.
+ * Vale em qualquer formato de janela.
+ */
+.cena--computador .bau {
+  /* A base a 14,5% da altura da pintura, contados da borda de baixo dela, e 14% da largura dela (280 px num monitor de
+   * 1920 × 1080), no máximo metade da janela: no gramado e na mesma proporção das árvores, em qualquer formato de janela. */
+  bottom: calc(var(--altura-da-cena) * 0.145 - var(--sobra-da-cena));
+  width: min(calc(var(--mestre-largura) * 0.14), 50vw);
+}
+
 .bau__corpo {
   position: relative;
 }

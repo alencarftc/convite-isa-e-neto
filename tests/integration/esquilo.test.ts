@@ -26,7 +26,12 @@ function tela(largura: number, altura: number): void {
 }
 
 function montar(
-  opcoes: { largura?: number; semente?: number; orientacao?: 'vertical' | 'horizontal' } = {},
+  opcoes: {
+    largura?: number;
+    semente?: number;
+    orientacao?: 'vertical' | 'horizontal';
+    toque?: boolean;
+  } = {},
 ) {
   tela(opcoes.largura ?? 390, 844);
   document.body.innerHTML = '';
@@ -38,7 +43,10 @@ function montar(
   chao.className = 'vida vida--chao';
   raiz.append(fundo, chao);
   document.body.append(raiz);
-  const { estado } = criarEstadoFalso({ orientacao: opcoes.orientacao ?? 'horizontal' });
+  const { estado } = criarEstadoFalso({
+    orientacao: opcoes.orientacao ?? 'horizontal',
+    ...(opcoes.toque === undefined ? {} : { toque: opcoes.toque }),
+  });
   const esquilo = criarEsquilo({
     raiz,
     config,
@@ -281,6 +289,37 @@ describe('esquilo (SPEC-21)', { timeout: 30_000 }, () => {
     expect(vertical.chao.querySelector('.esquilo')).toBeNull();
     expect(bicho?.querySelectorAll('img[alt=""]')).toHaveLength(2);
     expect(bicho?.querySelector('button, a, [tabindex]')).toBeNull();
+  });
+
+  it('no computador (mouse, tela horizontal) o esquilo vive atrás do baú, como na vertical, e não no chão (09/11/2026)', () => {
+    const computador = montar({ orientacao: 'horizontal', toque: false });
+    computador.esquilo.iniciar('completo');
+    correr(7);
+    const celularDeitado = montar({ orientacao: 'horizontal', toque: true });
+    celularDeitado.esquilo.iniciar('completo');
+    correr(7);
+
+    expect(computador.fundo.querySelector('.esquilo')).not.toBeNull();
+    expect(computador.chao.querySelector('.esquilo')).toBeNull();
+    // O celular deitado e o tablet seguem no espaço do chão.
+    expect(celularDeitado.chao.querySelector('.esquilo')).not.toBeNull();
+    expect(celularDeitado.fundo.querySelector('.esquilo')).toBeNull();
+  });
+
+  it('no computador as patas ficam a uma fração da altura da PINTURA (em CSS), e no toque em pixels da tela (09/11/2026)', () => {
+    const computador = montar({ orientacao: 'horizontal', toque: false });
+    computador.esquilo.iniciar('completo');
+    correr(7);
+    const toque = montar({ orientacao: 'horizontal', toque: true });
+    toque.esquilo.iniciar('completo');
+    correr(7);
+
+    const patasDoComputador = computador.fundo.querySelector<HTMLElement>('.esquilo')?.style.bottom;
+    const patasDoToque = toque.chao.querySelector<HTMLElement>('.esquilo')?.style.bottom;
+    expect(patasDoComputador).toBe(
+      `calc(var(--altura-da-cena) * ${String(config.vida.esquilo.chao.computador)} - var(--sobra-da-cena))`,
+    );
+    expect(patasDoToque?.endsWith('px')).toBe(true);
   });
 
   it('o chão e a largura vêm da configuração, por orientação', () => {

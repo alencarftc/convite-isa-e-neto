@@ -10,6 +10,7 @@ const PARAMETROS: ParametrosDeFolha = {
   trocasDeLado: [2, 3],
   giro: 540,
   largura: { fundo: [0.014, 0.024], frente: [0.026, 0.036] },
+  larguraNoComputador: { fundo: [0.02, 0.03], frente: [0.03, 0.045] },
   fracaoNaFrente: 0.2,
   aceleracaoNaFrente: 1.3,
   copa: {
@@ -112,6 +113,40 @@ describe('planejarFolha (SPEC-20, "Folhas")', () => {
       giros.add(Math.sign(folha.giro));
     }
     expect(giros).toEqual(new Set([-1, 1]));
+  });
+
+  it('no celular e no tablet a largura é fração da largura da tela, como sempre', () => {
+    const folha = planejarFolha(fixo(0.9), PARAMETROS, 'vertical');
+
+    expect(folha.larguraRelativaA).toBe('largura');
+    expect(planejarFolha(fixo(0.9), PARAMETROS, 'horizontal', false)).toEqual(
+      planejarFolha(fixo(0.9), PARAMETROS, 'horizontal'),
+    );
+  });
+
+  it('no computador a folha é medida pela ALTURA da tela e sai menor (09/11/2026)', () => {
+    const fundo = planejarFolha(fixo(0.9), PARAMETROS, 'horizontal', true);
+    const frente = planejarFolha(fixo(0.1), PARAMETROS, 'horizontal', true);
+
+    expect(fundo.larguraRelativaA).toBe('altura');
+    expect(fundo.largura).toBeGreaterThanOrEqual(0.02);
+    expect(fundo.largura).toBeLessThanOrEqual(0.03);
+    expect(frente.larguraRelativaA).toBe('altura');
+    expect(frente.largura).toBeGreaterThanOrEqual(0.03);
+    expect(frente.largura).toBeLessThanOrEqual(0.045);
+    // Num monitor de 1920 × 1080 a folha da frente tem de 32 a 49 px, e não os 96 a 134 px de antes (5% a 7% da largura).
+    expect(frente.largura * 1080).toBeLessThan(50);
+  });
+
+  it('o resto do plano não muda com o computador: só a largura e a medida dela', () => {
+    const normal = planejarFolha(congruente(2), PARAMETROS, 'horizontal');
+    const noComputador = planejarFolha(congruente(2), PARAMETROS, 'horizontal', true);
+
+    expect({
+      ...noComputador,
+      largura: normal.largura,
+      larguraRelativaA: normal.larguraRelativaA,
+    }).toEqual(normal);
   });
 
   it('sorteia as três variações e espelha metade das vezes', () => {

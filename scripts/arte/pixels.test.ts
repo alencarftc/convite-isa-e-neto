@@ -10,6 +10,7 @@ import {
   ehResiduoDeRecorte,
   erodirAlfa,
   escurecerBase,
+  expandirCeuPalido,
   isolarPrimeiroPlano,
   limparRecorte,
   medirPoseGirada,
@@ -500,6 +501,86 @@ describe('removerCeu', () => {
     removerCeu(quadro, { ...opcoes, furo: { area: 100, luma: 185 } });
 
     expect(alfaEm(quadro, 1, 8)).toBe(255);
+  });
+});
+
+describe('expandirCeuPalido (09/11/2026)', () => {
+  type Cor = [number, number, number, number];
+  const PALIDO: Cor = [214, 208, 203, 255]; // cinzento: pouco vermelho sobre o azul, `removerCeu` não o pega
+  const FOLHA: Cor = [90, 110, 60, 255];
+  const FOLHA_CLARA: Cor = [185, 195, 120, 255]; // iluminada, mas com verde acima do vermelho
+  const COLINA: Cor = [160, 165, 195, 255]; // azulada: menos vermelho que azul
+  const REMOVIDO: Cor = [248, 224, 185, 0];
+  const opcoes = { limiteDeY: 20, luminanciaMinima: 185 };
+
+  /** 30 × 30: céu removido (transparente) de 8 a 21 de largura e de 4 a 19 de altura; o resto é folha. */
+  function cena(extra: (x: number, y: number) => Cor | undefined = () => undefined) {
+    return quadroDe(30, 30, (x, y) => {
+      const especial = extra(x, y);
+      if (especial) return especial;
+      if (x >= 8 && x < 22 && y >= 4 && y < 20) return REMOVIDO;
+      return FOLHA;
+    });
+  }
+
+  it('o céu pálido que toca o céu removido sai, de vizinho em vizinho', () => {
+    const faixa = (x: number, y: number) =>
+      x >= 22 && x < 26 && y >= 6 && y < 10 ? PALIDO : undefined;
+    const quadro = cena(faixa);
+
+    const removidos = expandirCeuPalido(quadro, opcoes);
+
+    expect(removidos).toBe(16);
+    expect(alfaEm(quadro, 25, 9)).toBe(0);
+    expect(alfaEm(quadro, 26, 9)).toBe(255); // folha
+  });
+
+  it('o pálido solto, entre folhas e sem tocar o céu removido nem a borda de cima, fica', () => {
+    const solto = (x: number, y: number) =>
+      x >= 2 && x < 4 && y >= 6 && y < 8 ? PALIDO : undefined;
+    const quadro = cena(solto);
+
+    expandirCeuPalido(quadro, opcoes);
+
+    expect(alfaEm(quadro, 2, 6)).toBe(255);
+  });
+
+  it('o pálido preso entre as folhas, na borda de cima do quadro, é céu e sai com o que o toca', () => {
+    const naBorda = (x: number, y: number) => (x >= 2 && x < 5 && y < 3 ? PALIDO : undefined);
+    const quadro = cena(naBorda);
+
+    const removidos = expandirCeuPalido(quadro, opcoes);
+
+    expect(removidos).toBe(9);
+    expect(alfaEm(quadro, 3, 0)).toBe(0);
+    expect(alfaEm(quadro, 3, 2)).toBe(0);
+  });
+
+  it('folhas claras (verde acima do vermelho), colinas azuladas e o que está abaixo do horizonte não saem', () => {
+    const vizinhos = (x: number, y: number): Cor | undefined => {
+      if (x === 22 && y === 6) return FOLHA_CLARA;
+      if (x === 22 && y === 8) return COLINA;
+      if (x === 10 && y === 20) return PALIDO; // logo abaixo do limite de 20
+      return undefined;
+    };
+    const quadro = cena(vizinhos);
+
+    expandirCeuPalido(quadro, opcoes);
+
+    expect(alfaEm(quadro, 22, 6)).toBe(255);
+    expect(alfaEm(quadro, 22, 8)).toBe(255);
+    expect(alfaEm(quadro, 10, 20)).toBe(255);
+  });
+
+  it('pálido escuro demais (abaixo da luminância mínima) fica, e sem céu removido nem borda nada sai', () => {
+    const escuro: Cor = [150, 145, 140, 255];
+    const quadro = cena((x, y) => (x === 22 && y === 6 ? escuro : undefined));
+    const nada = quadroDe(10, 10, () => FOLHA);
+
+    expandirCeuPalido(quadro, opcoes);
+
+    expect(alfaEm(quadro, 22, 6)).toBe(255);
+    expect(expandirCeuPalido(nada, opcoes)).toBe(0);
   });
 });
 
