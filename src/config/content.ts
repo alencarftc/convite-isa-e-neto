@@ -119,9 +119,9 @@ export const content: ConteudoConvite = {
       'Aprendemos juntos que o amor "tudo sofre, tudo crê, tudo espera, tudo suporta" (1 Coríntios 13:7). É esse amor que queremos celebrar com quem caminhou ao nosso lado.',
       'Você faz parte da nossa história, e a sua presença é o nosso maior presente.',
     ],
-    // Pendência do casal: não reproduzimos letra de música (direitos autorais). O `pnpm verificar`
-    // barra a publicação enquanto estiver entre colchetes.
-    versoLouvor: '[Um verso do louvor escolhido, em itálico, com o nome da música]',
+    // Verso de "Bondade de Deus" (a música que toca ao abrir o baú), escolhido em 10/11/2026 entre três louvores que o casal
+    // enviou; sem crédito, a pedido do casal. Sai em itálico (`.mensagem__verso`).
+    versoLouvor: 'Desde quando me levanto, até eu me deitar, eu cantarei da bondade de Deus.',
     assinatura: 'Com carinho, Isabella & David',
   },
   // Carrossel de fotos do casal (ensaio, 09/11/2026), abaixo da mensagem. Os arquivos são os de `public/photos/`.

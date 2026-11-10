@@ -569,11 +569,11 @@ Aprendemos juntos que o amor "tudo sofre, tudo crê, tudo espera, tudo suporta" 
 
 Você faz parte da nossa história, e a sua presença é o nosso maior presente.
 
-[Um verso do louvor escolhido, em itálico, com o nome da música]
+Desde quando me levanto, até eu me deitar, eu cantarei da bondade de Deus.
 
 Com carinho, Isabella & David
 
-"A sua presença é o nosso maior presente" conversa com a decisão de não ter lista de presentes. O verso do louvor fica para você inserir: não reproduzo trechos de letras de música, que têm direitos autorais.
+"A sua presença é o nosso maior presente" conversa com a decisão de não ter lista de presentes. O verso do louvor é um trecho curto de "Bondade de Deus", em itálico e sem crédito (escolhido em 10/11/2026 entre três louvores que o casal enviou).
 
 **Dress code**
 
