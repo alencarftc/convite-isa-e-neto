@@ -515,15 +515,15 @@ O tom é leve, romântico e tradicional, com um toque divertido. A fé aparece p
 
 ### Balões da história
 
-Cinco frases de até 8 palavras, uma por balão, cada uma com uma foto. O briefing só traz um fato da história, o pedido em Salinas. Por isso, as frases 1 a 3 não citam fatos específicos e podem ser ajustadas quando as fotos chegarem.
+Cinco frases de até 8 palavras, uma por memória que sobe do baú (ADR-0026; antes, uma por balão). Sequência escolhida em 09/11/2026, sem citar lugar nem fatos específicos da história (Salinas não é mencionada):
 
 1. Tudo começou de um jeito simples.
-2. Viramos amigos, parceiros e um só time.
-3. Entre risadas e orações, o amor cresceu.
-4. Em Salinas, à beira-mar, veio o pedido.
-5. E o nosso sonho ganhou um sim.
+2. Deus foi cuidando de cada detalhe.
+3. Aos poucos, a amizade virou amor.
+4. E o que era sonho virou promessa.
+5. E queremos celebrar essa promessa com você.
 
-A ordem segue as palavras que a noiva usou: "leve", "divertida" e "parceiros" (1 e 2), a fé (3), o pedido (4) e a "realização de um sonho" (5).
+A ordem vai do começo simples (1) à fé e à gratidão (2), ao amor que cresce (3), à "realização de um sonho" que a noiva citou (4) e ao convite ao convidado, que passa para a carta (5). Versão anterior (aprovada em 25/10/2026): "Viramos amigos, parceiros e um só time.", "Entre risadas e orações, o amor cresceu.", "Em Salinas, à beira-mar, veio o pedido." e "E o nosso sonho ganhou um sim."
 
 ### A carta
 
