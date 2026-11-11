@@ -25,7 +25,6 @@ html {
 
 body {
   min-height: 100vh;
-  min-height: 100dvh;
   margin: 0;
 }
 
@@ -37,6 +36,31 @@ body {
 html,
 body {
   touch-action: pan-y pinch-zoom;
+}
+
+/*
+ * Sem o retângulo azul de toque nem a seleção nas peças do convite (11/11/2026): o Chrome do Android pinta um retângulo azul
+ * translúcido sobre o que se toca (o baú, o selo, os botões) e o convidado, ao pressionar, seleciona o que está embaixo. O foco do
+ * teclado segue visível (`:focus-visible`, logo abaixo). O texto da carta e dos cartões continua selecionável: é para copiar o
+ * endereço e a data.
+ */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.entrada,
+.cena,
+.bau,
+.envelope,
+.inventario,
+.historia,
+.botao-som,
+.botao-pular,
+.botao-movimento {
+  /* stylelint-disable-next-line property-no-vendor-prefix -- o Safari só entende a versão com prefixo */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 :focus-visible {

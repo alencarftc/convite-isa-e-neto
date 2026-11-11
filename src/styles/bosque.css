@@ -30,25 +30,39 @@
   --sobra: var(--sobra-da-cena);
   --lago-base: 20%;
 
+  /*
+   * A altura da cena é a da janela GRANDE (`100vh`: a do navegador com a barra de endereço recolhida), fixa, e a cena fica ancorada
+   * na borda de baixo (11/11/2026). Com `100dvh` ela crescia e encolhia a cada passo em que a barra de endereço recolhia ou voltava ao
+   * rolar, e as camadas se reescalavam (`object-fit: cover`): a tela parecia piscar. Agora nada se reescala; com a barra à vista só
+   * o céu, que passa do alto, fica sob ela, e o chão, o baú e o casal ficam onde estão.
+   */
   position: fixed;
-  inset: 0;
+  inset: auto 0 0;
   z-index: var(--z-ceu);
   height: 100vh;
-  height: 100dvh;
 
-  /* Corta nos quatro lados, menos embaixo, onde sobra a faixa extra do primeiro plano: o espelho dele (`.convite__chao`) continua dali. */
-  clip-path: inset(0 0 calc(var(--sobra) * -1));
+  /*
+   * Sem `clip-path` (11/11/2026): ele cortava as camadas, que passam 24 px da cena em cada lado, nos lados e no alto, e deixava a faixa extra
+   * de baixo (o espelho do primeiro plano, `.convite__chao`, continua dali). Mas a cena é fixa na janela, e o que passa dela já fica fora da
+   * tela: o corte não aparecia, e um `clip-path` num elemento fixo com tantas camadas dentro, uma delas um canvas WebGL redesenhado a cada
+   * quadro, obriga o navegador a recortar tudo isso a cada quadro (ADR-0047).
+   */
   pointer-events: none;
   background: var(--cor-marfim);
   opacity: 0;
   transform-origin: 50% 70%;
 }
 
+/*
+ * Sem `will-change` (10/11/2026): as camadas de tela cheia não ficam em camadas de GPU permanentes. No celular o navegador promove cada uma
+ * enquanto a deriva (uma animação do navegador, ADR-0044) a move e a solta quando ela para, e no mouse o GSAP promove durante o movimento.
+ * Com `will-change: transform` fixo, sete camadas de tela cheia (estas e os espaços `.vida`) ficavam na memória da GPU com o convite
+ * aberto, e no Motorola Edge 70 Fusion+ o convite piscava; sem ele, não (ADR-0045).
+ */
 .camada {
   position: absolute;
   inset: calc(var(--sobra) * -1);
   display: block;
-  will-change: transform;
 }
 
 .camada img {
@@ -162,17 +176,22 @@
   z-index: var(--z-casal-vertical);
 }
 
-/* Luz quente do pôr do sol, vinda do fundo à direita (SPEC-03, "Luz"). */
+/*
+ * Luz quente do pôr do sol, vinda do fundo à direita (SPEC-03, "Luz"). Camada comum, sem mistura (11/11/2026, ADR-0050): ela era
+ * `mix-blend-mode: soft-light` sobre a cena inteira, e uma camada de tela cheia em mistura obriga o navegador a desenhar tudo o que está
+ * embaixo (cinco imagens e a água) num buffer à parte e a refazê-lo a cada quadro; no Motorola Edge 70 Fusion+ isso fazia a tela piscar.
+ * O mesmo tom vem de um degradê comum, mais transparente (14% e 5%, no lugar de 45% e 15%: o soft-light só clareia e esquenta um terço
+ * do que uma sobreposição normal faria). O `luz-do-por-do-sol.ts` a sobe de 0 a 1 junto com o céu do pôr do sol.
+ */
 .camada--luz {
   z-index: var(--z-primeiro-plano);
   background: radial-gradient(
     120% 90% at 85% 35%,
-    var(--cor-luz-45),
-    var(--cor-dourado-15) 55%,
+    var(--cor-luz-14),
+    var(--cor-dourado-05) 55%,
     transparent 80%
   );
   opacity: 0;
-  mix-blend-mode: soft-light;
 }
 
 /* Modo de segurança: sem cena, fundo marfim, carta e informações (SPEC-09). */

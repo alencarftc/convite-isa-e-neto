@@ -94,10 +94,14 @@
   box-shadow: var(--sombra-cartao);
 }
 
+/*
+ * Sem `will-change` aqui (10/11/2026): a camada de GPU de cada foto só existe enquanto ela se move, e o JavaScript a pede
+ * então (`carrossel.ts`). Cinco fotos com camada permanente, cada uma com um fundo desfocado, faziam as imagens piscarem num
+ * celular de tela de 144 Hz. As que não estão à vista ficam `visibility: hidden`.
+ */
 .carrossel__slide {
   position: absolute;
   inset: 0;
-  will-change: transform, opacity;
 }
 
 .carrossel__fundo,
@@ -118,7 +122,6 @@
 
 .carrossel__foto {
   object-fit: contain;
-  will-change: transform;
 }
 
 .carrossel__pontos {

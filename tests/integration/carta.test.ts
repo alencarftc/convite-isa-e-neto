@@ -11,6 +11,11 @@ import { criarCenaBosque } from '@/presentation/bosque/cena-bosque';
 import { criarCartaEConvite } from '@/presentation/carta/cena-carta';
 import { montarCarta } from '@/presentation/carta/montar-carta';
 
+import {
+  type AnimacoesFalsas,
+  instalarAnimacoesFalsas,
+  semAnimate,
+} from './suporte/animacoes-falsas';
 import { criarCarregamentoFalso } from './suporte/carregamento-falso';
 import { configRapida } from './suporte/config-rapida';
 import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
@@ -78,10 +83,19 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}) {
   return { carta, convite, estado, eventos, registro, raiz, el, botao, opacidade, abrirTudo };
 }
 
+/** As animações do navegador que a carta pediu (falsas: o happy-dom não as roda). */
+let animacoes: AnimacoesFalsas;
+
+/** Devolve o `animate` de um teste que simulou um navegador sem ele. */
+let restaurarAnimate: (() => void) | undefined;
+
 beforeEach(() => {
   document.body.innerHTML = '';
+  animacoes = instalarAnimacoesFalsas();
 });
 afterEach(() => {
+  restaurarAnimate?.();
+  restaurarAnimate = undefined;
   for (const cena of criadas.splice(0)) cena.destroy();
   vi.restoreAllMocks();
   document.body.removeAttribute('style');
@@ -300,6 +314,21 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(botao().disabled).toBe(true);
     });
 
+    it('atrás do envelope há um glow dourado decorativo (halo e glow), o primeiro filho dele, sem texto, sem anel nem faíscas e apagado até o pouso (11/11/2026)', () => {
+      const { el } = montar();
+      const envelope = el('.envelope');
+
+      const aura = envelope.firstElementChild;
+      expect(aura?.classList.contains('envelope__aura')).toBe(true);
+      expect(aura?.getAttribute('aria-hidden')).toBe('true');
+      expect([...(aura?.children ?? [])].map((filho) => filho.className)).toEqual([
+        'envelope__halo',
+        'envelope__glow',
+      ]);
+      expect(aura?.textContent).toBe('');
+      expect(envelope.classList.contains('envelope--brilhando')).toBe(false);
+    });
+
     it('a carta já existe no HTML, inerte, e a página não rola até a abertura (RF-06.9)', () => {
       const { el } = montar();
 
@@ -365,6 +394,7 @@ describe('envelope e carta (SPEC-06)', () => {
       Object.assign(window, { innerHeight: 800 });
 
       await abrirTudo();
+      animacoes.terminarTodas(); // a subida da cena e do chão roda no navegador (ADR-0050)
 
       const esperado = -800 * config.convite.cenaSobeFracao;
       expect(Number(gsap.getProperty(el('.convite__chao'), 'y'))).toBeCloseTo(esperado);
@@ -383,6 +413,23 @@ describe('envelope e carta (SPEC-06)', () => {
   });
 
   describe('o envelope (tlCarta)', () => {
+    it('a carta ganha camada de GPU própria (will-change) assim que o envelope entra, e não antes (ADR-0050)', () => {
+      const { carta, el } = montar();
+      expect(el('.carta').style.willChange).toBe('');
+
+      void carta.run();
+
+      expect(el('.carta').style.willChange).toBe('transform, opacity');
+    });
+
+    it('quem pula direto ao convite também tem a carta em camada própria', () => {
+      const { carta, el } = montar();
+
+      carta.skip();
+
+      expect(el('.carta').style.willChange).toBe('transform, opacity');
+    });
+
     it('pousa, emite carta:pousou, muda a fase e habilita o selo com a dica (CA-06.1.1, CA-06.1.2)', async () => {
       const { carta, registro, estado, botao, el } = montar();
       void carta.run();
@@ -394,6 +441,66 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(estado.fase).toBe('aguardando-selo');
       expect(botao().disabled).toBe(false);
       expect(el('.carta__dica').textContent).toBe('Toque no selo');
+    });
+
+    it('o glow do envelope acende quando ele pousa e apaga no toque no selo (11/11/2026)', async () => {
+      const { carta, registro, el, botao } = montar();
+      const etapa = carta.run();
+      expect(el('.envelope').classList.contains('envelope--brilhando')).toBe(false); // ainda a caminho
+
+      await vi.waitFor(() => {
+        expect(registro).toContain('pousou');
+      });
+      expect(el('.envelope').classList.contains('envelope--brilhando')).toBe(true);
+
+      botao().click();
+      await etapa;
+
+      expect(el('.envelope').classList.contains('envelope--brilhando')).toBe(false);
+    });
+
+    it('o selo do envelope pulsa pelo GSAP, de 1 a pulsoDoSelo.escala, em vai e volta, sem animação do navegador (ADR-0048)', async () => {
+      const { carta, el } = montar();
+      void carta.run();
+
+      await vi.waitFor(() => {
+        expect(gsap.getTweensOf(el('.envelope .selo')).some((tween) => tween.repeat() === -1)).toBe(
+          true,
+        );
+      });
+
+      const pulso = gsap.getTweensOf(el('.envelope .selo')).find((tween) => tween.repeat() === -1);
+      expect(pulso?.yoyo()).toBe(true);
+      expect(pulso?.vars.scale).toBe(config.carta.pulsoDoSelo.escala);
+      expect(animacoes.doElemento(el('.envelope .selo'))).toHaveLength(0);
+    });
+
+    it('ao tocar no selo a pulsação para, e a abertura parte da escala em que ele estava', async () => {
+      const { carta, el, botao } = montar();
+      const etapa = carta.run();
+      await vi.waitFor(() => {
+        expect(gsap.getTweensOf(el('.envelope .selo')).some((tween) => tween.repeat() === -1)).toBe(
+          true,
+        );
+      });
+      await vi.waitFor(() => {
+        expect(botao().disabled).toBe(false);
+      });
+
+      botao().click();
+      await etapa;
+
+      expect(gsap.getTweensOf(el('.envelope .selo')).some((tween) => tween.repeat() === -1)).toBe(
+        false,
+      );
+    });
+
+    it('quem pula direto ao convite nunca vê o glow do envelope', () => {
+      const { carta, el } = montar();
+
+      carta.skip();
+
+      expect(el('.envelope').classList.contains('envelope--brilhando')).toBe(false);
     });
 
     it('o baú já saiu de cena quando o envelope pousa, antes do toque no selo (01/11/2026)', async () => {
@@ -582,11 +689,57 @@ describe('envelope e carta (SPEC-06)', () => {
       expect(registro).toEqual(['pousou', 'abrindo:toque', 'aberto']);
     });
 
+    it('a subida da cena e do chão e o desdobrar da carta rodam no navegador, sem tween do GSAP nas peças grandes (ADR-0050)', async () => {
+      const { abrirTudo, el } = montar();
+      Object.assign(window, { innerHeight: 800 });
+      const { cenaSobe, cenaSobeFracao, desdobra, escalaDobrada } = config.convite;
+
+      await abrirTudo();
+
+      const sobe = -800 * cenaSobeFracao;
+      for (const seletor of ['.cena', '.convite__chao']) {
+        const movimento = animacoes
+          .doElemento(el(seletor))
+          .find(
+            (a) => a.opcoes.fill === 'forwards' && JSON.stringify(a.quadros).includes('translateY'),
+          );
+        expect(movimento?.quadros, seletor).toEqual([
+          { transform: 'translateY(0px)' },
+          { transform: `translateY(${String(sobe)}px)` },
+        ]);
+        expect(movimento?.opcoes.duration, seletor).toBe(cenaSobe * 1000);
+        expect(
+          gsap.getTweensOf(el(seletor)).some((tween) => 'y' in tween.vars),
+          seletor,
+        ).toBe(false);
+      }
+      const [desdobrar] = animacoes.doElemento(el('.carta'));
+      expect(desdobrar?.quadros).toEqual([
+        { opacity: 0, transform: `scaleY(${String(escalaDobrada)})` },
+        { opacity: 1, transform: 'scaleY(1)' },
+      ]);
+      expect(desdobrar?.opcoes.duration).toBe(desdobra * 1000);
+    });
+
+    it('sem Element.animate a subida e o desdobrar voltam ao GSAP e terminam no mesmo lugar', async () => {
+      restaurarAnimate = semAnimate();
+      const { abrirTudo, el, opacidade } = montar();
+      Object.assign(window, { innerHeight: 800 });
+
+      await abrirTudo();
+
+      expect(Number(gsap.getProperty(el('.cena'), 'y'))).toBeCloseTo(
+        -800 * config.convite.cenaSobeFracao,
+      );
+      expect(opacidade('.carta')).toBe(1);
+    });
+
     it('termina com a carta desdobrada, o envelope fora e a cena no alto; a leitura segue sozinha (CA-06.4.2)', async () => {
       const { abrirTudo, opacidade, el } = montar();
       Object.assign(window, { innerHeight: 800 });
 
       await abrirTudo();
+      animacoes.terminarTodas(); // a subida e o desdobrar rodam no navegador (ADR-0050)
 
       expect(opacidade('.carta')).toBe(1);
       expect(Number(gsap.getProperty(el('.carta'), 'scaleY'))).toBe(1);

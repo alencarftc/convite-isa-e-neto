@@ -484,18 +484,34 @@ export function criarCenaBau(dependencias: DependenciasDoBau): Cena {
               repeat: -1,
             },
           ),
-          gsap.fromTo(
-            aura,
-            { opacity: parametros.aura.minimo, scale: 1 },
-            {
-              opacity: parametros.aura.maximo,
-              scale: parametros.aura.escala,
-              duration: parametros.aura.periodo / 2,
-              ease: curvas.suave,
-              yoyo: true,
-              repeat: -1,
-            },
-          ),
+          // A luz do baú acende devagar até o mínimo, como o sol saindo de trás de uma nuvem, e só então passa a respirar (11/11/2026):
+          // antes ela surgia de uma vez, "seca", no instante em que a cena terminava de aparecer.
+          gsap
+            .timeline()
+            .fromTo(
+              aura,
+              { opacity: 0, scale: 0.9 },
+              {
+                opacity: parametros.aura.minimo,
+                scale: 1,
+                duration: parametros.aura.entra,
+                ease: curvas.suave,
+              },
+            )
+            .fromTo(
+              aura,
+              { opacity: parametros.aura.minimo, scale: 1 },
+              {
+                opacity: parametros.aura.maximo,
+                scale: parametros.aura.escala,
+                duration: parametros.aura.periodo / 2,
+                ease: curvas.suave,
+                yoyo: true,
+                repeat: -1,
+                // Só começa depois da entrada: sem isto o estado inicial dele (o mínimo) vinha antes e a luz surgia de uma vez.
+                immediateRender: false,
+              },
+            ),
         );
         reiniciarReforco();
         botao.disabled = false;

@@ -27,7 +27,16 @@ import {
   obterLocalStorageSeguro,
 } from '@/infrastructure/armazenamento/preferencias-local-storage';
 import { criarAudioHowler, obterSessaoDeAudio } from '@/infrastructure/audio/audio-howler';
+import {
+  estiloDasPromocoes,
+  estiloDasRegioesOcultas,
+  estiloDoCarrosselAntigo,
+  estiloDoDiagnostico,
+  lerPecasDesligadas,
+  lerTetoDeQuadros,
+} from '@/infrastructure/desenvolvimento/diagnostico-de-piscar';
 import { lerErroForcado } from '@/infrastructure/desenvolvimento/erro-forcado';
+import { criarPainelDeDiagnostico } from '@/infrastructure/desenvolvimento/painel-de-diagnostico';
 import { ouvirErrosGlobais } from '@/infrastructure/erros/erros-globais';
 import { criarCarregadorDeImagens } from '@/infrastructure/imagens/carregador-de-imagens';
 import { criarRelogio } from '@/infrastructure/relogio/relogio';
@@ -62,6 +71,45 @@ if (!raiz) throw new Error('Elemento #app não encontrado no index.html');
 
 const desenvolvimento = import.meta.env.DEV;
 const busca = window.location.search;
+
+// Diagnóstico do piscar (só em desenvolvimento): `?sem=agua,deriva,...` desliga peças e `?fps=60` limita o relógio das animações.
+const sem = lerPecasDesligadas({ desenvolvimento, busca });
+const tetoDeQuadros = lerTetoDeQuadros({ desenvolvimento, busca });
+// O GSAP roda a, no máximo, `quadrosMaximosDoGsap` (60) quadros por segundo, mesmo num aparelho de 120 ou 144 Hz (ADR-0050); `?fps=` o troca em desenvolvimento.
+gsap.ticker.fps(tetoDeQuadros ?? config.movimento.quadrosMaximosDoGsap);
+const estiloDeDiagnostico = [
+  estiloDoDiagnostico(sem),
+  estiloDoCarrosselAntigo({ desenvolvimento, busca }),
+  estiloDasPromocoes({ desenvolvimento, busca }),
+  estiloDasRegioesOcultas({ desenvolvimento, busca }),
+]
+  .filter((css) => css !== '')
+  .join('\n');
+if (estiloDeDiagnostico !== '') {
+  const folha = document.createElement('style');
+  folha.textContent = estiloDeDiagnostico;
+  document.head.append(folha);
+}
+// `?painel`: botões na própria página que escondem uma peça de cada vez, ao vivo, para achar o que faz o convite piscar no aparelho.
+const abrirPainel = (): void => {
+  criarPainelDeDiagnostico({
+    desenvolvimento,
+    busca,
+    documento: document,
+    congelarJs: (congelar) => {
+      if (congelar) gsap.globalTimeline.pause();
+      else gsap.globalTimeline.resume();
+    },
+    pararRelogio: (parar) => {
+      if (parar) gsap.ticker.sleep();
+      else gsap.ticker.wake();
+    },
+  });
+};
+if (desenvolvimento) abrirPainel();
+if (sem.size > 0 || tetoDeQuadros !== null) {
+  console.warn('[convite] diagnóstico do piscar', { sem: [...sem], fps: tetoDeQuadros });
+}
 
 const relogio = criarRelogio({ desenvolvimento, busca });
 const estado = criarEstado({
@@ -131,12 +179,16 @@ const cenaViva = criarCenaViva({
   estado,
   eventos,
   capacidades,
-  elementos: [
-    criarAgua({ raiz, config, estado, capacidades, ticker: gsap.ticker }),
-    criarPassaros({ raiz, config }),
-    criarFolhas({ raiz, config, estado }),
-    criarEsquilo({ raiz, config, estado }),
-  ],
+  elementos: (
+    [
+      ['agua', () => criarAgua({ raiz, config, estado, capacidades, ticker: gsap.ticker })],
+      ['passaros', () => criarPassaros({ raiz, config })],
+      ['folhas', () => criarFolhas({ raiz, config, estado })],
+      ['esquilo', () => criarEsquilo({ raiz, config, estado })],
+    ] as const
+  )
+    .filter(([nome]) => !sem.has(nome))
+    .map(([, criar]) => criar()),
   ticker: gsap.ticker,
   avisar: (erro) => {
     console.warn('[convite] cena viva: elemento parado', erro);
@@ -144,13 +196,43 @@ const cenaViva = criarCenaViva({
 });
 
 // As pétalas azuis do convite aberto caem devagar e sem parar, como as folhas (08/11/2026).
-const petalasDoConvite = criarPetalasDoConvite({
-  corpo: document.body,
-  config,
-  estado,
-  eventos,
-  capacidades,
-});
+const petalasDoConvite = sem.has('petalas')
+  ? {
+      destruir() {
+        /* diagnóstico: as pétalas não foram criadas */
+      },
+    }
+  : criarPetalasDoConvite({
+      corpo: document.body,
+      config,
+      estado,
+      eventos,
+      capacidades,
+    });
+// Diagnóstico: a pulsação do selo nasce um pouco depois de `carta:pousou`; por alguns segundos ela é desfeita a cada quadro.
+if (sem.has('pulso')) {
+  eventos.on('carta:pousou', () => {
+    const fim = performance.now() + 4000;
+    const desfazer = (): void => {
+      gsap.killTweensOf('.envelope .selo');
+      for (const selo of document.querySelectorAll('.envelope .selo')) {
+        for (const animacao of selo.getAnimations()) animacao.cancel();
+      }
+      if (performance.now() < fim) requestAnimationFrame(desfazer);
+    };
+    desfazer();
+  });
+}
+// Diagnóstico: a deriva das camadas é criada antes do `bosque:pronto`; aqui ela é desfeita.
+if (sem.has('deriva')) {
+  eventos.on('bosque:pronto', () => {
+    gsap.killTweensOf('.camada, .vida');
+    // A deriva do celular é uma animação do navegador (ADR-0044): também se cancela.
+    for (const elemento of document.querySelectorAll('[data-prof]')) {
+      for (const animacao of elemento.getAnimations()) animacao.cancel();
+    }
+  });
+}
 
 // Cada spec de cena (SPEC-03 a SPEC-06) acrescenta a sua aqui, na ordem do caminho.
 const etapas: readonly EtapaDoConvite[] = [

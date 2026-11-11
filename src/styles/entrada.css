@@ -21,10 +21,10 @@
   pointer-events: none;
 }
 
+/* Sem `will-change` (11/11/2026, ADR-0047): a névoa é animada pelo navegador, que a promove a camada enquanto ela anda. */
 .nevoa > span {
   position: absolute;
   inset: 0 -6%;
-  will-change: transform, opacity;
 }
 
 /* Camada de baixo: cobre o bosque por inteiro até a névoa se abrir. */
@@ -92,6 +92,9 @@
   font-weight: 400;
   line-height: 1.15;
   color: var(--cor-texto);
+
+  /* Nasce invisível: os nomes, o selo e "Toque para entrar" entram juntos, no mesmo instante (cena-entrada.ts, 11/11/2026). */
+  opacity: 0;
 }
 
 /* Área de toque da entrada: a tela inteira, e é um <button> (Enter e Espaço funcionam). */
@@ -135,4 +138,15 @@
   font-size: var(--texto-corpo);
   font-style: italic;
   color: var(--cor-texto-suave);
+}
+
+/*
+ * A landing entra de uma vez (11/11/2026): os botões fixos de cima ("Pular para o convite" e o som) ficam escondidos enquanto a página
+ * carrega e a cena os revela, junto com os nomes, o selo e "Toque para entrar", no mesmo instante e com a mesma suavidade. Sem isso
+ * eles apareciam primeiro, sozinhos, e o resto vinha depois, desordenado.
+ */
+body[data-fase='carregando'] .botao-som,
+body[data-fase='carregando'] .botao-pular {
+  pointer-events: none;
+  opacity: 0;
 }

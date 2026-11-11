@@ -144,7 +144,7 @@ export function configRapida(original: ConfigConvite, fator = 0.03): ConfigConvi
       instanteDaChaveSome: esc(b.instanteDaChaveSome),
       chaveSome: esc(b.chaveSome),
       auraAparece: esc(b.auraAparece),
-      aura: { ...b.aura, periodo: esc(b.aura.periodo) },
+      aura: { ...b.aura, periodo: esc(b.aura.periodo), entra: esc(b.aura.entra) },
       inventarioAparece: esc(b.inventarioAparece),
       inventarioSome: esc(b.inventarioSome),
       balancoNoInventario: {

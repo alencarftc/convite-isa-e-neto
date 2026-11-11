@@ -46,11 +46,14 @@ export interface ConfigConvite {
     readonly limitePlanoB: number;
     /** Espera antes de tentar baixar de novo uma imagem que falhou (SPEC-02). */
     readonly novaTentativaDeImagem: number;
-    /** Nomes do casal aparecem (SPEC-02, "Animações da entrada"). */
-    readonly entradaNomes: number;
-    /** Atraso dos nomes depois do primeiro quadro. */
-    readonly entradaNomesAtraso: number;
-    /** "Toque para entrar" aparece. */
+    /**
+     * A landing entra de uma vez (11/11/2026): os nomes, o selo, "Toque para entrar" e os botões de cima aparecem juntos, no mesmo
+     * instante, nesta duração, em vez de cada um a seu tempo.
+     */
+    readonly entradaJunto: number;
+    /** Quanto a landing espera, no máximo, a imagem do selo para entrar junto; depois entra sem ele e ele chega sozinho. */
+    readonly entradaAguardaSelo: number;
+    /** O aviso "Preparando o bosque…" aparece. */
     readonly entradaChamada: number;
     /** Os textos da entrada somem no toque. */
     readonly entradaSaida: number;
@@ -91,6 +94,8 @@ export interface ConfigConvite {
     /** Tempo de um ciclo completo de pulsar, em segundos. */
     readonly seloPeriodo: number;
     readonly seloEscala: number;
+    /** Quantos pixels os nomes e "Toque para entrar" sobem enquanto aparecem. */
+    readonly sobe: number;
     /**
      * O toque no selo (ADR-0012): ele cede, se solta inteiro (levanta, gira de leve e se desfaz) e solta um
      * clarão, os nomes se desfazem e a névoa se abre, e o bosque se aproxima. Tempos em segundos, contados do toque.
@@ -121,6 +126,11 @@ export interface ConfigConvite {
   };
   /** Parâmetros de movimento do bosque (SPEC-03). Os tempos em segundos, as distâncias em pixels. */
   readonly movimento: {
+    /**
+     * Teto de quadros por segundo do que roda em JavaScript (o GSAP): num aparelho de 120 ou 144 Hz, escrever o estilo de dezenas de peças a cada
+     * quadro é trabalho de sobra para movimentos lentos e decorativos. O que o navegador anima sozinho (`Element.animate`) segue na taxa da tela.
+     */
+    readonly quadrosMaximosDoGsap: number;
     /** Quanto cada cartão sobe ao surgir, em pixels (SPEC-07). */
     readonly deslocamentoDosCartoes: number;
     /** A cena começa assim e se aproxima até 1 durante `duracoes.nevoa`. */
@@ -346,12 +356,13 @@ export interface ConfigConvite {
     readonly chaveSome: number;
     /** A aura dourada atrás do baú acende e apaga (e aparece mais forte ao passar o mouse). */
     readonly auraAparece: number;
-    /** A aura respira o tempo todo enquanto o baú espera. */
+    /** A aura respira o tempo todo enquanto o baú espera; `entra` é quanto ela leva para acender devagar até o mínimo, antes de respirar. */
     readonly aura: {
       readonly minimo: number;
       readonly maximo: number;
       readonly escala: number;
       readonly periodo: number;
+      readonly entra: number;
     };
     /** O inventário sobe até a tela quando o baú passa a aceitar o toque, e some depois de usada a chave. */
     readonly inventarioAparece: number;
@@ -425,6 +436,8 @@ export interface ConfigConvite {
       readonly maximoDeFolhas: number;
     };
     readonly completo: {
+      /** A água é redesenhada a esta taxa (quadros por segundo): num aparelho de 120 ou 144 Hz, a cada quadro seria um canvas de tela cheia por quadro. */
+      readonly quadrosDaAgua: number;
       readonly resolucaoDaAgua: number;
       readonly maximoDeFolhas: number;
     };

@@ -29,8 +29,8 @@ export const config: ConfigConvite = {
     limiteSeguranca: 20,
     limitePlanoB: 10,
     novaTentativaDeImagem: 1,
-    entradaNomes: 0.6,
-    entradaNomesAtraso: 0.2,
+    entradaJunto: 1.8,
+    entradaAguardaSelo: 1.2,
     entradaChamada: 0.4,
     entradaSaida: 0.3,
     nevoaEmRepouso: 12,
@@ -65,6 +65,7 @@ export const config: ConfigConvite = {
   entrada: {
     seloPeriodo: 3.2,
     seloEscala: 1.05,
+    sobe: 10,
     saida: {
       aperto: { escala: 0.9, duracao: 0.14 },
       solta: { giro: 4, subida: 16, escala: 1.16, duracao: 0.9 },
@@ -74,6 +75,7 @@ export const config: ConfigConvite = {
     },
   },
   movimento: {
+    quadrosMaximosDoGsap: 60,
     deslocamentoDosCartoes: 16,
     escalaInicialDoBosque: 1.12,
     escalaFinalDaNevoa: 1.15,
@@ -194,7 +196,8 @@ export const config: ConfigConvite = {
     instanteDaChaveSome: 1.3,
     chaveSome: 0.3,
     auraAparece: 0.3,
-    aura: { minimo: 0.5, maximo: 0.85, escala: 1.05, periodo: 3.2 },
+    // A luz do baú entra devagar (`entra`, 11/11/2026): antes ela surgia de uma vez, "seca", quando a cena terminava de aparecer.
+    aura: { minimo: 0.5, maximo: 0.85, escala: 1.05, periodo: 3.2, entra: 2.6 },
     inventarioAparece: 0.5,
     inventarioSome: 0.4,
     // Medidas da arte da chave (`pnpm arte` as imprime): ponta e comprimento com a arte girada em 45°.
@@ -217,7 +220,9 @@ export const config: ConfigConvite = {
     larguraParaCobrir: 0.8,
     desempenho: { janelaDeMedicao: 2, quadroLento: 0.025, fracaoDeQuadrosLentos: 0.5 },
     leve: { quadrosDaAgua: 30, resolucaoDaAgua: 1, maximoDeFolhas: 4 },
-    completo: { resolucaoDaAgua: 1.5, maximoDeFolhas: 8 },
+    // A água também a 30 quadros por segundo no nível completo (11/11/2026, ADR-0050): a ondulação é lenta e um canvas WebGL de tela cheia
+    // redesenhado a 120 ou 144 quadros por segundo mantinha o aparelho em recomposição o tempo todo e a cena piscava.
+    completo: { quadrosDaAgua: 30, resolucaoDaAgua: 1.5, maximoDeFolhas: 8 },
     agua: {
       primeiroEm: 0,
       aparece: 0.8,

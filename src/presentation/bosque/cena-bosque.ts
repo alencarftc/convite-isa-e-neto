@@ -8,6 +8,9 @@ import type { ConfigConvite } from '@/domain/config/config-convite';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { type ChaveDeImagem, urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
+import { animarNoNavegador } from '../animacao/animar-no-navegador';
+import { curvaCss } from '../animacao/curva-css';
+import { concluirLuzDoPorDoSol } from './luz-do-por-do-sol';
 import { iniciarProfundidade, type ProfundidadeEmAndamento } from './profundidade';
 
 export interface DependenciasDoBosque {
@@ -83,6 +86,9 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
   let cena: HTMLElement | undefined;
   let linhaDoTempo: gsap.core.Timeline | undefined;
   let profundidade: ProfundidadeEmAndamento | undefined;
+  let aproximacao: Animation | undefined;
+  /** A névoa da entrada se abrindo (fica no fim até a entrada sair de cena). */
+  let animacoesDaNevoa: Animation[] = [];
   let pararDeOuvirMovimento: (() => void) | undefined;
 
   function montar(): HTMLElement {
@@ -128,8 +134,27 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
     return [...(cena?.querySelectorAll<HTMLElement>('[data-prof]') ?? [])];
   }
 
+  /** Congela uma camada onde a animação dela estava: o estado vai para o estilo e a animação é cancelada. */
+  function congelar(camada: HTMLElement): void {
+    for (const animacao of camada.getAnimations()) {
+      try {
+        animacao.commitStyles();
+      } catch {
+        // Camada que não está sendo desenhada: não há estado a guardar, e cancelar basta.
+      }
+      animacao.cancel();
+    }
+  }
+
+  const podeAnimar = (elemento: HTMLElement) =>
+    typeof elemento.animate === 'function' && typeof elemento.getAnimations === 'function';
+
   function parar(): void {
     linhaDoTempo?.kill();
+    aproximacao?.cancel();
+    aproximacao = undefined;
+    for (const animacao of animacoesDaNevoa) animacao.cancel();
+    animacoesDaNevoa = [];
     pararDeOuvirMovimento?.();
     pararDeOuvirMovimento = undefined;
     profundidade?.parar();
@@ -148,32 +173,75 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
       gsap.set(bosque, { opacity: 1 });
 
       const nevoa = gsap.utils.toArray<HTMLElement>('.nevoa > span', raiz);
+      // A névoa e a aproximação da cena são animações do navegador, não do GSAP: a escala e o deslocamento de camadas de tela cheia,
+      // calculados pelo JavaScript a cada quadro, faziam a tela piscar no Motorola Edge 70 Fusion+ (10/11/2026) e pesavam na
+      // abertura (11/11/2026, ADR-0044). Sem `animate` (navegador antigo), o GSAP faz o mesmo.
+      const noNavegador = typeof bosque.animate === 'function' && nevoa.every(podeAnimar);
       await new Promise<void>((resolver) => {
-        linhaDoTempo = gsap
-          .timeline({ onComplete: resolver })
-          // A névoa se abre: cada camada cresce, se afasta do centro para um lado e some; `overwrite`
-          // desliga a respiração da entrada.
-          .to(
-            nevoa,
-            {
-              opacity: 0,
-              scale: movimento.escalaFinalDaNevoa,
-              xPercent: (indice: number) =>
-                (indice % 2 === 0 ? 1 : -1) * movimento.deslocamentoDaNevoa,
-              duration: duracoes.nevoa * movimento.fracaoDaNevoa,
-              ease: curvas.suave,
-              overwrite: 'auto',
-            },
-            0,
-          )
+        const linha = gsap.timeline({ onComplete: resolver });
+        linhaDoTempo = linha;
+        if (noNavegador) {
+          // A névoa se abre: cada camada cresce, se afasta do centro para um lado e some, a partir de onde a respiração da entrada
+          // estava (o estado dela vai para o estilo e ela se cancela).
+          nevoa.forEach((camada, indice) => {
+            congelar(camada);
+            const sentido = indice % 2 === 0 ? 1 : -1;
+            animacoesDaNevoa.push(
+              animarNoNavegador(
+                camada,
+                [
+                  {
+                    opacity: 0,
+                    transform: `translateX(${String(sentido * movimento.deslocamentoDaNevoa)}%) scale(${String(movimento.escalaFinalDaNevoa)})`,
+                  },
+                ],
+                {
+                  duration: duracoes.nevoa * movimento.fracaoDaNevoa * 1000,
+                  easing: curvaCss(curvas.suave),
+                  fill: 'forwards',
+                },
+              ),
+            );
+          });
           // A cena inteira se aproxima devagar, terminando com o baú em destaque.
-          .fromTo(
+          aproximacao = animarNoNavegador(
             bosque,
-            { scale: movimento.escalaInicialDoBosque },
-            { scale: 1, duration: duracoes.nevoa, ease: curvas.saida },
-            0,
+            [
+              { transform: `scale(${String(movimento.escalaInicialDoBosque)})` },
+              { transform: 'scale(1)' },
+            ],
+            { duration: duracoes.nevoa * 1000, easing: curvaCss(curvas.saida), fill: 'both' },
           );
+          // A revelação dura `duracoes.nevoa`, como quando tudo era do GSAP.
+          linha.set({}, {}, duracoes.nevoa);
+        } else {
+          linha
+            // A névoa se abre; `overwrite` desliga a respiração da entrada.
+            .to(
+              nevoa,
+              {
+                opacity: 0,
+                scale: movimento.escalaFinalDaNevoa,
+                xPercent: (indice: number) =>
+                  (indice % 2 === 0 ? 1 : -1) * movimento.deslocamentoDaNevoa,
+                duration: duracoes.nevoa * movimento.fracaoDaNevoa,
+                ease: curvas.suave,
+                overwrite: 'auto',
+              },
+              0,
+            )
+            .fromTo(
+              bosque,
+              { scale: movimento.escalaInicialDoBosque },
+              { scale: 1, duration: duracoes.nevoa, ease: curvas.saida },
+              0,
+            );
+        }
       });
+      // A aproximação terminou em escala 1, igual ao que o GSAP deixa: sai o efeito do navegador e fica a escala 1 no estilo.
+      aproximacao?.cancel();
+      aproximacao = undefined;
+      gsap.set(bosque, { scale: 1 });
 
       esconderEntrada();
       const derivando = iniciarProfundidade({
@@ -205,7 +273,7 @@ export function criarCenaBosque(dependencias: DependenciasDoBosque): Cena {
       // Estado final: já no pôr do sol, sem aproximação nem profundidade (RF-03.6). Só aparece se as
       // imagens críticas existirem; do contrário o convite fica no fundo marfim.
       gsap.set(bosque, { scale: 1 });
-      gsap.set(bosque.querySelectorAll('.camada--ceu-sol, .camada--luz'), { opacity: 1 });
+      concluirLuzDoPorDoSol(bosque);
       void carregamento.criticoPronto(estado.orientacao).then(({ ausentes }) => {
         if (ausentes.length > 0) return;
         gsap.to(bosque, {

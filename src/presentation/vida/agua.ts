@@ -5,6 +5,7 @@ import type { Capacidades } from '@/application/ports/capacidades';
 import type { ConfigConvite } from '@/domain/config/config-convite';
 import type { NivelAtivo } from '@/domain/vida/nivel';
 
+import { opacidadeDoCeuDoPorDoSol } from '../bosque/luz-do-por-do-sol';
 import type { ElementoDeVida } from './elemento-de-vida';
 import type { TickerDaVida } from './medidor-de-quadros';
 import { criarOndulacao, type Ondulacao } from './ondulacao/ondulacao';
@@ -18,9 +19,8 @@ export interface DependenciasDaAgua {
   readonly ticker: TickerDaVida;
 }
 
-/** A camada do lago, onde o canvas entra, e o céu do pôr do sol, cuja opacidade manda no brilho. */
+/** A camada do lago, onde o canvas entra. A opacidade do céu do pôr do sol, que manda no brilho, vem de `luz-do-por-do-sol`. */
 const SELETOR_DO_LAGO = '.camada--lago';
-const SELETOR_DO_SOL = '.camada--ceu-sol';
 /** Token da CSS com a cor dos reflexos (SPEC-03, "Luz"). */
 const TOKEN_DA_LUZ = '--cor-luz';
 
@@ -49,15 +49,18 @@ export function criarAgua(dependencias: DependenciasDaAgua): ElementoDeVida {
   let observador: ResizeObserver | undefined;
   let pararDeOuvirEstado: (() => void) | undefined;
 
+  function quadrosDaAgua(): number {
+    return nivel === 'leve' ? vida.leve.quadrosDaAgua : vida.completo.quadrosDaAgua;
+  }
+
   function resolucaoDoNivel(): number {
     return nivel === 'leve' ? vida.leve.resolucaoDaAgua : vida.completo.resolucaoDaAgua;
   }
 
   /** Brilho dos reflexos: do mínimo ao máximo conforme o céu passa ao pôr do sol (RF-19.5). */
   function brilhoAtual(): number {
-    const sol = raiz.querySelector<HTMLElement>(SELETOR_DO_SOL);
-    // O GSAP escreve a opacidade no estilo da própria camada; ler dali evita forçar o cálculo de estilo a cada quadro.
-    const opacidade = Number.parseFloat(sol?.style.opacity ?? '') || 0;
+    // O pôr do sol roda no navegador (ADR-0050): a opacidade atual não está no estilo da camada, e vem de `opacidadeDoCeuDoPorDoSol`.
+    const opacidade = opacidadeDoCeuDoPorDoSol(raiz);
     const { brilhoMinimo, brilhoMaximo } = agua.reflexos;
     return brilhoMinimo + (brilhoMaximo - brilhoMinimo) * Math.min(1, Math.max(0, opacidade));
   }
@@ -70,11 +73,19 @@ export function criarAgua(dependencias: DependenciasDaAgua): ElementoDeVida {
     const intervalo = intervaloEmMs / 1000;
     tempo += intervalo;
     desdeOUltimoDesenho += intervalo;
-    // No nível leve a água se redesenha a `quadrosDaAgua` por segundo; a tolerância de 10% não deixa um
+    // A água se redesenha a `quadrosDaAgua` por segundo, em qualquer nível (ADR-0050); a tolerância de 10% não deixa um
     // quadro de 17 ms virar 20 quadros por segundo.
-    if (nivel === 'leve' && desdeOUltimoDesenho < (1 / vida.leve.quadrosDaAgua) * 0.9) return;
+    if (desdeOUltimoDesenho < (1 / quadrosDaAgua()) * 0.9) return;
     desdeOUltimoDesenho = 0;
-    desenhar();
+    try {
+      desenhar();
+    } catch (erro) {
+      // A água é enfeite: se o desenho falha (a caixa do lago sem tamanho numa janela minúscula, o contexto em mau estado), ela para e o
+      // lago volta a ser a pintura parada. Um erro solto aqui subia ao `error` da janela e levava o convite inteiro ao modo de segurança.
+      console.warn('[convite] água parada', erro);
+      parar();
+      return;
+    }
     if (!primeiroQuadro) return;
     primeiroQuadro = false;
     // O canvas só aparece depois do primeiro quadro desenhado (RF-19.6); o primeiro quadro é idêntico à imagem.

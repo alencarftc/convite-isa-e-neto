@@ -22,14 +22,6 @@
   pointer-events: none;
 }
 
-/* Só as peças que se movem muito ganham camada própria; os grãos de poeira, tantos e tão pequenos, ficam de fora. */
-.memoria__centelha,
-.memoria__cartao,
-.memoria__estrela,
-.historia__clarao {
-  will-change: transform, opacity;
-}
-
 /*
  * A centelha que sobe do baú e a estrela que fica parada no céu têm o mesmo formato (08/11/2026): um orbe redondo, de núcleo
  * marfim num halo de ouro vivo. A estrela é a mesma centelha, só que parada.
@@ -127,14 +119,13 @@
   object-fit: cover;
 }
 
-/* Gradiente quente em soft-light aproxima a cor da foto à luz da pintura. */
+/* Gradiente quente, comum e bem suave, aproxima a cor da foto à luz da pintura (sem mistura: ADR-0050). */
 .foto-em-circulo::after {
   position: absolute;
   inset: 0;
   content: '';
   background: linear-gradient(160deg, var(--cor-luz-90), var(--cor-dourado-70));
-  mix-blend-mode: soft-light;
-  opacity: 0.25;
+  opacity: 0.08;
 }
 
 /* A estrela fica no céu, sobre o baú, pulsando de leve; cada uma a seu tempo (`--indice`, escrito pela cena). */

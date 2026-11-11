@@ -1,16 +1,26 @@
-import gsap from 'gsap';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { config } from '@/config/config';
 import { content } from '@/config/content';
+import { curvaCss } from '@/presentation/animacao/curva-css';
 import { montarCarrossel } from '@/presentation/informacoes/carrossel';
 
+import {
+  type AnimacoesFalsas,
+  instalarAnimacoesFalsas,
+  semAnimate,
+} from './suporte/animacoes-falsas';
 import { criarRelogioManual } from './suporte/relogio-gsap';
 
 const { carrossel: parametros } = config;
 const total = content.galeria.length;
 
 let relogio: ReturnType<typeof criarRelogioManual>;
+/** As animações do navegador que o carrossel pediu (falsas: o happy-dom não as roda). */
+let animacoes: AnimacoesFalsas;
 /** Observadores falsos: o teste decide quando o carrossel está na tela. */
 let observadores: { chamar: (visivel: boolean) => void }[];
 
@@ -65,7 +75,7 @@ function montar(extra: { reduzido?: boolean; fotos?: typeof content.galeria } = 
     if (!elemento) throw new Error(`sem foto ${String(indice)}`);
     return elemento;
   };
-  const opacidade = (indice: number) => Number(gsap.getProperty(slide(indice), 'opacity'));
+  const opacidade = (indice: number) => Number(slide(indice).style.opacity);
   /** Qual foto está à vista: a única com o ponto marcado. */
   const atual = () => pontos().findIndex((ponto) => ponto.getAttribute('aria-current') === 'true');
   const arrastar = (de: number, para: number) => {
@@ -79,9 +89,11 @@ beforeEach(() => {
   // Sem observador: o carrossel se considera sempre na tela (navegador antigo), a não ser que o teste ponha o seu.
   vi.stubGlobal('IntersectionObserver', undefined);
   relogio = criarRelogioManual();
+  animacoes = instalarAnimacoesFalsas();
 });
 afterEach(() => {
   relogio.restaurar();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
   document.body.innerHTML = '';
 });
@@ -144,24 +156,73 @@ describe('o carrossel de fotos do casal (08/11/2026)', () => {
   });
 
   describe('a troca automática', () => {
-    it('troca sozinha a cada `intervalo`, com uma passagem suave, e a próxima foto toma o lugar', () => {
+    it('troca sozinha a cada `intervalo`, por animações do navegador (a que chega assenta, a que sai desliza e some), e a próxima foto toma o lugar', () => {
       const { carrossel, atual, opacidade, slide } = montar();
+      const { deslocamento, transicao } = parametros;
 
       relogio.avancar(parametros.intervalo - 0.1, 0.01);
       expect(atual()).toBe(0);
+      expect(animacoes.doElemento(slide(1))).toHaveLength(0);
 
-      relogio.avancar(0.1 + parametros.transicao / 2, 0.01);
+      relogio.avancar(0.1 + 0.02, 0.01);
       expect(atual()).toBe(1);
-      // No meio da troca: a que sai já esmaeceu um pouco e a que chega ainda está chegando.
-      expect(opacidade(0)).toBeLessThan(1);
-      expect(opacidade(1)).toBeGreaterThan(0);
-      expect(opacidade(1)).toBeLessThan(1);
-      expect(Number(gsap.getProperty(slide(1), 'xPercent'))).not.toBe(0);
+      const [chega] = animacoes.doElemento(slide(1));
+      const [sai] = animacoes.doElemento(slide(0));
+      expect(chega?.quadros).toEqual([
+        { opacity: 0, transform: `translate3d(${String(deslocamento)}%, 0, 0)` },
+        { opacity: 1, transform: 'translate3d(0%, 0, 0)' },
+      ]);
+      expect(chega?.opcoes).toMatchObject({
+        duration: transicao * 1000,
+        easing: curvaCss(config.curvas.saida),
+        fill: 'both',
+      });
+      expect(sai?.quadros).toEqual([
+        { opacity: 1, transform: 'translate3d(0%, 0, 0)' },
+        { opacity: 0, transform: `translate3d(${String(-deslocamento)}%, 0, 0)` },
+      ]);
+      expect(sai?.opcoes).toMatchObject({ easing: curvaCss(config.curvas.suave), fill: 'both' });
+      // Durante a troca a que chega já está visível (ainda transparente) e a que sai segue visível.
+      expect(slide(1).style.visibility).toBe('inherit');
+      expect(slide(0).style.visibility).toBe('inherit');
 
-      relogio.avancar(parametros.transicao, 0.01);
+      // Ao fim, o estado final vai para o estilo e as animações são canceladas.
+      chega?.terminar();
+      sai?.terminar();
       expect(opacidade(0)).toBe(0);
+      expect(slide(0).style.visibility).toBe('hidden');
       expect(opacidade(1)).toBe(1);
-      expect(Number(gsap.getProperty(slide(1), 'xPercent'))).toBe(0);
+      expect(slide(1).style.visibility).toBe('inherit');
+      expect(slide(1).style.transform).toBe('');
+      expect(chega?.estado).toBe('cancelled');
+      expect(sai?.estado).toBe('cancelled');
+      carrossel.destruir();
+    });
+
+    it('quando se volta atrás, a foto chega do outro lado (o deslocamento muda de sinal)', () => {
+      const { carrossel, pontos, slide } = montar();
+
+      pontos()[2]?.click(); // adiante
+      expect(animacoes.doElemento(slide(2))[0]?.quadros[0]).toMatchObject({
+        transform: `translate3d(${String(parametros.deslocamento)}%, 0, 0)`,
+      });
+      pontos()[1]?.click(); // atrás
+      expect(animacoes.doElemento(slide(1))[0]?.quadros[0]).toMatchObject({
+        transform: `translate3d(${String(-parametros.deslocamento)}%, 0, 0)`,
+      });
+      carrossel.destruir();
+    });
+
+    it('uma troca interrompida por outra vai direto ao fim: a que chegava fica à vista e a que saía some', () => {
+      const { carrossel, pontos, slide, opacidade } = montar();
+
+      pontos()[1]?.click(); // 0 → 1, ainda no meio
+      pontos()[2]?.click(); // 1 → 2
+
+      expect(opacidade(0)).toBe(0);
+      expect(slide(0).style.visibility).toBe('hidden');
+      expect(animacoes.doElemento(slide(1)).at(-1)?.estado).toBe('running'); // a 1 agora é a que sai
+      expect(slide(2).style.visibility).toBe('inherit');
       carrossel.destruir();
     });
 
@@ -181,16 +242,26 @@ describe('o carrossel de fotos do casal (08/11/2026)', () => {
       carrossel.destruir();
     });
 
-    it('a foto à vista faz um zoom lento (só transform), e a que saiu volta ao tamanho normal', () => {
-      const { carrossel, foto } = montar();
-      const escala = (indice: number) => Number(gsap.getProperty(foto(indice), 'scale'));
+    it('a foto à vista faz um zoom lento (só transform) por uma animação do navegador, e o da que saiu acaba quando ela termina de sair', () => {
+      const { carrossel, foto, slide } = montar();
 
-      relogio.avancar(parametros.intervalo - 0.2, 0.01);
-      expect(escala(0)).toBeGreaterThan(1);
-      expect(escala(0)).toBeLessThanOrEqual(parametros.zoom);
+      const [zoom] = animacoes.doElemento(foto(0));
+      expect(zoom?.quadros).toEqual([
+        { transform: 'scale(1)' },
+        { transform: `scale(${String(parametros.zoom)})` },
+      ]);
+      expect(zoom?.opcoes).toMatchObject({
+        duration: (parametros.intervalo + parametros.transicao) * 1000,
+        easing: 'linear',
+        fill: 'both',
+      });
 
-      relogio.avancar(parametros.transicao + 0.3, 0.01);
-      expect(escala(0)).toBe(1);
+      relogio.avancar(parametros.intervalo + 0.02, 0.01); // começa a troca
+      expect(zoom?.estado).toBe('paused'); // a foto que sai fica como está
+      expect(animacoes.doElemento(foto(1))).toHaveLength(1); // e a que chega começa o dela
+
+      animacoes.terminarTodas(slide(0)); // a foto 0 acabou de sair
+      expect(zoom?.estado).toBe('cancelled'); // volta ao tamanho normal
       carrossel.destruir();
     });
 
@@ -299,7 +370,7 @@ describe('o carrossel de fotos do casal (08/11/2026)', () => {
 
   describe('animação reduzida e limpeza', () => {
     it('com animação reduzida nada troca sozinho, e a troca à mão é instantânea, sem deslize nem zoom', () => {
-      const { carrossel, atual, opacidade, pontos, slide, foto } = montar({ reduzido: true });
+      const { carrossel, atual, opacidade, pontos, slide } = montar({ reduzido: true });
 
       relogio.avancar(parametros.intervalo * 5, 0.05);
       expect(atual()).toBe(0);
@@ -308,8 +379,9 @@ describe('o carrossel de fotos do casal (08/11/2026)', () => {
       expect(atual()).toBe(2);
       expect(opacidade(2)).toBe(1);
       expect(opacidade(0)).toBe(0);
-      expect(Number(gsap.getProperty(slide(2), 'xPercent'))).toBe(0);
-      expect(Number(gsap.getProperty(foto(2), 'scale'))).toBe(1);
+      expect(slide(2).style.transform).toBe('');
+      expect(slide(0).style.visibility).toBe('hidden');
+      expect(animacoes.todas).toHaveLength(0); // nenhuma animação: nem troca, nem zoom
       carrossel.destruir();
     });
 
@@ -321,6 +393,135 @@ describe('o carrossel de fotos do casal (08/11/2026)', () => {
       pontos()[3]?.click();
 
       expect(atual()).toBe(0);
+    });
+  });
+
+  /**
+   * O convite piscava, imagem por imagem, no Motorola Edge 70 Fusion+ (144 Hz), sobretudo no carrossel (10/11/2026): eram cinco
+   * fotos com camada de GPU permanente, cada uma com um fundo desfocado por trás (ADR-0043), e depois a troca e o zoom por GSAP
+   * piscavam de leve (ADR-0044). Agora a troca e o zoom são animações do navegador e as fotos fora de vista ficam
+   * `visibility: hidden`.
+   */
+  describe('camadas de GPU só enquanto a peça se move (10/11/2026)', () => {
+    const comWillChange = (carrossel: ReturnType<typeof montar>['carrossel']) =>
+      [
+        ...carrossel.elemento.querySelectorAll<HTMLElement>('.carrossel__slide, .carrossel__foto'),
+      ].filter((el) => el.style.willChange !== '');
+
+    it('só a foto à vista aparece; as outras ficam escondidas (visibility: hidden), não só transparentes', () => {
+      const { carrossel, slides } = montar();
+
+      expect(slides().map((s) => s.style.visibility)).toEqual(
+        content.galeria.map((_, i) => (i === 0 ? 'inherit' : 'hidden')),
+      );
+      carrossel.destruir();
+    });
+
+    it('parada, só o zoom da foto à vista está rodando, e nenhuma peça fixa will-change no estilo', () => {
+      const { carrossel, foto } = montar();
+
+      expect(animacoes.vivas().map((a) => a.elemento)).toEqual([foto(0)]);
+      expect(comWillChange(carrossel)).toEqual([]);
+      carrossel.destruir();
+    });
+
+    it('depois de cada troca terminada, só o zoom da foto que chegou continua vivo', () => {
+      const { carrossel, foto } = montar();
+
+      relogio.avancar(parametros.intervalo + 0.02, 0.01);
+      expect(animacoes.vivas().length).toBeGreaterThan(2); // a troca (duas) e os zooms
+      for (const animacao of animacoes.todas) {
+        if (animacao.elemento.classList.contains('carrossel__slide')) animacao.terminar();
+      }
+
+      expect(animacoes.vivas().map((a) => a.elemento)).toEqual([foto(1)]);
+      carrossel.destruir();
+    });
+
+    it('por mais voltas que dê, nunca passam de quatro as animações vivas (duas da troca e dois zooms)', () => {
+      const { carrossel } = montar();
+      let maximo = 0;
+
+      for (let volta = 0; volta < total * 3; volta += 1) {
+        relogio.avancar(parametros.intervalo, 0.05);
+        maximo = Math.max(maximo, animacoes.vivas().length);
+        animacoes.terminarTodas();
+        expect(animacoes.vivas()).toHaveLength(0);
+      }
+
+      expect(maximo).toBeLessThanOrEqual(4);
+      carrossel.destruir();
+    });
+
+    it('com animação reduzida, nenhuma animação é pedida', () => {
+      const { carrossel, pontos } = montar({ reduzido: true });
+
+      pontos()[2]?.click();
+      relogio.avancar(1, 0.05);
+
+      expect(animacoes.todas).toHaveLength(0);
+      carrossel.destruir();
+    });
+
+    it('sem Element.animate (navegador antigo), a troca é instantânea e nada quebra', () => {
+      const restaurar = semAnimate();
+      try {
+        const { carrossel, pontos, atual, opacidade, slide } = montar();
+
+        pontos()[2]?.click();
+
+        expect(atual()).toBe(2);
+        expect(opacidade(2)).toBe(1);
+        expect(opacidade(0)).toBe(0);
+        expect(slide(0).style.visibility).toBe('hidden');
+        carrossel.destruir();
+      } finally {
+        restaurar();
+      }
+    });
+
+    it('destruir termina as trocas em andamento e cancela os zooms: nada fica rodando', () => {
+      const { carrossel } = montar();
+
+      relogio.avancar(parametros.intervalo + 0.02, 0.01);
+      expect(animacoes.vivas().length).toBeGreaterThan(0);
+      carrossel.destruir();
+
+      expect(animacoes.vivas()).toHaveLength(0);
+    });
+
+    it('fora da tela o zoom também para, e volta quando o carrossel reaparece; um zoom que já terminou não recomeça', () => {
+      stubDoObservador();
+      const { carrossel, foto } = montar();
+
+      observadores[0]?.chamar(true);
+      const [zoom] = animacoes.doElemento(foto(0));
+      expect(zoom?.estado).toBe('running');
+
+      observadores[0]?.chamar(false);
+      expect(zoom?.estado).toBe('paused');
+      observadores[0]?.chamar(true);
+      expect(zoom?.estado).toBe('running');
+
+      zoom?.terminar();
+      observadores[0]?.chamar(false);
+      observadores[0]?.chamar(true);
+      expect(zoom?.estado).toBe('finished'); // `play()` o faria recomeçar do tamanho normal
+      carrossel.destruir();
+    });
+
+    it('a CSS do carrossel não fixa `will-change` nas fotos: a camada é pedida só quando a peça se move', () => {
+      const css = readFileSync(
+        join(import.meta.dirname, '..', '..', 'src', 'styles', 'informacoes.css'),
+        'utf8',
+      );
+      const bloco = (seletor: string) =>
+        new RegExp(String.raw`(^|\n)${seletor}\s*\{[^}]*\}`).exec(css)?.[0] ?? '';
+
+      expect(bloco(String.raw`\.carrossel__slide`)).not.toBe('');
+      expect(bloco(String.raw`\.carrossel__slide`)).not.toContain('will-change');
+      expect(bloco(String.raw`\.carrossel__foto`)).not.toBe('');
+      expect(bloco(String.raw`\.carrossel__foto`)).not.toContain('will-change');
     });
   });
 });
