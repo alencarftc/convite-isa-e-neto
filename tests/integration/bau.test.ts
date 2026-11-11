@@ -241,6 +241,28 @@ describe('baú e chave (SPEC-04)', () => {
       });
     });
 
+    it('a luz do baú acende devagar, de 0 até o mínimo em `aura.entra`, e só então passa a respirar (11/11/2026)', () => {
+      const relogio = criarRelogioManual();
+      try {
+        const { cena, opacidade } = montar({ toque: true });
+        const { entra, minimo, maximo } = config.bau.aura;
+        void cena.run();
+
+        expect(opacidade('.bau__aura')).toBe(0); // não surge de uma vez
+
+        relogio.avancar(entra / 2, 0.002);
+        expect(opacidade('.bau__aura')).toBeGreaterThan(0.05);
+        expect(opacidade('.bau__aura')).toBeLessThan(minimo - 0.05); // ainda subindo
+
+        relogio.avancar(entra / 2 + 0.01, 0.002);
+        expect(opacidade('.bau__aura')).toBeGreaterThanOrEqual(minimo - 0.01);
+        expect(opacidade('.bau__aura')).toBeLessThanOrEqual(maximo + 1e-6);
+        cena.skip();
+      } finally {
+        relogio.restaurar();
+      }
+    });
+
     it('a dica aparece por 3 s, some por 5 s e volta, e assim por diante, até o baú ser tocado (08/11/2026)', () => {
       // Relógio manual: o ciclo dura 8 s de relógio do GSAP, e a máquina ocupada estragaria uma medida em tempo real.
       const relogio = criarRelogioManual();

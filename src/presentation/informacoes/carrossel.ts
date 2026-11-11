@@ -3,6 +3,8 @@ import gsap from 'gsap';
 import type { ConfigConvite } from '@/domain/config/config-convite';
 import type { FotoDaGaleria } from '@/domain/conteudo/conteudo-convite';
 
+import { animarNoNavegador } from '../animacao/animar-no-navegador';
+import { curvaCss } from '../animacao/curva-css';
 import { criar } from '../dom';
 
 export interface DependenciasDoCarrossel {
@@ -48,6 +50,19 @@ export function montarCarrossel(dependencias: DependenciasDoCarrossel): Carrosse
   // Com troca automática, o leitor de tela não deve anunciar cada foto que passa.
   quadro.setAttribute('aria-live', 'off');
 
+  /** A foto à vista: opaca e visível, sem deslocamento. */
+  function aparecer(slide: HTMLElement): void {
+    slide.style.opacity = '1';
+    slide.style.visibility = 'inherit';
+    slide.style.transform = '';
+  }
+  /** A foto fora de vista: invisível e `visibility: hidden`, sem deslocamento. */
+  function sumir(slide: HTMLElement): void {
+    slide.style.opacity = '0';
+    slide.style.visibility = 'hidden';
+    slide.style.transform = '';
+  }
+
   function criarImagem(classe: string, origem: string, alt: string): HTMLImageElement {
     const imagem = document.createElement('img');
     imagem.className = classe;
@@ -70,7 +85,10 @@ export function montarCarrossel(dependencias: DependenciasDoCarrossel): Carrosse
     fundo.setAttribute('aria-hidden', 'true');
     const imagem = criarImagem('carrossel__foto', foto.foto, foto.alt);
     slide.append(fundo, imagem);
-    gsap.set(slide, { opacity: indice === 0 ? 1 : 0 });
+    // As fotos que não estão à vista ficam `visibility: hidden`: o navegador não as desenha nem as mantém em camadas da GPU,
+    // cinco fotos empilhadas com desfoque por trás eram o ponto em que o convite piscava (10/11/2026).
+    if (indice === 0) aparecer(slide);
+    else sumir(slide);
     return { slide, imagem };
   });
   quadro.append(...slides.map((s) => s.slide));
@@ -93,25 +111,65 @@ export function montarCarrossel(dependencias: DependenciasDoCarrossel): Carrosse
   let visivel = false;
   let destruido = false;
   let proximaTroca: gsap.core.Tween | undefined;
-  let zoom: gsap.core.Tween | undefined;
+  /** O zoom da foto que está à vista, e o das fotos que ainda não terminaram de sair (por índice). */
+  let zoom: Animation | undefined;
+  const zoomsPorFoto = new Map<number, Animation>();
+  /** As trocas em andamento, cada uma com o que fazer quando termina (ou é interrompida). */
+  const trocasEmCurso = new Map<Animation, () => void>();
   let observador: IntersectionObserver | undefined;
   const ouvintes = new AbortController();
   const { signal } = ouvintes;
 
+  /**
+   * A troca de fotos e o zoom são animações do navegador (`Element.animate`), não do GSAP (10/11/2026, ADR-0044): o navegador as roda
+   * por conta própria e só promove a camada de GPU enquanto elas andam, e a troca por JavaScript piscava de leve no Motorola Edge 70
+   * Fusion+ (144 Hz). Quando uma troca acaba, o estado final vai para o estilo da foto e a animação é cancelada.
+   */
+  function animarTroca(
+    slide: HTMLElement,
+    quadros: Keyframe[],
+    curva: string,
+    duracao: number,
+    aoTerminar: () => void,
+  ): void {
+    const animacao = animarNoNavegador(slide, quadros, {
+      duration: duracao * 1000,
+      easing: curvaCss(curva),
+      fill: 'both',
+    });
+    const terminar = () => {
+      trocasEmCurso.delete(animacao);
+      animacao.onfinish = null;
+      aoTerminar();
+      animacao.cancel();
+    };
+    trocasEmCurso.set(animacao, terminar);
+    animacao.onfinish = terminar;
+  }
+
+  /** Uma troca interrompida por outra vai direto ao fim: a que chegava fica à vista, a que saía some. */
+  function concluirTrocasEmCurso(): void {
+    for (const terminar of [...trocasEmCurso.values()]) terminar();
+  }
+
   /** O zoom lento sobre a foto que está à vista (só `transform`). */
   function iniciarZoom(indice: number): void {
-    zoom?.kill();
+    // A foto que sai fica onde está (zoom parado) até a troca acabar; então volta ao tamanho normal.
+    zoom?.pause();
+    zoom = undefined;
     const imagem = slides[indice]?.imagem;
-    if (!imagem || reduzido) return;
-    zoom = gsap.fromTo(
+    if (!imagem || reduzido || typeof imagem.animate !== 'function') return;
+    zoomsPorFoto.get(indice)?.cancel();
+    zoom = animarNoNavegador(
       imagem,
-      { scale: 1 },
+      [{ transform: 'scale(1)' }, { transform: `scale(${String(parametros.zoom)})` }],
       {
-        scale: parametros.zoom,
-        duration: parametros.intervalo + parametros.transicao,
-        ease: curvas.linear,
+        duration: (parametros.intervalo + parametros.transicao) * 1000,
+        easing: curvaCss(curvas.linear),
+        fill: 'both',
       },
     );
+    zoomsPorFoto.set(indice, zoom);
   }
 
   function ir(para: number, direcao: 1 | -1): void {
@@ -119,20 +177,47 @@ export function montarCarrossel(dependencias: DependenciasDoCarrossel): Carrosse
     const saindo = slides[atual];
     const entrando = slides[para];
     if (!saindo || !entrando) return;
-    const duracao = reduzido ? 0 : parametros.transicao;
+    const indiceQueSai = atual;
+    const duracao =
+      reduzido || typeof entrando.slide.animate !== 'function' ? 0 : parametros.transicao;
 
-    gsap.killTweensOf([saindo.slide, entrando.slide]);
-    gsap.set(entrando.slide, { opacity: 0, xPercent: direcao * parametros.deslocamento });
-    gsap.to(saindo.slide, {
-      opacity: 0,
-      xPercent: -direcao * parametros.deslocamento,
-      duration: duracao,
-      ease: curvas.suave,
-      onComplete: () => {
-        gsap.set(saindo.imagem, { scale: 1 });
-      },
-    });
-    gsap.to(entrando.slide, { opacity: 1, xPercent: 0, duration: duracao, ease: curvas.saida });
+    concluirTrocasEmCurso();
+    const aoSair = () => {
+      sumir(saindo.slide);
+      zoomsPorFoto.get(indiceQueSai)?.cancel();
+      zoomsPorFoto.delete(indiceQueSai);
+    };
+    if (duracao === 0) {
+      aparecer(entrando.slide);
+      aoSair();
+    } else {
+      const deslocamento = parametros.deslocamento;
+      // A que chega parte invisível, deslocada para o lado de onde vem, e assenta; a que sai desliza para o lado oposto e some.
+      entrando.slide.style.opacity = '0';
+      entrando.slide.style.visibility = 'inherit';
+      animarTroca(
+        entrando.slide,
+        [
+          { opacity: 0, transform: `translate3d(${String(direcao * deslocamento)}%, 0, 0)` },
+          { opacity: 1, transform: 'translate3d(0%, 0, 0)' },
+        ],
+        curvas.saida,
+        duracao,
+        () => {
+          aparecer(entrando.slide);
+        },
+      );
+      animarTroca(
+        saindo.slide,
+        [
+          { opacity: 1, transform: 'translate3d(0%, 0, 0)' },
+          { opacity: 0, transform: `translate3d(${String(-direcao * deslocamento)}%, 0, 0)` },
+        ],
+        curvas.suave,
+        duracao,
+        aoSair,
+      );
+    }
 
     saindo.slide.setAttribute('aria-hidden', 'true');
     entrando.slide.setAttribute('aria-hidden', 'false');
@@ -222,9 +307,13 @@ export function montarCarrossel(dependencias: DependenciasDoCarrossel): Carrosse
         visivel = ultima.isIntersecting;
         if (visivel) {
           if (!zoom) iniciarZoom(atual);
+          // Só retoma o que estava parado: `play()` numa animação que já terminou a faria recomeçar do tamanho normal.
+          else if (zoom.playState === 'paused') zoom.play();
           agendar();
         } else {
+          // Fora da tela, nada se move: nem a troca nem o zoom.
           proximaTroca?.kill();
+          zoom?.pause();
         }
       },
       { threshold: 0.4 },
@@ -237,10 +326,13 @@ export function montarCarrossel(dependencias: DependenciasDoCarrossel): Carrosse
     destruir() {
       destruido = true;
       proximaTroca?.kill();
-      zoom?.kill();
       observador?.disconnect();
       ouvintes.abort();
-      gsap.killTweensOf(slides.map((s) => s.slide));
+      // As trocas em andamento terminam no ato e os zooms são cancelados: nada fica rodando nem em camada de GPU.
+      concluirTrocasEmCurso();
+      for (const animacao of zoomsPorFoto.values()) animacao.cancel();
+      zoomsPorFoto.clear();
+      zoom = undefined;
     },
   };
 }

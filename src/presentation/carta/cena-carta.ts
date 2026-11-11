@@ -8,6 +8,9 @@ import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { urlDaImagem } from '@/domain/imagens/catalogo-de-imagens';
 
+import { animarNoNavegador } from '../animacao/animar-no-navegador';
+import { curvaCss } from '../animacao/curva-css';
+import { concluirLuzDoPorDoSol } from '../bosque/luz-do-por-do-sol';
 import { criar, criarImagem } from '../dom';
 import { carregarImagensTardias } from '../imagens/imagens-tardias';
 import { montarImagemDoSelo, soltarSelo } from '../selo/selo';
@@ -111,7 +114,10 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     dica.setAttribute('aria-live', 'polite');
     // O botão vem antes do selo: o foco do teclado acende o selo (`.carta__abrir:focus-visible + .selo`), no lugar de
     // um retângulo em volta do envelope inteiro.
-    envelope.append(sombra, fechado, aberto, botao, selo, dica);
+    // O glow por trás do envelope (11/11/2026): vem primeiro no DOM, para ficar atrás de tudo. Só CSS; acende quando o
+    // envelope pousa e apaga quando o selo é tocado.
+    const aura = criarAuraDoEnvelope();
+    envelope.append(aura, sombra, fechado, aberto, botao, selo, dica);
     gsap.set(envelope, { opacity: 0, xPercent: -50, yPercent: -50 });
     gsap.set([sombra, aberto, dica, brilho], { opacity: 0 });
 
@@ -208,6 +214,22 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     return elementos;
   }
 
+  /**
+   * O glow atrás do envelope (11/11/2026): uma luz dourada macia em duas camadas, a de dentro, que segue o contorno do envelope, e a de
+   * fora, mais larga (o tamanho, a cor e o ritmo delas estão em `carta.css`). Decorativo e sem texto.
+   */
+  function criarAuraDoEnvelope(): HTMLElement {
+    const aura = criar('div', 'envelope__aura');
+    aura.setAttribute('aria-hidden', 'true');
+    aura.append(criar('span', 'envelope__halo'), criar('span', 'envelope__glow'));
+    return aura;
+  }
+
+  /** Acende ou apaga o brilho do envelope (a CSS faz o esmaecimento). */
+  function brilharEnvelope(acender: boolean): void {
+    elementos?.envelope.classList.toggle('envelope--brilhando', acender);
+  }
+
   function criarSeta(): SVGSVGElement {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('class', 'convite__seta');
@@ -223,10 +245,6 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
   /** Onde o envelope pousa: `config.carta.alturaDoPouso` da altura da tela, do alto (08/11/2026); o baú já saiu de cena. */
   function pousoY(): number {
     return window.innerHeight * tempoDaCarta.alturaDoPouso;
-  }
-
-  function luzesDoPorDoSol(): HTMLElement[] {
-    return gsap.utils.toArray<HTMLElement>('.camada--ceu-sol, .camada--luz', raiz);
   }
 
   /**
@@ -307,10 +325,62 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     });
   }
 
+  /**
+   * A carta ganha camada de GPU própria (`will-change`) a partir do envelope (11/11/2026, ADR-0050). Alta, com sombra projetada
+   * (`drop-shadow`) e texto em mistura (`difference`), ela era refeita a cada quadro enquanto o JavaScript animava o selo e a cena por
+   * cima, e no Motorola Edge 70 Fusion+ o convite piscava; com a camada dela o piscar parou (teste ao vivo no aparelho, painel `?painel`).
+   * É JavaScript, e não CSS, porque a ADR-0047 proíbe `will-change` nas folhas de estilo e esta é a única peça que o pede, só depois do baú.
+   */
+  function darCamadaACarta(carta: HTMLElement): void {
+    carta.style.willChange = 'transform, opacity';
+  }
+
+  /** Para a pulsação do selo deixando-o na escala em que estava: a abertura parte dali. */
+  function pararOPulso(): void {
+    pulso?.kill();
+    pulso = undefined;
+  }
+
+  /** Os movimentos grandes da abertura que rodam no navegador (a subida da cena e do chão, o desdobrar da carta). */
+  let movimentosDoConvite: Animation[] = [];
+
+  function pararOsMovimentosDoConvite(): void {
+    for (const movimento of movimentosDoConvite) movimento.cancel();
+    movimentosDoConvite = [];
+  }
+
+  /**
+   * Move uma peça grande pelo navegador (`Element.animate`) e, ao fim, grava o estado final no estilo pelo GSAP, que é quem o lê depois.
+   * A subida da cena e do chão e o desdobrar da carta eram tweens do GSAP: o JavaScript reescrevia a transformação de peças enormes a cada
+   * quadro (a cena inteira, com a água e dez camadas; a carta, alta e com sombra) e, no Motorola Edge 70 Fusion+ (144 Hz), a transição do
+   * envelope para o convite piscava (11/11/2026, ADR-0050). Devolve `false` sem `animate`: quem chamou usa o GSAP, como antes.
+   */
+  function moverNoNavegador(
+    elemento: HTMLElement,
+    quadros: Keyframe[],
+    duracaoEmSegundos: number,
+    curva: string,
+    aoFim: () => void,
+  ): boolean {
+    if (typeof elemento.animate !== 'function') return false;
+    const animacao = animarNoNavegador(elemento, quadros, {
+      duration: duracaoEmSegundos * 1000,
+      easing: curvaCss(curva),
+      fill: 'forwards',
+    });
+    movimentosDoConvite.push(animacao);
+    animacao.onfinish = () => {
+      aoFim();
+      animacao.cancel();
+    };
+    return true;
+  }
+
   function parar(): void {
+    pararOsMovimentosDoConvite();
     linhaDaCarta?.kill();
     linhaDoConvite?.kill();
-    pulso?.kill();
+    pararOPulso();
     balancoDaSeta?.kill();
     leitura?.parar();
     leitura = undefined;
@@ -321,11 +391,13 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
   function irParaOEstadoFinal(): void {
     const e = montar();
     parar();
+    darCamadaACarta(e.carta);
     aberta = true;
     e.botao.disabled = true;
+    brilharEnvelope(false);
     gsap.set(e.envelope, { opacity: 0 });
     e.envelope.hidden = true;
-    gsap.set(luzesDoPorDoSol(), { opacity: 1 });
+    concluirLuzDoPorDoSol(raiz);
     const cena = raiz.querySelector<HTMLElement>('.cena');
     if (cena) gsap.set(cena, { y: -window.innerHeight * tempoDoConvite.cenaSobeFracao });
     const bau = raiz.querySelector<HTMLElement>('.bau');
@@ -352,6 +424,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
     run() {
       const e = montar();
       const t = tempoDaCarta;
+      darCamadaACarta(e.carta);
       // O envelope, o selo e o chão só são pedidos agora (SPEC-02, RF-02.7).
       carregarImagensTardias(e.envelope);
       carregarImagensTardias(e.chao);
@@ -362,7 +435,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
           aberta = true;
           origem = como;
           e.botao.disabled = true;
-          pulso?.kill();
+          brilharEnvelope(false);
+          pararOPulso();
           linhaDaCarta?.kill();
           resolver();
         };
@@ -370,6 +444,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
         const pousou = () => {
           eventos.emit('carta:pousou');
           estado.definirFase('aguardando-selo');
+          brilharEnvelope(true);
           e.botao.disabled = false;
           // O foco vai para o envelope quando ele pousa (SPEC-09, RF-09.6).
           e.botao.focus({ preventScroll: true });
@@ -421,6 +496,8 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
           .to(e.dica, { opacity: 1, duration: t.dicaAparece, ease: curvas.saida }, t.dicaEm)
           .call(
             () => {
+              // O selo pulsa pelo GSAP, como antes da ADR-0044 (11/11/2026): a pulsação por `Element.animate` coincidiu com o piscar do
+              // envelope e do selo no Motorola Edge 70 Fusion+ (ADR-0048). O glow atrás do envelope agora é estático.
               pulso = gsap.to(e.selo, {
                 scale: t.pulsoDoSelo.escala,
                 duration: t.pulsoDoSelo.periodo / 2,
@@ -475,7 +552,7 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
       const altura = window.innerHeight;
       // A luz vai ao pôr do sol antes de a abertura mexer nela, mesmo que a história tenha sido
       // acelerada ou pulada (RF-06.7).
-      gsap.set(luzesDoPorDoSol(), { opacity: 1 });
+      concluirLuzDoPorDoSol(raiz);
       const cena = raiz.querySelector<HTMLElement>('.cena');
 
       return new Promise<void>((resolver) => {
@@ -542,20 +619,22 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
           );
 
         // A cena inteira sobe (o baú já saiu de cena com a chegada do envelope); o chão preenche a base que fica à mostra.
-        if (cena) {
-          linha.to(
-            cena,
-            { y: -altura * t.cenaSobeFracao, duration: t.cenaSobe, ease: curvas.viaDupla },
-            t.cenaSobeEm,
+        const sobe = -altura * t.cenaSobeFracao;
+        // A subida é do navegador: o GSAP só entra se não houver `Element.animate` (e para gravar o estado final no estilo).
+        const subir = (peca: HTMLElement): void => {
+          const rodou = moverNoNavegador(
+            peca,
+            [{ transform: 'translateY(0px)' }, { transform: `translateY(${String(sobe)}px)` }],
+            t.cenaSobe,
+            curvas.viaDupla,
+            () => {
+              gsap.set(peca, { y: sobe });
+            },
           );
-        }
-        linha
-          .set(e.chao, { opacity: 1 }, t.cenaSobeEm)
-          .to(
-            e.chao,
-            { y: -altura * t.cenaSobeFracao, duration: t.cenaSobe, ease: curvas.viaDupla },
-            t.cenaSobeEm,
-          );
+          if (!rodou) gsap.to(peca, { y: sobe, duration: t.cenaSobe, ease: curvas.viaDupla });
+        };
+        if (cena) linha.call(subir, [cena], t.cenaSobeEm);
+        linha.set(e.chao, { opacity: 1 }, t.cenaSobeEm).call(subir, [e.chao], t.cenaSobeEm);
         // O casal surge de costas, na margem do lago.
         if (e.casal) {
           linha.fromTo(
@@ -567,10 +646,31 @@ export function criarCartaEConvite(dependencias: DependenciasDaCarta): {
         }
 
         linha
-          // A carta se desdobra a partir do topo e assenta.
-          .to(
-            e.carta,
-            { opacity: 1, scaleY: 1, duration: t.desdobra, ease: curvas.viaDuplaForte },
+          // A carta se desdobra a partir do topo e assenta (pelo navegador; o GSAP só entra sem `Element.animate`).
+          .call(
+            () => {
+              const rodou = moverNoNavegador(
+                e.carta,
+                [
+                  { opacity: 0, transform: `scaleY(${String(t.escalaDobrada)})` },
+                  { opacity: 1, transform: 'scaleY(1)' },
+                ],
+                t.desdobra,
+                curvas.viaDuplaForte,
+                () => {
+                  gsap.set(e.carta, { opacity: 1, scaleY: 1 });
+                },
+              );
+              if (!rodou) {
+                gsap.to(e.carta, {
+                  opacity: 1,
+                  scaleY: 1,
+                  duration: t.desdobra,
+                  ease: curvas.viaDuplaForte,
+                });
+              }
+            },
+            [],
             t.desdobraEm,
           )
           // "Role para ler" é o primeiro texto a aparecer: surge quando a carta já se desdobrou pela metade.

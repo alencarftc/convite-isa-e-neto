@@ -9,6 +9,9 @@ import { criarRelogioManual } from './suporte/relogio-gsap';
 import { criarTickerFalso } from './suporte/ticker-falso';
 import { instalarWebGLFalso, type WebGLFalso } from './suporte/webgl-falso';
 
+/** Um quadro de 40 ms: a água a 30 por segundo (ADR-0050) sempre desenha nele. */
+const QUADRO_QUE_DESENHA = 40;
+
 /** Largura da imagem do lago (o happy-dom não decodifica imagens). */
 const LARGURA_DA_IMAGEM = 1536;
 
@@ -104,20 +107,61 @@ describe('água viva (SPEC-19)', () => {
     expect(canvas()?.style.opacity).toBe('0');
     expect(webgl?.contar('drawArrays')).toBe(0);
 
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
     relogio?.avancar(config().vida.agua.aparece + 0.1);
 
     expect(webgl?.contar('drawArrays')).toBe(1);
     expect(canvas()?.style.opacity).toBe('1');
   });
 
-  it('desenha uma única chamada por quadro no nível completo (CT-19.4)', () => {
+  it('desenha uma única chamada por desenho no nível completo (CT-19.4)', () => {
     const { agua, ticker } = montar();
     agua.iniciar('completo');
 
-    for (let i = 0; i < 10; i += 1) ticker.quadro(16.7);
+    for (let i = 0; i < 10; i += 1) ticker.quadro(QUADRO_QUE_DESENHA);
 
     expect(webgl?.contar('drawArrays')).toBe(10);
+  });
+
+  it('também no nível completo a água desenha a 30 quadros por segundo: num aparelho de 144 Hz não é um canvas de tela cheia por quadro (ADR-0050)', () => {
+    const { agua, ticker } = montar();
+    agua.iniciar('completo');
+
+    for (let i = 0; i < 144; i += 1) ticker.quadro(1000 / 144); // um segundo de um aparelho de 144 Hz
+
+    const desenhos = webgl?.contar('drawArrays') ?? 0;
+    expect(desenhos).toBeGreaterThanOrEqual(26);
+    expect(desenhos).toBeLessThanOrEqual(32);
+  });
+
+  it('um erro ao desenhar para a água e o lago volta a ser a pintura parada: o erro não escapa do quadro (11/11/2026)', () => {
+    // Antes o erro subia ao `error` da janela e levava o convite inteiro ao modo de segurança (caixa do lago sem tamanho).
+    const base = document.createElement('canvas').getContext('webgl') as object;
+    const quebrado = new Proxy(base, {
+      get(alvo, nome) {
+        if (nome === 'drawArrays') {
+          return () => {
+            throw new RangeError('A imagem e a caixa precisam ter largura e altura positivas');
+          };
+        }
+        return Reflect.get(alvo, nome) as unknown;
+      },
+    });
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => quebrado as never);
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const { agua, ticker, canvas } = montar();
+    agua.iniciar('completo');
+    expect(canvas()).not.toBeNull();
+
+    expect(() => {
+      ticker.quadro(QUADRO_QUE_DESENHA);
+    }).not.toThrow();
+
+    expect(aviso).toHaveBeenCalledWith('[convite] água parada', expect.any(RangeError));
+    expect(canvas()).toBeNull(); // a água parou e o canvas saiu
+    expect(() => {
+      ticker.quadro(QUADRO_QUE_DESENHA); // e nada mais é desenhado
+    }).not.toThrow();
   });
 
   it('no nível leve desenha um quadro a cada dois de 60 Hz (CT-19.4)', () => {
@@ -147,15 +191,15 @@ describe('água viva (SPEC-19)', () => {
     const { brilhoMinimo, brilhoMaximo } = config().vida.agua.reflexos;
     agua.iniciar('completo');
 
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
     expect(webgl?.valorDoUniforme('u_brilho')?.[0]).toBeCloseTo(brilhoMinimo);
 
     sol.style.opacity = '0.5';
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
     expect(webgl?.valorDoUniforme('u_brilho')?.[0]).toBeCloseTo((brilhoMinimo + brilhoMaximo) / 2);
 
     sol.style.opacity = '1'; // com Pular a opacidade já é 1
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
     expect(webgl?.valorDoUniforme('u_brilho')?.[0]).toBeCloseTo(brilhoMaximo);
   });
 
@@ -189,7 +233,7 @@ describe('água viva (SPEC-19)', () => {
   it('parar apaga textura, buffer e programa, devolve o contexto e tira o canvas (RF-19.8, CT-19.4)', () => {
     const { agua, ticker, canvas } = montar();
     agua.iniciar('completo');
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
 
     agua.parar();
 
@@ -214,7 +258,7 @@ describe('água viva (SPEC-19)', () => {
   it('perder o contexto tira o canvas e para de desenhar, sem mudar a fase (CT-19.5)', () => {
     const { agua, ticker, canvas, estado } = montar();
     agua.iniciar('completo');
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
     const fase = estado.fase;
 
     canvas()?.dispatchEvent(new Event('webglcontextlost', { cancelable: true }));
@@ -278,13 +322,13 @@ describe('água viva (SPEC-19)', () => {
     };
     const { agua, ticker, girar } = montar({ config: personalizada });
     agua.iniciar('completo');
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
     // Na vertical a água é uma elipse sobre o lago da cena mestre (ADR-0015); na horizontal, uma faixa.
     expect(config().vida.agua.regiao.vertical.tipo).toBe('elipse');
     expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([1]);
 
     girar('horizontal');
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
 
     expect(webgl?.valorDoUniforme('u_faixa')).toEqual([0.4, 0.07]);
     expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([0]);
@@ -293,7 +337,7 @@ describe('água viva (SPEC-19)', () => {
   it('no computador (mouse, tela horizontal) a região é a elipse do lago da pintura mestre 16:9, não a faixa das camadas (09/11/2026)', () => {
     const computador = montar({ modo: 'horizontal', toque: false });
     computador.agua.iniciar('completo');
-    computador.ticker.quadro(16);
+    computador.ticker.quadro(QUADRO_QUE_DESENHA);
 
     expect(config().vida.agua.regiao.computador.tipo).toBe('elipse');
     expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([1]);
@@ -302,7 +346,7 @@ describe('água viva (SPEC-19)', () => {
   it('o celular deitado e o tablet (toque, horizontal) seguem na faixa das camadas', () => {
     const deitado = montar({ modo: 'horizontal', toque: true });
     deitado.agua.iniciar('completo');
-    deitado.ticker.quadro(16);
+    deitado.ticker.quadro(QUADRO_QUE_DESENHA);
 
     expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([0]);
     expect(webgl?.valorDoUniforme('u_faixa')).toEqual([0.53, 0.05]);
@@ -311,11 +355,11 @@ describe('água viva (SPEC-19)', () => {
   it('a janela do computador que fica mais alta que larga continua na região do lago da pintura 16:9 (não vira a do celular)', () => {
     const { agua, ticker, girar } = montar({ modo: 'horizontal', toque: false });
     agua.iniciar('completo');
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
     const doComputador = webgl?.valorDoUniforme('u_elipses');
 
     girar('vertical');
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
 
     expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([1]);
     expect(webgl?.valorDoUniforme('u_elipses')).toEqual(doComputador);
@@ -324,11 +368,11 @@ describe('água viva (SPEC-19)', () => {
   it('o celular que gira continua trocando a região da água pela da outra orientação', () => {
     const { agua, ticker, girar } = montar({ modo: 'vertical', toque: true });
     agua.iniciar('completo');
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
     expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([1]);
 
     girar('horizontal');
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
 
     expect(webgl?.valorDoUniforme('u_nElipses')).toEqual([0]);
   });
@@ -337,7 +381,7 @@ describe('água viva (SPEC-19)', () => {
     const { agua, ticker } = montar();
     agua.iniciar('completo');
 
-    ticker.quadro(16);
+    ticker.quadro(QUADRO_QUE_DESENHA);
 
     expect(webgl?.valorDoUniforme('u_frequencia')).toEqual([config().vida.agua.onda.frequencia]);
     expect(webgl?.valorDoUniforme('u_perspectiva')).toEqual([config().vida.agua.onda.perspectiva]);

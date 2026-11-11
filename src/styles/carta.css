@@ -13,7 +13,9 @@
   width: var(--envelope-largura);
   aspect-ratio: 3 / 2;
   pointer-events: none;
-  will-change: transform, opacity;
+
+  /* Sem `will-change` (11/11/2026, ADR-0047): o GSAP e o navegador promovem o envelope a camada enquanto ele se move; fixa, ela ficava na GPU com o glow
+   * e o selo que pulsa, e o envelope piscava. */
 }
 
 /*
@@ -41,6 +43,61 @@
   left: 6%;
   height: 18%;
   background: radial-gradient(closest-side, var(--cor-texto-55), transparent);
+}
+
+/*
+ * O glow por trás do envelope que flutua (11/11/2026): uma luz dourada macia em volta dele, em duas camadas, a de dentro
+ * (`.envelope__glow`, uma sombra difusa que segue o contorno do envelope) e a de fora (`.envelope__halo`, uma névoa de luz mais larga).
+ * É ESTÁTICO, sem animação nenhuma: quando ele respirava (animações de CSS de `transform` e `opacity` nas duas camadas), o selo, que
+ * pulsa por cima, e depois o convite piscavam no Motorola Edge 70 Fusion+ assim que o envelope aparecia; camadas grandes animadas atrás
+ * de uma peça que também se move são a combinação que a ADR-0044 já tinha achado. O que anima é só o conjunto: ele acende ao pousar
+ * (`.envelope--brilhando`, posta ao pousar e tirada ao tocar) e apaga, por um esmaecimento de `opacity` do contêiner, e depois sai do
+ * desenho (`visibility: hidden`).
+ */
+.envelope__aura {
+  position: absolute;
+  inset: -60% -46%;
+  pointer-events: none;
+
+  /* Apagado, o glow sai do desenho de vez: `visibility: hidden` entra quando o esmaecimento termina, e as camadas dele não ficam na GPU
+   * com o convite aberto. */
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 1.1s ease-out,
+    visibility 0s linear 1.1s;
+}
+
+.envelope--brilhando .envelope__aura {
+  visibility: visible;
+  opacity: 1;
+  transition:
+    opacity 1.1s ease-out,
+    visibility 0s;
+}
+
+/* A névoa de luz de fora: larga, suave, de ouro bem diluído. */
+.envelope__halo {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    closest-side,
+    var(--cor-aura-45),
+    var(--cor-aura-25) 44%,
+    var(--cor-aura-12) 70%,
+    transparent
+  );
+}
+
+/* A luz de dentro: um retângulo do tamanho do envelope, só com a sombra difusa, que vaza em volta dele e o faz brilhar. */
+.envelope__glow {
+  position: absolute;
+  inset: 35% 30%;
+  border-radius: 20px;
+  box-shadow:
+    0 0 22px 8px var(--cor-aura-55),
+    0 0 56px 24px var(--cor-aura-45),
+    0 0 112px 46px var(--cor-aura-25);
 }
 
 /*
@@ -123,20 +180,22 @@
 
 .convite__chao {
   --chao-largura: max(100vw, 486px);
+  --chao-h: 48vh;
 
+  /* Ancorado na borda de baixo, como a cena (11/11/2026): `top: 100%` seguia a altura da janela, que muda quando a barra de endereço
+   * recolhe, e o chão se mexia. O topo dele fica `sobra - 6vh` abaixo da borda de baixo, como antes. */
   position: fixed;
-  top: calc(100% + var(--sobra-da-cena) - 6vh);
   right: 0;
+  bottom: calc(6vh - var(--sobra-da-cena) - var(--chao-h));
   left: 0;
   z-index: var(--z-primeiro-plano);
-  height: 48vh;
+  height: var(--chao-h);
   pointer-events: none;
 }
 
 .convite__chao--computador {
   --chao-largura: var(--mestre-largura);
-
-  height: var(--chao-altura);
+  --chao-h: var(--chao-altura);
 }
 
 .convite__chao-faixa {
@@ -235,13 +294,11 @@
   flex-direction: column;
   align-items: center;
   padding: 58vh var(--espaco-3) var(--espaco-7);
-  padding: 58dvh var(--espaco-3) var(--espaco-7);
 }
 
 @media (orientation: landscape) {
   .conteudo {
     padding-top: 62vh;
-    padding-top: 62dvh;
   }
 }
 

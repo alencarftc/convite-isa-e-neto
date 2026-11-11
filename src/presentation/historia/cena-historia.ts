@@ -8,6 +8,11 @@ import type { ConteudoConvite } from '@/domain/conteudo/conteudo-convite';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { type Ponto, posicoesDasEstrelas } from '@/domain/historia/estrelas';
 
+import {
+  concluirLuzDoPorDoSol,
+  iniciarLuzDoPorDoSol,
+  pararLuzDoPorDoSol,
+} from '../bosque/luz-do-por-do-sol';
 import { criar } from '../dom';
 import { carregarImagensTardias } from '../imagens/imagens-tardias';
 import { criarFotoEmCirculo } from './foto-em-circulo';
@@ -269,6 +274,7 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
 
   function parar(): void {
     linhaDoTempo?.kill();
+    pararLuzDoPorDoSol(raiz);
   }
 
   return {
@@ -298,9 +304,12 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
           0,
         );
         // tlLuz dentro da mesma linha do tempo: a luz caminha com as memórias (SPEC-03, RF-03.5).
-        const luz = luzDoPorDoSol();
-        if (luz.length > 0)
-          historia.to(luz, { opacity: 1, duration: total, ease: curvas.suave }, 0);
+        // O pôr do sol roda no navegador (sem JavaScript por quadro durante a história inteira); sem `Element.animate`, no GSAP.
+        if (!iniciarLuzDoPorDoSol(raiz, total, curvas.suave)) {
+          const luz = luzDoPorDoSol();
+          if (luz.length > 0)
+            historia.to(luz, { opacity: 1, duration: total, ease: curvas.suave }, 0);
+        }
 
         memorias.forEach((memoria, indice) => {
           const rotulo = `m${String(indice)}`;
@@ -373,7 +382,7 @@ export function criarCenaHistoria(dependencias: DependenciasDaHistoria): Cena {
       parar();
       secao.hidden = true;
       // A luz termina no pôr do sol (RF-05.10).
-      gsap.set(luzDoPorDoSol(), { opacity: 1 });
+      concluirLuzDoPorDoSol(raiz);
     },
 
     destroy() {

@@ -9,6 +9,11 @@ import type { EventosConvite } from '@/domain/eventos/eventos-convite';
 import { criarCenaBosque } from '@/presentation/bosque/cena-bosque';
 import { criarCenaHistoria } from '@/presentation/historia/cena-historia';
 
+import {
+  type AnimacoesFalsas,
+  instalarAnimacoesFalsas,
+  semAnimate,
+} from './suporte/animacoes-falsas';
 import { criarCarregamentoFalso } from './suporte/carregamento-falso';
 import { configRapida } from './suporte/config-rapida';
 import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
@@ -81,10 +86,16 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}, conteudo: typeof content = con
   return { cena, estado, eventos, registro, frases, el, opacidade, peca, prop, linha };
 }
 
+let animacoes: AnimacoesFalsas;
+let restaurarAnimate: (() => void) | undefined;
+
 beforeEach(() => {
   document.body.innerHTML = '';
+  animacoes = instalarAnimacoesFalsas();
 });
 afterEach(() => {
+  restaurarAnimate?.();
+  restaurarAnimate = undefined;
   vi.restoreAllMocks();
 });
 
@@ -286,7 +297,33 @@ describe('história em memórias de luz (SPEC-05, ADR-0026)', () => {
       expect(el('.historia').hidden).toBe(true);
     });
 
-    it('a luz caminha ao pôr do sol dentro da própria história e termina nele (CA-03.3.1, CA-03.3.2)', () => {
+    it('a luz do pôr do sol roda no navegador, de 0 a 1 em toda a história, nas duas camadas (CA-03.3.1, ADR-0050)', () => {
+      const { cena, el, opacidade } = montar();
+      void cena.run();
+
+      for (const seletor of ['.camada--ceu-sol', '.camada--luz']) {
+        const [animacao] = animacoes.doElemento(el(seletor));
+        expect(animacao?.quadros, seletor).toEqual([{ opacity: 0 }, { opacity: 1 }]);
+        expect(animacao?.opcoes, seletor).toMatchObject({
+          duration: totalDaHistoria * 1000,
+          fill: 'forwards',
+        });
+      }
+      expect(gsap.getTweensOf(el('.camada--ceu-sol'))).toHaveLength(0); // nenhum JavaScript por quadro
+
+      animacoes.terminarTodas(el('.camada--ceu-sol'));
+      animacoes.terminarTodas(el('.camada--luz'));
+
+      expect(opacidade('.camada--ceu-sol')).toBe(1);
+      expect(opacidade('.camada--luz')).toBe(1);
+      expect(
+        animacoes.vivas().filter((a) => a.elemento.matches('.camada--ceu-sol, .camada--luz')),
+      ).toHaveLength(0);
+      cena.skip();
+    });
+
+    it('sem Element.animate a luz caminha ao pôr do sol pelo GSAP dentro da própria história e termina nele (CA-03.3.1, CA-03.3.2)', () => {
+      restaurarAnimate = semAnimate();
       const { cena, opacidade, linha } = montar();
       // Sem o CSS (que começa em 0), as camadas partem invisíveis por aqui.
       gsap.set('.camada--ceu-sol, .camada--luz', { opacity: 0 });

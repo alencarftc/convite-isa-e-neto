@@ -5,8 +5,14 @@ import { criarBarramento } from '@/application/barramento-eventos';
 import { config as configReal } from '@/config/config';
 import type { ConfigConvite } from '@/domain/config/config-convite';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
+import { curvaCss } from '@/presentation/animacao/curva-css';
 import { criarCenaBosque } from '@/presentation/bosque/cena-bosque';
 
+import {
+  type AnimacoesFalsas,
+  instalarAnimacoesFalsas,
+  semAnimate,
+} from './suporte/animacoes-falsas';
 import { criarCarregamentoFalso } from './suporte/carregamento-falso';
 import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
 import { montarIndexHtml } from './suporte/index-html';
@@ -57,10 +63,23 @@ function moverMouse(x: number, y: number): void {
   window.dispatchEvent(Object.assign(new Event('pointermove'), { clientX: x, clientY: y }));
 }
 
+/** As animações do navegador que a cena pediu neste teste (falsas: o happy-dom não as roda). */
+let animacoes: AnimacoesFalsas;
+/** Devolve o `animate` de um teste que simulou um navegador sem ele. */
+let restaurarAnimate: (() => void) | undefined;
+
+/** As animações em curso (rodando ou pausadas) nas camadas da cena que têm profundidade: a deriva do celular. */
+function derivasVivas() {
+  return animacoes.vivas().filter((animacao) => animacao.elemento.hasAttribute('data-prof'));
+}
+
 beforeEach(() => {
   document.body.innerHTML = '';
+  animacoes = instalarAnimacoesFalsas();
 });
 afterEach(() => {
+  restaurarAnimate?.();
+  restaurarAnimate = undefined;
   vi.restoreAllMocks();
 });
 
@@ -319,14 +338,100 @@ describe('cena do bosque (SPEC-03)', () => {
 
       expect(Number(gsap.getProperty(cenaEl(), 'scale'))).toBe(1);
       expect(cenaEl().style.opacity).toBe('1');
-      for (const camada of raiz.querySelectorAll('.nevoa > span')) {
-        expect(Number(gsap.getProperty(camada, 'opacity'))).toBe(0);
-        expect(Number(gsap.getProperty(camada, 'scale'))).toBeCloseTo(1.15);
+      // A névoa abriu por animações do navegador, que ficam no fim (opacidade 0) atrás da entrada escondida.
+      const camadas = [...raiz.querySelectorAll<HTMLElement>('.nevoa > span')];
+      expect(camadas).toHaveLength(2);
+      for (const camada of camadas) {
+        const [abertura] = animacoes.doElemento(camada);
+        expect(abertura?.quadros[0]).toMatchObject({ opacity: 0 });
+        expect(abertura?.estado).toBe('running');
       }
       expect(raiz.querySelector<HTMLElement>('.entrada')?.hidden).toBe(true);
     });
 
-    it('a cena parte de escala 1,06 e a névoa de 1 (aproximação)', async () => {
+    it('a névoa se abre por animações do navegador: cada camada cresce e vai para um lado, em sentidos opostos, e some (ADR-0044)', async () => {
+      const { cena, raiz } = montar({ instantaneo: true });
+      cena.init();
+      const { escalaFinalDaNevoa, deslocamentoDaNevoa, fracaoDaNevoa } = config.movimento;
+
+      await cena.run();
+
+      const [primeira, segunda] = [...raiz.querySelectorAll<HTMLElement>('.nevoa > span')];
+      const abertura = (camada: HTMLElement | undefined) =>
+        camada ? animacoes.doElemento(camada)[0] : undefined;
+      expect(abertura(primeira)?.quadros).toEqual([
+        {
+          opacity: 0,
+          transform: `translateX(${String(deslocamentoDaNevoa)}%) scale(${String(escalaFinalDaNevoa)})`,
+        },
+      ]);
+      expect(abertura(segunda)?.quadros).toEqual([
+        {
+          opacity: 0,
+          transform: `translateX(${String(-deslocamentoDaNevoa)}%) scale(${String(escalaFinalDaNevoa)})`,
+        },
+      ]);
+      expect(abertura(primeira)?.opcoes).toMatchObject({
+        duration: config.duracoes.nevoa * fracaoDaNevoa * 1000,
+        easing: curvaCss(config.curvas.suave),
+        fill: 'forwards',
+      });
+    });
+
+    it('a respiração da entrada é congelada onde estava e cancelada antes de a névoa abrir, para a abertura partir dali', async () => {
+      const { cena, raiz } = montar({ instantaneo: true });
+      cena.init();
+      const camada = raiz.querySelector<HTMLElement>('.nevoa > span');
+      const respirando = { commitStyles: vi.fn(), cancel: vi.fn() };
+      if (camada) {
+        vi.spyOn(camada, 'getAnimations').mockReturnValue([respirando as unknown as Animation]);
+      }
+
+      await cena.run();
+
+      expect(respirando.commitStyles).toHaveBeenCalledOnce();
+      expect(respirando.cancel).toHaveBeenCalledOnce();
+      expect(respirando.commitStyles.mock.invocationCallOrder[0]).toBeLessThan(
+        respirando.cancel.mock.invocationCallOrder[0] ?? Infinity,
+      );
+    });
+
+    it('destroy cancela a abertura da névoa e a aproximação da cena', async () => {
+      const { cena } = montar({ instantaneo: true });
+      cena.init();
+      await cena.run();
+
+      cena.destroy();
+
+      expect(animacoes.todas.every((animacao) => animacao.estado === 'cancelled')).toBe(true);
+    });
+
+    it('a cena se aproxima por uma animação do navegador, de escalaInicialDoBosque a 1 na duração da névoa, e ela sai ao fim (ADR-0044)', async () => {
+      const { cena, cenaEl } = montar({ instantaneo: true });
+      cena.init();
+
+      const execucao = cena.run();
+      await vi.waitFor(() => {
+        expect(animacoes.doElemento(cenaEl())).toHaveLength(1);
+      });
+      const [aproximacao] = animacoes.doElemento(cenaEl());
+      expect(aproximacao?.quadros).toEqual([
+        { transform: `scale(${String(config.movimento.escalaInicialDoBosque)})` },
+        { transform: 'scale(1)' },
+      ]);
+      expect(aproximacao?.opcoes).toMatchObject({
+        duration: config.duracoes.nevoa * 1000,
+        easing: curvaCss(config.curvas.saida),
+      });
+
+      await execucao;
+
+      expect(aproximacao?.estado).toBe('cancelled');
+      expect(Number(gsap.getProperty(cenaEl(), 'scale'))).toBe(1);
+    });
+
+    it('sem Element.animate (navegador antigo), o GSAP faz a aproximação: a cena parte de escala 1,06 ou mais e termina em 1', async () => {
+      restaurarAnimate = semAnimate();
       const { cena, cenaEl } = montar({ instantaneo: true });
       cena.init();
 
@@ -335,6 +440,12 @@ describe('cena do bosque (SPEC-03)', () => {
         expect(Number(gsap.getProperty(cenaEl(), 'scale'))).toBeLessThanOrEqual(1.06);
       });
       await execucao;
+
+      expect(Number(gsap.getProperty(cenaEl(), 'scale'))).toBe(1);
+      for (const camada of document.querySelectorAll('.nevoa > span')) {
+        expect(Number(gsap.getProperty(camada, 'opacity'))).toBe(0);
+        expect(Number(gsap.getProperty(camada, 'scale'))).toBeCloseTo(1.15);
+      }
     });
 
     it('emite bosque:pronto só no fim da revelação', async () => {
@@ -421,46 +532,111 @@ describe('cena do bosque (SPEC-03)', () => {
       );
     });
 
-    it('no celular, em vez do mouse, cada camada faz uma deriva automática (CA-03.2.2, CT-03.3)', async () => {
+    it('no celular, em vez do mouse, cada camada faz uma deriva automática, uma animação do navegador que vai e volta sem fim (CA-03.2.2, CT-03.3, ADR-0044)', async () => {
       const { cena, camada } = montar({ instantaneo: true, toque: true });
       cena.init();
       await cena.run();
+      const { deriva, periodoDaDeriva, defasagemDaDeriva } = config.movimento.profundidade;
 
-      expect(gsap.getTweensOf(camada('frente')).length).toBeGreaterThan(0);
+      const [animacao] = animacoes.doElemento(camada('frente'));
+      const profundidade = Number(camada('frente').getAttribute('data-prof'));
+      expect(animacao?.quadros).toEqual([
+        { transform: 'translate3d(0px, 0px, 0px)' },
+        { transform: `translate3d(${String(deriva * profundidade)}px, 0px, 0px)` },
+      ]);
+      expect(animacao?.opcoes).toMatchObject({
+        duration: periodoDaDeriva * 1000,
+        direction: 'alternate',
+        iterations: Number.POSITIVE_INFINITY,
+        easing: curvaCss(config.curvas.suave),
+        fill: 'both',
+      });
+      // cada camada começa a seu tempo, defasada da anterior
+      const atrasos = animacoes
+        .doElemento(camada('frente'))
+        .concat(animacoes.doElemento(camada('lago')))
+        .map((a) => a.opcoes.delay);
+      expect(new Set(atrasos).size).toBeGreaterThan(1);
+      // (um múltiplo da defasagem, a menos do erro de ponto flutuante)
+      const passos = (atraso: number | undefined) => (atraso ?? 0) / (defasagemDaDeriva * 1000);
+      expect(
+        atrasos.every((atraso) => Math.abs(passos(atraso) - Math.round(passos(atraso))) < 1e-6),
+      ).toBe(true);
+      // o GSAP não anima mais as camadas: nada de x pelo JavaScript
+      expect(gsap.getTweensOf(camada('frente'))).toHaveLength(0);
       moverMouse(0, 0);
-      await new Promise((resolver) => setTimeout(resolver, 60));
-
-      // o mouse é ignorado: o x vem só da deriva (no máximo 6 px × profundidade)
-      expect(Math.abs(Number(gsap.getProperty(camada('frente'), 'x')))).toBeLessThanOrEqual(6);
+      expect(Number(gsap.getProperty(camada('frente'), 'x'))).toBe(0);
     });
 
-    it('"Pausar animação" congela a deriva do celular e retomar a devolve (SPEC-18, RF-18.9)', async () => {
+    it('a camada que a deriva moveria menos de 1 px (o céu) não ganha animação: seria uma camada de GPU de tela cheia para um movimento invisível (ADR-0050)', async () => {
+      const { cena, camada } = montar({ instantaneo: true, toque: true });
+      cena.init();
+      await cena.run();
+      const { deriva } = config.movimento.profundidade;
+
+      for (const nome of ['ceu', 'ceu-sol']) {
+        const prof = Number(camada(nome).getAttribute('data-prof'));
+        expect(deriva * prof, nome).toBeLessThan(1);
+        expect(animacoes.doElemento(camada(nome)), nome).toHaveLength(0);
+      }
+      for (const nome of ['lago', 'frente']) {
+        const prof = Number(camada(nome).getAttribute('data-prof'));
+        expect(deriva * prof, nome).toBeGreaterThanOrEqual(1);
+        expect(animacoes.doElemento(camada(nome)), nome).toHaveLength(1);
+      }
+    });
+
+    it('"Pausar animação" congela a deriva do celular e retomar a devolve, no mesmo ponto (SPEC-18, RF-18.9)', async () => {
       const { cena, camada, estado } = montar({ instantaneo: true, toque: true });
       cena.init();
       await cena.run();
-      const deriva = () => gsap.getTweensOf(camada('frente'));
+      const viva = () =>
+        animacoes.doElemento(camada('frente')).filter((a) => a.estado !== 'cancelled');
+      const [antes] = viva();
+      if (antes) antes.currentTime = 3210; // a deriva já andou 3,2 s
 
       estado.definirMovimento(false);
 
-      expect(deriva().every((animacao) => animacao.paused())).toBe(true);
+      expect(viva()).toHaveLength(0);
 
       estado.definirMovimento(true);
 
-      expect(deriva().some((animacao) => !animacao.paused())).toBe(true);
+      expect(viva().every((animacao) => animacao.estado === 'running')).toBe(true);
+      expect(viva()).toHaveLength(1);
+      expect(viva()[0]?.currentTime).toBe(3210);
     });
 
-    it('com o convite aberto a deriva do celular para de vez: a carta cobre a cena e o tween infinito esquentava o aparelho (10/11/2026)', async () => {
+    it('pausar a deriva a CANCELA e deixa a camada parada no estilo, sem animação em curso: pausada, ela ainda a manteria na GPU, como um will-change (ADR-0049)', async () => {
       const { cena, camada, estado } = montar({ instantaneo: true, toque: true });
       cena.init();
       await cena.run();
-      const deriva = () => gsap.getTweensOf(camada('frente'));
-      expect(deriva().some((animacao) => !animacao.paused())).toBe(true);
+      const camadas = ['lago', 'frente'].map((nome) => camada(nome));
+      expect(derivasVivas().length).toBeGreaterThanOrEqual(camadas.length);
+
+      estado.definirMovimento(false);
+
+      expect(derivasVivas()).toHaveLength(0);
+      for (const elemento of camadas) expect(elemento.style.transform).toMatch(/^translate\(/);
+      expect(camadas.some((elemento) => elemento.style.transform.includes('3d'))).toBe(false);
+
+      estado.definirMovimento(true);
+
+      expect(derivasVivas().length).toBeGreaterThanOrEqual(camadas.length);
+    });
+
+    it('com o convite aberto a deriva do celular para de vez: a carta cobre a cena e a animação infinita esquentava o aparelho (10/11/2026)', async () => {
+      const { cena, camada, estado } = montar({ instantaneo: true, toque: true });
+      cena.init();
+      await cena.run();
+      const deriva = () => animacoes.doElemento(camada('frente'));
+      expect(deriva().some((animacao) => animacao.estado === 'running')).toBe(true);
 
       estado.definirFase('convite');
 
-      expect(deriva().every((animacao) => animacao.paused())).toBe(true);
+      expect(deriva().every((animacao) => animacao.estado === 'cancelled')).toBe(true);
+      expect(derivasVivas()).toHaveLength(0);
       estado.definirMovimento(true); // ligar o movimento não a religa com o convite aberto
-      expect(deriva().every((animacao) => animacao.paused())).toBe(true);
+      expect(deriva().every((animacao) => animacao.estado === 'cancelled')).toBe(true);
     });
 
     it('com a pausa gravada numa visita anterior, a deriva já nasce congelada', async () => {
@@ -468,7 +644,50 @@ describe('cena do bosque (SPEC-03)', () => {
       cena.init();
       await cena.run();
 
-      expect(gsap.getTweensOf(camada('frente')).every((animacao) => animacao.paused())).toBe(true);
+      expect(animacoes.doElemento(camada('frente')).length).toBeGreaterThan(0);
+      expect(derivasVivas()).toHaveLength(0);
+    });
+
+    it('destruir a cena com a deriva congelada devolve o estilo que as camadas tinham', async () => {
+      const { cena, camada, estado } = montar({ instantaneo: true, toque: true });
+      cena.init();
+      await cena.run();
+      const frente = camada('frente');
+      frente.style.transform = 'translate(1px, 2px)';
+      estado.definirMovimento(false);
+      expect(frente.style.transform).toBe('translate(0px, 0px)');
+
+      cena.destroy();
+
+      expect(derivasVivas()).toHaveLength(0);
+      expect(frente.style.transform).toBe('translate(1px, 2px)');
+    });
+
+    it('destroy cancela a deriva do celular', async () => {
+      const { cena } = montar({ instantaneo: true, toque: true });
+      cena.init();
+      await cena.run();
+      expect(animacoes.todas.some((animacao) => animacao.estado === 'running')).toBe(true);
+
+      cena.destroy();
+
+      expect(animacoes.todas.every((animacao) => animacao.estado === 'cancelled')).toBe(true);
+    });
+
+    it('sem Element.animate (navegador antigo), o GSAP faz a deriva: congela, retoma e para como antes', async () => {
+      restaurarAnimate = semAnimate();
+      const { cena, camada, estado } = montar({ instantaneo: true, toque: true });
+      cena.init();
+      await cena.run();
+      const deriva = () => gsap.getTweensOf(camada('frente'));
+
+      expect(deriva().some((animacao) => !animacao.paused())).toBe(true);
+      estado.definirMovimento(false);
+      expect(deriva().every((animacao) => animacao.paused())).toBe(true);
+      estado.definirMovimento(true);
+      expect(deriva().some((animacao) => !animacao.paused())).toBe(true);
+      estado.definirFase('convite');
+      expect(deriva().every((animacao) => animacao.paused())).toBe(true);
     });
 
     it('destroy para a profundidade e remove a cena', async () => {

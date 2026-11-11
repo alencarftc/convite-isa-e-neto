@@ -5,8 +5,10 @@ import { criarBarramento } from '@/application/barramento-eventos';
 import { config } from '@/config/config';
 import { content } from '@/config/content';
 import type { EventosConvite } from '@/domain/eventos/eventos-convite';
+import { curvaCss } from '@/presentation/animacao/curva-css';
 import { criarCenaEntrada } from '@/presentation/entrada/cena-entrada';
 
+import { type AnimacoesFalsas, instalarAnimacoesFalsas } from './suporte/animacoes-falsas';
 import { criarCarregamentoFalso } from './suporte/carregamento-falso';
 import { criarEstadoFalso, type OpcoesDoEstadoFalso } from './suporte/estado-falso';
 import { montarIndexHtml, textoDoIndexHtml } from './suporte/index-html';
@@ -38,11 +40,16 @@ function montar(opcoes: OpcoesDoEstadoFalso = {}) {
   return { cena, estado, aoTocar, baixadas, el, botao, concluirImagens, passarEspera, girar };
 }
 
+/** As animações do navegador que a entrada pediu (falsas: o happy-dom não as roda). */
+let animacoes: AnimacoesFalsas;
+
 beforeEach(() => {
   document.body.innerHTML = '';
+  animacoes = instalarAnimacoesFalsas();
 });
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 const proximoTurno = () => new Promise<void>((resolver) => setTimeout(resolver, 0));
@@ -75,6 +82,51 @@ describe('cena de entrada (SPEC-02)', () => {
 
       expect(el('.entrada__nomes').children).toHaveLength(0);
       expect(el('.entrada__nomes').textContent).toBe('Isabella & David');
+    });
+
+    it('a névoa respira por animações do navegador: cada camada vai e volta 4% para um lado e a opacidade oscila entre 0,85 e 1 (ADR-0044)', () => {
+      const { cena } = montar();
+      cena.init();
+      const { nevoaEmRepouso } = config.duracoes;
+
+      const camadas = [...document.querySelectorAll<HTMLElement>('.nevoa > span')];
+      expect(camadas).toHaveLength(2);
+      const [primeira, segunda] = camadas.map((camada) => animacoes.doElemento(camada));
+      // uma animação de deslocamento e outra de opacidade por camada
+      expect(primeira).toHaveLength(2);
+      expect(primeira?.[0]?.quadros).toEqual([
+        { transform: 'translateX(-4%)' },
+        { transform: 'translateX(4%)' },
+      ]);
+      expect(segunda?.[0]?.quadros).toEqual([
+        { transform: 'translateX(4%)' },
+        { transform: 'translateX(-4%)' }, // a segunda vai em sentido oposto
+      ]);
+      expect(primeira?.[0]?.opcoes).toMatchObject({
+        duration: nevoaEmRepouso * 1000,
+        direction: 'alternate',
+        iterations: Number.POSITIVE_INFINITY,
+        easing: curvaCss(config.curvas.suave),
+      });
+      expect(primeira?.[1]?.quadros).toEqual([{ opacity: 0.85 }, { opacity: 1 }]);
+      expect(primeira?.[1]?.opcoes).toMatchObject({ duration: (nevoaEmRepouso / 2) * 1000 });
+    });
+
+    it('com animação reduzida a névoa fica parada: nenhuma animação do navegador', () => {
+      const { cena } = montar({ reduzido: true });
+      cena.init();
+
+      expect(animacoes.todas).toHaveLength(0);
+    });
+
+    it('destroy e skip cancelam a respiração da névoa', () => {
+      const { cena } = montar();
+      cena.init();
+      expect(animacoes.vivas().length).toBeGreaterThan(0);
+
+      cena.destroy();
+
+      expect(animacoes.vivas()).toHaveLength(0);
     });
 
     it('sem a seção .entrada no HTML, falha com mensagem clara', () => {
@@ -152,16 +204,141 @@ describe('cena de entrada (SPEC-02)', () => {
       expect(document.querySelector('.entrada__selo')?.textContent).toBe('');
     });
 
-    it('o selo aparece quando a imagem chega, sem esperar nem atrasar "Toque para entrar" (CT-16.4)', async () => {
-      const { cena, el } = montar();
-      cena.init();
-      expect(Number(el('.entrada__selo').style.opacity || 0)).toBe(0);
+    /** A landing, do primeiro quadro ao "Toque para entrar": os botões fixos de cima já existem na página (como em main.ts). */
+    function prepararLanding(opcoes: OpcoesDoEstadoFalso = {}) {
+      const montado = montar(opcoes);
+      for (const classe of ['botao-som', 'botao-pular']) {
+        const botao = document.createElement('button');
+        botao.className = classe;
+        document.body.append(botao);
+      }
+      montado.cena.init();
+      return montado;
+    }
+    const itensDaLanding = ['.entrada__nomes', '.entrada__tocar', '.entrada__selo'] as const;
 
+    it('os nomes, o selo e "Toque para entrar" nascem invisíveis: nada aparece antes da hora, nem os nomes que vinham no HTML (11/11/2026)', () => {
+      const { el } = prepararLanding();
+
+      expect(animacoes.doElemento(el('.entrada__nomes'))).toHaveLength(0);
+      expect(animacoes.doElemento(el('.entrada__selo'))).toHaveLength(0);
+      expect(el('.entrada__tocar').hidden).toBe(true);
+      expect(Number(el('.entrada__selo').style.opacity || 0)).toBe(0);
+    });
+
+    it('quando as imagens críticas e o selo chegaram, os nomes, o selo, "Toque para entrar" e os botões de cima entram juntos: mesmo instante, mesma duração, mesma curva (11/11/2026)', async () => {
+      const { cena, el, concluirImagens, estado } = prepararLanding();
       el('.entrada__selo .selo__imagem').dispatchEvent(new Event('load'));
+      void cena.run();
+      concluirImagens();
+      await vi.waitFor(() => {
+        expect(el('.entrada__tocar').hidden).toBe(false);
+      });
+      const { entradaJunto } = config.duracoes;
+
+      const botoes = [...document.querySelectorAll<HTMLElement>('.botao-som, .botao-pular')];
+      const entrando = [...itensDaLanding.map((seletor) => el(seletor)), ...botoes].map(
+        (elemento) => animacoes.doElemento(elemento)[0],
+      );
+      expect(entrando.every((animacao) => animacao !== undefined)).toBe(true);
+      for (const animacao of entrando) {
+        expect(animacao?.opcoes).toMatchObject({
+          duration: entradaJunto * 1000,
+          easing: curvaCss(config.curvas.saida),
+          fill: 'both',
+        });
+        expect(animacao?.opcoes.delay ?? 0).toBe(0); // todos começam no mesmo instante
+      }
+      // os nomes e "Toque para entrar" sobem um pouco; o selo e os botões só esmaecem
+      expect(animacoes.doElemento(el('.entrada__nomes'))[0]?.quadros).toEqual([
+        { opacity: 0, transform: `translateY(${String(config.entrada.sobe)}px)` },
+        { opacity: 1, transform: 'translateY(0px)' },
+      ]);
+      expect(animacoes.doElemento(el('.entrada__tocar'))[0]?.quadros[0]).toMatchObject({
+        opacity: 0,
+        transform: `translateY(${String(config.entrada.sobe)}px)`,
+      });
+      expect(animacoes.doElemento(el('.entrada__selo'))[0]?.quadros).toEqual([
+        { opacity: 0 },
+        { opacity: 1 },
+      ]);
+      expect(estado.fase).toBe('aguardando-entrada'); // a fase muda no mesmo instante (a CSS mostra os botões fixos por ela)
+    });
+
+    it('ao fim da entrada o estado final vai para o estilo e as animações são canceladas: tudo fica à vista (11/11/2026)', async () => {
+      const { cena, el, concluirImagens } = prepararLanding();
+      el('.entrada__selo .selo__imagem').dispatchEvent(new Event('load'));
+      void cena.run();
+      concluirImagens();
+      await vi.waitFor(() => {
+        expect(el('.entrada__tocar').hidden).toBe(false);
+      });
+
+      animacoes.terminarTodas();
+
+      for (const seletor of itensDaLanding) {
+        expect(el(seletor).style.opacity, seletor).toBe('1');
+        expect(animacoes.doElemento(el(seletor))[0]?.estado, seletor).toBe('cancelled');
+      }
+      expect(el('.entrada__nomes').style.transform).toBe('');
+      expect(el('.entrada__tocar').style.transform).toBe('');
+      // os botões fixos não ganham estilo: a CSS os mostra quando a fase deixa de ser "carregando"
+      expect(document.querySelector<HTMLElement>('.botao-som')?.style.opacity).toBe('');
+    });
+
+    it('se o selo demora mais que `entradaAguardaSelo`, a landing entra sem ele e ele chega sozinho, com a mesma suavidade (11/11/2026)', async () => {
+      const relogio = criarRelogioManual();
+      try {
+        const { cena, el, concluirImagens } = prepararLanding();
+        void cena.run();
+        concluirImagens();
+        // O relógio anda aos poucos até a landing entrar (a espera só existe quando as imagens críticas chegam).
+        let avancado = 0;
+        await vi.waitFor(() => {
+          relogio.avancar(0.05, 0.01);
+          avancado += 0.05;
+          expect(el('.entrada__tocar').hidden).toBe(false);
+        });
+        expect(avancado).toBeGreaterThanOrEqual(config.duracoes.entradaAguardaSelo - 0.06); // esperou o selo até o limite
+
+        expect(animacoes.doElemento(el('.entrada__nomes'))).toHaveLength(1);
+        expect(animacoes.doElemento(el('.entrada__selo'))).toHaveLength(0); // o selo ficou de fora
+
+        el('.entrada__selo .selo__imagem').dispatchEvent(new Event('load')); // e agora chegou
+        await vi.waitFor(() => {
+          expect(animacoes.doElemento(el('.entrada__selo'))).toHaveLength(1);
+        });
+        expect(animacoes.doElemento(el('.entrada__selo'))[0]?.opcoes).toMatchObject({
+          duration: config.duracoes.entradaJunto * 1000,
+        });
+      } finally {
+        relogio.restaurar();
+      }
+    });
+
+    it('um selo que não vem (erro ao carregar) não trava a landing: ela entra do mesmo jeito', async () => {
+      const { cena, el, concluirImagens } = prepararLanding();
+      void cena.run();
+      concluirImagens();
+
+      el('.entrada__selo .selo__imagem').dispatchEvent(new Event('error'));
 
       await vi.waitFor(() => {
-        expect(Number(el('.entrada__selo').style.opacity)).toBe(1);
+        expect(el('.entrada__tocar').hidden).toBe(false);
       });
+    });
+
+    it('com animação reduzida nada se anima: os nomes, o selo e "Toque para entrar" aparecem de uma vez (11/11/2026)', async () => {
+      const { cena, el, concluirImagens } = prepararLanding({ reduzido: true });
+      el('.entrada__selo .selo__imagem').dispatchEvent(new Event('load'));
+      void cena.run();
+      concluirImagens();
+      await vi.waitFor(() => {
+        expect(el('.entrada__tocar').hidden).toBe(false);
+      });
+
+      for (const seletor of itensDaLanding) expect(el(seletor).style.opacity, seletor).toBe('1');
+      expect(animacoes.todas).toHaveLength(0);
     });
 
     it('pulsa devagar em repouso e fica parado com animação reduzida (CT-16.3)', () => {
@@ -197,6 +374,7 @@ describe('cena de entrada (SPEC-02)', () => {
     async function ateOToque(opcoes: OpcoesDoEstadoFalso = {}) {
       const montado = montar(opcoes);
       montado.cena.init();
+      montado.el('.entrada__selo .selo__imagem').dispatchEvent(new Event('load')); // o selo já chegou
       const execucao = montado.cena.run();
       montado.concluirImagens();
       await vi.waitFor(() => {
@@ -204,6 +382,19 @@ describe('cena de entrada (SPEC-02)', () => {
       });
       return { ...montado, execucao };
     }
+
+    it('um toque no meio da entrada leva o que ainda entrava direto ao fim, antes de a saída começar (11/11/2026)', async () => {
+      const { botao, el, execucao, concluirImagens } = await ateOToque();
+      const nomes = animacoes.doElemento(el('.entrada__nomes'))[0];
+      expect(nomes?.estado).toBe('running'); // ainda entrando
+
+      botao('.entrada__tocar').click();
+      concluirImagens();
+      await execucao;
+
+      expect(nomes?.estado).toBe('cancelled');
+      expect(el('.entrada__nomes').style.opacity).not.toBe('0');
+    });
 
     it('emite entrada:tocou dentro do próprio clique e resolve "entrar" com o bosque pronto (RF-02.6)', async () => {
       const { botao, aoTocar, execucao, concluirImagens } = await ateOToque();
@@ -229,13 +420,6 @@ describe('cena de entrada (SPEC-02)', () => {
 
     it('ao tocar, o selo se solta inteiro (levanta, cresce e some), um clarão acende e os nomes se desfazem (ADR-0012)', async () => {
       const { botao, el, execucao, concluirImagens } = await ateOToque();
-      let brilhoMaximo = 0;
-      const olhar = setInterval(() => {
-        brilhoMaximo = Math.max(
-          brilhoMaximo,
-          Number(gsap.getProperty(el('.selo__brilho'), 'opacity')),
-        );
-      }, 5);
 
       botao('.entrada__tocar').click();
       concluirImagens();
@@ -247,9 +431,7 @@ describe('cena de entrada (SPEC-02)', () => {
         },
         { timeout: 4000 },
       );
-      clearInterval(olhar);
 
-      expect(brilhoMaximo).toBeGreaterThan(0.3);
       expect(Number(gsap.getProperty(el('.entrada__nomes'), 'y'))).toBeLessThan(0); // os nomes subiram
       // O selo subiu e cresceu ao se soltar, mas nunca foi partido nem girou além do giro configurado.
       const imagem = el('.entrada__selo .selo__imagem');
@@ -258,6 +440,33 @@ describe('cena de entrada (SPEC-02)', () => {
       expect(Math.abs(Number(gsap.getProperty(imagem, 'rotation')))).toBeLessThanOrEqual(
         config.entrada.saida.solta.giro + 1e-6,
       );
+    });
+
+    it('o clarão que sai de trás do selo é uma animação do navegador: sobe até a opacidade máxima a 35%, e se desfaz crescendo, depois do aperto (ADR-0044)', async () => {
+      const { botao, el, execucao, concluirImagens } = await ateOToque();
+      const { saida } = config.entrada;
+
+      botao('.entrada__tocar').click();
+      concluirImagens();
+      await execucao;
+
+      const [clarao] = animacoes.doElemento(el('.selo__brilho'));
+      expect(clarao?.quadros).toEqual([
+        { opacity: 0, transform: 'scale(0.3)', easing: curvaCss(config.curvas.saida) },
+        {
+          opacity: saida.brilho.opacidade,
+          transform: `scale(${String(saida.brilho.escala * 0.6)})`,
+          offset: 0.35,
+          easing: curvaCss(config.curvas.senoSaida),
+        },
+        { opacity: 0, transform: `scale(${String(saida.brilho.escala)})` },
+      ]);
+      expect(clarao?.opcoes).toMatchObject({
+        duration: saida.brilho.duracao * 1000,
+        delay: saida.aperto.duracao * 1000,
+        fill: 'both',
+      });
+      expect(saida.brilho.opacidade).toBeGreaterThan(0.3);
     });
 
     it('a névoa só pode abrir quando o selo se solta: o run espera config.entrada.saida.nevoaEm', async () => {
@@ -291,6 +500,7 @@ describe('cena de entrada (SPEC-02)', () => {
       await execucao;
 
       expect(gsap.getTweensOf(el('.selo__brilho'))).toHaveLength(0);
+      expect(animacoes.doElemento(el('.selo__brilho'))).toHaveLength(0);
       expect(gsap.getTweensOf(el('.entrada__selo .selo__imagem'))).toHaveLength(0);
     });
 
@@ -319,6 +529,7 @@ describe('cena de entrada (SPEC-02)', () => {
     async function tocarSemImagens() {
       const montado = montar();
       montado.cena.init();
+      montado.el('.entrada__selo .selo__imagem').dispatchEvent(new Event('load')); // o selo já chegou
       const execucao = montado.cena.run();
       const resultado = execucao.then(
         (valor) => ({ valor }),
@@ -346,6 +557,7 @@ describe('cena de entrada (SPEC-02)', () => {
 
     it('20 s depois do toque, sem bosque, rejeita para o orquestrador entrar em segurança (CA-02.4.2)', async () => {
       const { passarEspera, resultado } = await tocarSemImagens();
+      await proximoTurno(); // a espera do bosque começa uns passos depois do toque
 
       passarEspera(config.duracoes.limiteSeguranca);
 

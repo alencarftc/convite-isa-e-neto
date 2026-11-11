@@ -2,13 +2,13 @@
  * Cena viva (épico 13, SPEC-18): três espaços vazios dentro da cena, onde moram os movimentos de ambiente
  * (pássaros no céu, folhas atrás do baú, esquilo e folhas da frente no chão). Cada um acompanha a
  * profundidade da camada ao lado (`data-prof`). São decorativos: sem toque, sem foco. A água é um canvas
- * dentro da camada do lago, não um espaço (SPEC-19). Só `transform` e `opacity` se animam.
+ * dentro da camada do lago, não um espaço (SPEC-19). Só `transform` e `opacity` se animam. Nada aqui tem `will-change`: a camada de GPU
+ * só existe enquanto a peça se move, e quem a promove é a animação (ADR-0045 e ADR-0047).
  */
 .vida {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  will-change: transform;
 }
 
 .vida--ceu {
@@ -45,7 +45,6 @@
   pointer-events: none;
   user-select: none;
   opacity: 0;
-  will-change: transform, opacity;
 }
 
 /* Bando de pássaros (SPEC-20): um svg do tamanho da tela; cada pássaro é um "v" de traço arredondado. */
@@ -110,7 +109,6 @@
   left: 0;
   pointer-events: none;
   transform-origin: 50% 100%;
-  will-change: transform;
 }
 
 .esquilo__pose {
@@ -147,5 +145,4 @@
   pointer-events: none;
   user-select: none;
   opacity: 0;
-  will-change: transform, opacity;
 }
